@@ -867,18 +867,3 @@ textarea:focus { outline: none; border-color: var(--accent); }
   }
 }
 
-@media (max-width: 768px) {
-  .dashboard-container {
-    flex-direction: column;
-  }
-  
-  .sidebar {
-    width: 100%;
-    height: auto;
-    position: relative;
-  }
-
-  .sections-grid {
-    grid-template-columns: 1fr;
-  }
-}
