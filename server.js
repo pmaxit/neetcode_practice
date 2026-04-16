@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { Sequelize, DataTypes } from 'sequelize';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 dotenv.config();
 
@@ -62,6 +63,7 @@ const Problem = sequelize.define('Problem', {
     examples: DataTypes.JSON,
     python_code: DataTypes.TEXT,
     mnemonic: DataTypes.TEXT,
+    guided_hints: DataTypes.TEXT,
     neetcode_url: DataTypes.STRING,
     leetcode_url: DataTypes.STRING,
     youtube_url: DataTypes.STRING
@@ -89,6 +91,17 @@ const SystemDesignProgress = sequelize.define('SystemDesignProgress', {
     status: { type: DataTypes.STRING, defaultValue: 'not-started' },
     notes: DataTypes.TEXT
 }, { timestamps: true, tableName: 'system_design_progress' });
+
+const MLSystemDesignNote = sequelize.define('MLSystemDesignNote', {
+    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    title: DataTypes.STRING,
+    category: DataTypes.STRING,
+    history: DataTypes.TEXT,
+    example: DataTypes.TEXT,
+    where_it_is_used: DataTypes.TEXT,
+    technical_deep_dive: DataTypes.TEXT('long'),
+    scheduled_date: DataTypes.DATEONLY
+}, { timestamps: false, tableName: 'ml_system_design_notes' });
 
 
 // Health check endpoint
@@ -140,11 +153,13 @@ app.get('/api/system-design/today', async (req, res) => {
         });
 
         if (!todayProblem) {
-            // Pick a problem that hasn't been scheduled yet
+            // Improved randomization: pick unscheduled first, then the oldest scheduled
             const unscheduled = await SystemDesignProblem.findOne({
                 where: { scheduled_date: null },
                 order: sequelize.random()
-            }) || await SystemDesignProblem.findOne({ order: sequelize.random() });
+            }) || await SystemDesignProblem.findOne({ 
+                order: [['scheduled_date', 'ASC']] 
+            });
 
             if (unscheduled) {
                 unscheduled.scheduled_date = todayStr;
@@ -161,6 +176,46 @@ app.get('/api/system-design/today', async (req, res) => {
             status: progress?.status || 'not-started',
             notes: progress?.notes || ''
         });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/ml-design/today', async (req, res) => {
+    try {
+        const todayStr = new Date().toISOString().split('T')[0];
+        let todayNote = await MLSystemDesignNote.findOne({
+            where: { scheduled_date: todayStr }
+        });
+
+        if (!todayNote) {
+            const unscheduled = await MLSystemDesignNote.findOne({
+                where: { scheduled_date: null },
+                order: sequelize.random()
+            }) || await MLSystemDesignNote.findOne({ 
+                order: [['scheduled_date', 'ASC']] 
+            });
+
+            if (unscheduled) {
+                unscheduled.scheduled_date = todayStr;
+                await unscheduled.save();
+                todayNote = unscheduled;
+            }
+        }
+
+        if (!todayNote) return res.status(404).json({ error: 'No ML notes found' });
+        res.json(todayNote);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/ml-design', async (req, res) => {
+    try {
+        const notes = await MLSystemDesignNote.findAll({
+            order: [['title', 'ASC']]
+        });
+        res.json(notes);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -199,7 +254,8 @@ app.get('/api/daily', async (req, res) => {
                 day: Math.floor((p.id - 1) / 6) + 1,
                 user_status: prog ? prog.status : 'not-started',
                 user_code: prog ? prog.user_code : '',
-                user_notes: prog ? prog.user_notes : ''
+                user_notes: prog ? prog.user_notes : '',
+                guided_hints: p.guided_hints || null
             };
         });
 
@@ -222,7 +278,8 @@ app.get('/api/problems', async (req, res) => {
                 day: Math.floor((p.id - 1) / 6) + 1,
                 user_status: prog ? prog.status : 'not-started',
                 user_code: prog ? prog.user_code : '',
-                user_notes: prog ? prog.user_notes : ''
+                user_notes: prog ? prog.user_notes : '',
+                guided_hints: p.guided_hints || null
             };
         });
 
@@ -261,6 +318,154 @@ app.post('/api/progress', async (req, res) => {
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: error.message });
+    }
+});
+
+// ─── Gemini Agent: Code Review ────────────────────────────────────────────────
+// Agent-driven framework: constructs a system prompt, sends to Gemini, returns
+// structured markdown. Tool calls / feedback loops can be added here later.
+app.post('/api/agent/review', async (req, res) => {
+    const { problemTitle, statement, userCode, hints, difficulty, category } = req.body;
+
+    if (!userCode || userCode.trim().length < 10) {
+        return res.status(400).json({ error: 'Please write some code before asking for a review.' });
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey === 'your_gemini_api_key_here') {
+        return res.status(500).json({ error: 'Gemini API key not configured. Add GEMINI_API_KEY to .env.' });
+    }
+
+    try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({
+            model: 'gemini-flash-latest',
+            systemInstruction: [
+                'You are an expert coding interview coach specializing in LeetCode-style problems.',
+                'Your role is to review Python solutions written by an engineer practicing for interviews.',
+                'Be concise, technical, and constructive. Focus on:',
+                '  1. Correctness — does the logic handle all edge cases?',
+                '  2. Time/Space complexity — state the Big-O with justification.',
+                '  3. Minimal improvements — suggest only the most impactful changes with short code snippets.',
+                '  4. Encourage the learner — acknowledge what they got right.',
+                'Format your response in markdown with clear sections.',
+                'Never rewrite the entire solution — only show the changed parts.',
+            ].join('\n')
+        });
+
+        // Strip HTML from statement for the prompt
+        const cleanStatement = (statement || '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .substring(0, 800);
+
+        const userMessage = [
+            `## Problem: ${problemTitle}`,
+            `**Category:** ${category || 'Unknown'} | **Difficulty:** ${difficulty || 'Unknown'}`,
+            '',
+            '### Problem Statement (excerpt)',
+            cleanStatement,
+            '',
+            '### Guided Hints Given to the User',
+            hints ? `\`\`\`python\n${hints}\n\`\`\`` : 'No hints were provided.',
+            '',
+            '### User\'s Code',
+            `\`\`\`python\n${userCode}\n\`\`\``,
+            '',
+            'Please review this code. Check if it works correctly, identify any issues,',
+            'and suggest minimal changes with clear explanations.',
+        ].join('\n');
+
+        const result = await model.generateContent(userMessage);
+        const responseText = result.response.text();
+
+        res.json({ review: responseText });
+    } catch (err) {
+        console.error('[Agent Review] Error:', err);
+        res.status(500).json({ error: 'Gemini API call failed: ' + err.message });
+    }
+});
+
+// ─── Admin: Batch Hint Generation ─────────────────────────────────────────────
+// One-time seeding: generates tailored step-by-step hints for all problems.
+app.post('/api/admin/generate-hints', async (req, res) => {
+    const { limit = 10, overwrite = false } = req.body;
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey === 'your_gemini_api_key_here') {
+        return res.status(500).json({ error: 'Gemini API key not configured.' });
+    }
+
+    try {
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+
+        const whereClause = overwrite ? {} : { guided_hints: null };
+        const problems = await Problem.findAll({ where: whereClause, limit });
+
+        let generated = 0;
+        let failed = 0;
+        const results = [];
+
+        for (const problem of problems) {
+            try {
+                const cleanStatement = (problem.statement || '')
+                    .replace(/<[^>]+>/g, ' ')
+                    .replace(/\s+/g, ' ')
+                    .trim()
+                    .substring(0, 600);
+
+                const codePreview = (problem.python_code || '')
+                    .split('\n')
+                    .slice(0, 8)
+                    .join('\n');
+
+                const prompt = [
+                    `You are an elite Lead Engineer acting as a mentor. Your task is to generate a "High-Impact Scaffold" for the LeetCode problem: "${problem.title}".`,
+                    `Category: ${problem.category}, Difficulty: ${problem.difficulty}`,
+                    '',
+                    `Problem Statement: ${cleanStatement}`,
+                    '',
+                    `Full Reference Solution:`,
+                    '```python',
+                    problem.python_code || '# Code not available',
+                    '```',
+                    '',
+                    'TASK:',
+                    'Identify the most "critical" or "clever" part of the solution (the algorithmic pivot).',
+                    'Generate a Python code snippet that includes the full class and method structure, preserving ALL "trivial" parts (loops, basic initializations, return statements).',
+                    '',
+                    'RULES:',
+                    '1. Replace ONLY the critical/clever logic with a single, high-quality descriptive comment and a "pass".',
+                    '2. The descriptive comment should start with "# GUIDED HINT: " and clearly explain the logic the candidate needs to implement here without giving the code away.',
+                    '3. Ensure the scaffold is valid Python syntax.',
+                    '4. DO NOT provide a list of steps. Provide EXACTLY ONE high-impact hint/blank unless the problem is truly multi-phase (maximum 2).',
+                    '5. Preserve the setup (e.g., if it uses a hash set, include "seen = set()").',
+                    '6. Output ONLY the resulting Python code block.',
+                    '7. DO NOT wrap in markdown fences (no ```).',
+                ].join('\n');
+
+                const result = await model.generateContent(prompt);
+                const hints = result.response.text().trim();
+
+                await problem.update({ guided_hints: hints });
+                generated++;
+                results.push({ id: problem.id, title: problem.title, status: 'ok' });
+                console.log(`[Hints] Generated for: ${problem.title}`);
+            } catch (err) {
+                failed++;
+                results.push({ id: problem.id, title: problem.title, status: 'error', error: err.message });
+                console.warn(`[Hints] Failed for ${problem.title}:`, err.message);
+            }
+
+            // Rate limit buffer
+            await new Promise(r => setTimeout(r, 400));
+        }
+
+        res.json({ success: true, generated, failed, results });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -453,7 +658,7 @@ app.listen(PORT, async () => {
         console.log('Database connected.');
         
         // Sync models
-        await sequelize.sync();
+        await sequelize.sync({ alter: true });
         
         // Auto-seed if needed
         await seedDatabase();

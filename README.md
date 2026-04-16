@@ -9,8 +9,10 @@ A comprehensive interview preparation platform designed to track progress, visua
 ## ✨ Key Features
 - **Roadmap Visualization**: Track progress across the NeetCode 150 roadmap.
 - **System Design Breakdowns**: Detailed functional and non-functional requirements for popular system design problems.
+- **Machine Learning technical library**: Specialized Staff Engineer level notes on NLP, Recommender Systems, and ML Infrastructure.
+- **Randomized Tracking**: Dynamic selection of unique System Design and ML notes for daily practice.
 - **Practice Calendar**: Heatmap-style visualization of your daily study activity.
-- **Smart Navigation**: Context-aware navigation between Dashboard, Problem sets, and System Design breakdowns.
+- **Smart Navigation**: Context-aware navigation between Dashboard, Problem sets, and technical libraries.
 
 ## 🛠 Technology Stack
 - **Frontend**: React (Vite), Lucide Icons, Vanilla CSS (Premium Dark Theme)

@@ -10,15 +10,18 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "clsx": "^2.1.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "lucide-react": "^0.344.0",
     "mysql2": "^3.22.0",
+    "prismjs": "^1.30.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-markdown": "^10.1.0",
+    "react-simple-code-editor": "^0.14.1",
     "react-syntax-highlighter": "^15.5.0",
     "remark-gfm": "^4.0.1",
     "sequelize": "^6.37.8",

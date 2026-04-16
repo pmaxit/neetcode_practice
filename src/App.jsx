@@ -33,6 +33,54 @@ import remarkGfm from 'remark-gfm';
 import problemsData from './data/problems.json';
 import './styles/Dashboard.css';
 
+// Code Editor Imports
+import Editor from 'react-simple-code-editor';
+import prism from 'prismjs';
+import 'prismjs/components/prism-python';
+import 'prismjs/themes/prism-tomorrow.css';
+
+const PythonEditor = ({ code, onChange, placeholder, className = "" }) => {
+  return (
+    <div className={`python-editor-wrapper ${className}`}>
+      <Editor
+        value={code || ""}
+        onValueChange={onChange}
+        highlight={code => prism.highlight(code || "", prism.languages.python, 'python')}
+        padding={20}
+        placeholder={placeholder}
+        style={{
+          fontFamily: '"JetBrains Mono", "Fira Code", monospace',
+          fontSize: 14,
+          minHeight: '400px',
+        }}
+      />
+    </div>
+  );
+};
+
+const SolutionToggle = ({ mode, onModeChange }) => (
+  <div className="solution-toggle-container glass">
+    <button 
+      className={`toggle-btn ${mode === 'reference' ? 'active' : ''}`}
+      onClick={() => onModeChange('reference')}
+    >
+      <Sparkles size={16} /> Reference
+    </button>
+    <button 
+      className={`toggle-btn ${mode === 'practice' ? 'active' : ''}`}
+      onClick={() => onModeChange('practice')}
+    >
+      <Lock size={16} /> Practice
+    </button>
+    <button 
+      className={`toggle-btn ${mode === 'edit' ? 'active' : ''}`}
+      onClick={() => onModeChange('edit')}
+    >
+      <Code2 size={16} /> Edit
+    </button>
+  </div>
+);
+
 const App = () => {
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,71 +88,159 @@ const App = () => {
   const [selectedDay, setSelectedDay] = useState(1);
   const [activeProblemId, setActiveProblemId] = useState(null);
   const [activeView, setActiveView] = useState('dashboard'); // 'dashboard' | 'calendar' | 'browse'
-  const [isSolutionVisible, setIsSolutionVisible] = useState(false);
   const [filterCategory, setFilterCategory] = useState('');
   const [filterDifficulty, setFilterDifficulty] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [navigationContext, setNavigationContext] = useState('dashboard'); // 'dashboard' | 'browse'
-  
+
+  // Code panel tab state
+  const [codeTab, setCodeTab] = useState('edit'); // 'reference' | 'practice' | 'edit'
+  const [localUserCode, setLocalUserCode] = useState('');
+  const [agentResponse, setAgentResponse] = useState(null);
+  const [agentLoading, setAgentLoading] = useState(false);
+  const [agentError, setAgentError] = useState(null);
+  const [codeCopied, setCodeCopied] = useState(false);
+
   // System Design state
   const [sdProblems, setSdProblems] = useState([]);
   const [sdToday, setSdToday] = useState(null);
+  const [mlToday, setMlToday] = useState(null);
+  const [mlNotes, setMlNotes] = useState([]);
+  const [mlCategoryFilter, setMlCategoryFilter] = useState('');
   const [activeSdId, setActiveSdId] = useState(null);
+  const [activeMlNoteId, setActiveMlNoteId] = useState(null);
   const [sdLoading, setSdLoading] = useState(false);
+  const [interfaceMode, setInterfaceMode] = useState('practice'); // 'reference' | 'practice' | 'edit'
+  const [userCode, setUserCode] = useState('');
+  const [practiceCode, setPracticeCode] = useState('');
 
-  // Fetch all data from Backend
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch('/api/problems');
-        const data = await res.json();
-        
-        if (Array.isArray(data)) {
-          setProblems(data);
-          setError(null);
-          if (data.length > 0) {
-            setActiveProblemId(data[0].id);
-          }
-        } else {
-          setError(data.error || 'Failed to fetch problems');
-          setProblems([]);
-        }
-      } catch (err) {
-        console.error('Failed to load problems:', err);
-        setError('Connection error: Make sure the local database is connected.');
-        setProblems([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+  // --- Refs ---
+  const dayPickerRef = useRef(null);
+  const notesDebounceRef = useRef(null);
+  const [localNotes, setLocalNotes] = useState('');
 
-    const fetchSdData = async () => {
-      try {
-        const [allRes, todayRes] = await Promise.all([
-          fetch('/api/system-design'),
-          fetch('/api/system-design/today')
-        ]);
-        const allData = await allRes.json();
-        const todayData = await todayRes.json();
-        setSdProblems(allData);
-        setSdToday(todayData);
-      } catch (err) {
-        console.error('Failed to load system design data:', err);
-      }
-    };
-    fetchSdData();
-  }, []);
-
-  const newCountPerDay = 6;
-  const totalDays = Math.ceil(problems.length / newCountPerDay);
-
+  // --- Static Helpers ---
   const getDateForDay = (dayIndex) => {
     const date = new Date();
-    date.setDate(date.getDate() + dayIndex); // (today + dayIndex) where Day 1 = Tomorrow
+    date.setDate(date.getDate() + dayIndex); 
     return date;
   };
+
+  const generatePracticeScaffold = (code, hints) => {
+    if (!code) return '# No solution available yet.';
+    
+    // If hints already looks like a Python scaffold (contains code structure), use it directly
+    if (hints && (hints.includes('class Solution') || hints.includes('def '))) {
+      return hints;
+    }
+
+    const lines = code.split('\n');
+    let scaffold = [];
+    let foundMainFunction = false;
+    let signaturePending = false;
+
+    for (let line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('import ') || trimmed.startsWith('from ') || 
+          trimmed.startsWith('class ') || trimmed.startsWith('def ')) {
+        scaffold.push(line);
+        if (trimmed.startsWith('def ')) foundMainFunction = true;
+        if (!trimmed.endsWith(':')) signaturePending = true;
+        continue;
+      }
+      if (signaturePending) {
+        scaffold.push(line);
+        if (trimmed.endsWith(':')) signaturePending = false;
+        continue;
+      }
+      if (foundMainFunction && !signaturePending) {
+        scaffold.push('');
+        if (hints) {
+          const hintLines = hints.split('\n').map(h => `    # ${h.trim()}`);
+          scaffold.push('    # GUIDED HINTS:');
+          scaffold.push(...hintLines);
+        }
+        scaffold.push('');
+        scaffold.push('    # TODO: Implement your logic here');
+        scaffold.push('    pass');
+        break;
+      } else if (!foundMainFunction) {
+        scaffold.push(line);
+      }
+    }
+    return scaffold.join('\n');
+  };
+
+  // --- Derived State & Memos ---
+  const activeProblem = useMemo(() => {
+    return problems.find(p => p.id === activeProblemId) || problems[0];
+  }, [activeProblemId, problems]);
+
+  const maxDay = useMemo(() => problems.reduce((max, p) => Math.max(max, p.day || 0), 0), [problems]);
+
+  const categories = useMemo(() => [...new Set(problems.map(p => p.category))].sort(), [problems]);
+
+  const browsedProblems = useMemo(() => problems.filter(p => {
+    if (filterCategory && p.category !== filterCategory) return false;
+    if (filterDifficulty && p.difficulty !== filterDifficulty) return false;
+    return true;
+  }), [problems, filterCategory, filterDifficulty]);
+
+  const getProblemsForDay = useCallback((day) => {
+    const newProbs = problems.filter(p => p.day === day).map(p => ({ ...p, isRevision: false }));
+    let revProbs = [];
+    if (day > 1) {
+      const prevProbs = problems.filter(p => p.day < day);
+      const revSource = prevProbs.filter(p => p.difficulty !== 'Easy');
+      
+      if (revSource.length > 0) {
+        const selectedIndices = new Set();
+        const primes = [31, 37, 41];
+        for (let i = 0; i < 3 && selectedIndices.size < revSource.length; i++) {
+          let idx = (day * primes[i]) % revSource.length;
+          while (selectedIndices.has(idx)) {
+            idx = (idx + 1) % revSource.length;
+          }
+          selectedIndices.add(idx);
+        }
+        revProbs = Array.from(selectedIndices).map(idx => ({ ...revSource[idx], isRevision: true }));
+      }
+    }
+    return [...newProbs, ...revProbs];
+  }, [problems]);
+
+  const dailyProblems = useMemo(() => getProblemsForDay(selectedDay), [selectedDay, getProblemsForDay]);
+
+  const { prevProblem, nextProblem } = useMemo(() => {
+    const list = navigationContext === 'browse' ? browsedProblems : dailyProblems;
+    const idx = list.findIndex(p => p.id === activeProblemId);
+    
+    let prev = idx > 0 ? list[idx - 1] : null;
+    let next = idx >= 0 && idx < list.length - 1 ? list[idx + 1] : null;
+
+    if (activeView === 'dashboard' && !prev && selectedDay > 1) {
+      const prevDayPool = getProblemsForDay(selectedDay - 1);
+      prev = prevDayPool[prevDayPool.length - 1];
+    }
+    if (activeView === 'dashboard' && !next && selectedDay < maxDay) {
+      const nextDayPool = getProblemsForDay(selectedDay + 1);
+      next = nextDayPool[0];
+    }
+
+    return { prevProblem: prev, nextProblem: next };
+  }, [activeProblemId, dailyProblems, browsedProblems, navigationContext, activeView, selectedDay, maxDay, getProblemsForDay]);
+
+  const analytics = useMemo(() => {
+    const stats = { Easy: 0, Medium: 0, Hard: 0, TotalDone: 0, Categories: {} };
+    problems.forEach(p => {
+      if (p.user_status === 'completed') {
+        stats.TotalDone++;
+        stats[p.difficulty]++;
+        stats.Categories[p.category] = (stats.Categories[p.category] || 0) + 1;
+      }
+    });
+    return stats;
+  }, [problems]);
 
   const formatDateShort = (dayIndex) => {
     const date = getDateForDay(dayIndex);
@@ -118,143 +254,109 @@ const App = () => {
     return new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(date);
   };
 
-  const getProblemsForDay = (day) => {
-    const newProbs = problems.filter(p => p.day === day).map(p => ({ ...p, isRevision: false }));
-    let revProbs = [];
-    if (day > 1) {
-      const prevProbs = problems.filter(p => p.day < day);
-      const revSource = prevProbs.filter(p => p.difficulty !== 'Easy');
-      
-      if (revSource.length > 0) {
-        // Deterministic selection of 3 review problems
-        const selectedIndices = new Set();
-        const primes = [31, 37, 41];
-        
-        for (let i = 0; i < 3 && selectedIndices.size < revSource.length; i++) {
-          let idx = (day * primes[i]) % revSource.length;
-          while (selectedIndices.has(idx)) {
-            idx = (idx + 1) % revSource.length;
-          }
-          selectedIndices.add(idx);
-        }
-        
-        revProbs = Array.from(selectedIndices).map(idx => ({ ...revSource[idx], isRevision: true }));
-      }
-    }
-    return [...newProbs, ...revProbs];
-  };
+  const newCountPerDay = 6;
+  const totalDays = Math.ceil(problems.length / newCountPerDay);
 
-  const dailyProblems = useMemo(() => getProblemsForDay(selectedDay), [selectedDay, problems]);
-
-  const maxDay = useMemo(() => problems.reduce((max, p) => Math.max(max, p.day || 0), 0), [problems]);
-
-  const dayPickerRef = useRef(null);
-  useEffect(() => {
-    if (dayPickerRef.current) {
-      const selected = dayPickerRef.current.querySelector('.day-tile.selected');
-      if (selected) selected.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-    }
-  }, [selectedDay]);
-
-  const categories = useMemo(() => [...new Set(problems.map(p => p.category))].sort(), [problems]);
-
-  const browsedProblems = useMemo(() => problems.filter(p => {
-    if (filterCategory && p.category !== filterCategory) return false;
-    if (filterDifficulty && p.difficulty !== filterDifficulty) return false;
-    return true;
-  }), [problems, filterCategory, filterDifficulty]);
-
-  const activeProblem = useMemo(() => {
-    return problems.find(p => p.id === activeProblemId) || problems[0];
-  }, [activeProblemId, problems]);
-
-  const navigateToProblem = useCallback((problem, context = null) => {
-    if (!problem) return;
-    
-    // Only update selectedDay if we are explicitly in dashboard view and it's not a revision
-    if (activeView === 'dashboard' && problem.day !== selectedDay && !problem.isRevision) {
-      // We keep this optionally for the "Days" header synchronization only if explicitly desired
-      // But the user says it's wrong, so we will disable it by default.
-      // setSelectedDay(problem.day); 
-    }
-    
-    setActiveProblemId(problem.id);
-    if (context) setNavigationContext(context);
-    else if (activeView === 'dashboard' || activeView === 'browse') {
-      setNavigationContext(activeView);
-    }
-    
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [activeView, selectedDay]);
-
-  const navigateToSystemDesign = (problemId) => {
-    setActiveSdId(problemId);
-    setActiveView('system-design');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const { prevProblem, nextProblem } = useMemo(() => {
-    const list = navigationContext === 'browse' ? browsedProblems : dailyProblems;
-    const idx = list.findIndex(p => p.id === activeProblemId);
-    
-    let prev = idx > 0 ? list[idx - 1] : null;
-    let next = idx >= 0 && idx < list.length - 1 ? list[idx + 1] : null;
-
-    // Cross-day navigation for dashboard view
-    if (activeView === 'dashboard' && !prev && selectedDay > 1) {
-      const prevDayPool = getProblemsForDay(selectedDay - 1);
-      prev = prevDayPool[prevDayPool.length - 1];
-    }
-    if (activeView === 'dashboard' && !next && selectedDay < maxDay) {
-      const nextDayPool = getProblemsForDay(selectedDay + 1);
-      next = nextDayPool[0];
-    }
-
-    return { prevProblem: prev, nextProblem: next };
-  }, [activeProblemId, dailyProblems, browsedProblems, activeView, selectedDay, maxDay]);
-
-  useEffect(() => {
-    setIsSolutionVisible(false);
-    // Ensure we scroll to top when problem changes
-    const container = document.querySelector('.active-problem-view');
-    if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [activeProblemId, activeView]);
-
-  // Analytics
-  const analytics = useMemo(() => {
-    const stats = { Easy: 0, Medium: 0, Hard: 0, TotalDone: 0, Categories: {} };
-    problems.forEach(p => {
-      if (p.user_status === 'completed') {
-        stats.TotalDone++;
-        stats[p.difficulty]++;
-        stats.Categories[p.category] = (stats.Categories[p.category] || 0) + 1;
-      }
-    });
-    return stats;
-  }, [problems]);
-
-  // Local notes state — debounced save
-  const [localNotes, setLocalNotes] = useState('');
-  const notesDebounceRef = useRef(null);
-
-  useEffect(() => {
-    setLocalNotes(activeProblem?.user_notes || '');
-  }, [activeProblemId]);
+  // --- Action Handlers ---
 
   const updateBackend = useCallback(async (problemId, status, code, notes) => {
     try {
       await fetch('/api/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ problemId, status, code, notes })
+        body: JSON.stringify({ problemId, status, code, notes }),
       });
-      setProblems(prev => prev.map(p =>
-        p.id === problemId ? { ...p, user_status: status, user_code: code, user_notes: notes } : p
-      ));
+      setProblems(prev => prev.map(p => p.id === problemId ? { ...p, user_status: status, user_code: code, user_notes: notes } : p));
     } catch (err) {
-      console.error('Update failed:', err);
+      console.error('Failed to update backend:', err);
     }
   }, []);
+
+  const handleAgentReview = async () => {
+    if (!activeProblem) return;
+    const currentCode = interfaceMode === 'practice' ? practiceCode : userCode;
+    
+    if (!currentCode || currentCode.length < 10) {
+      setAgentError('Please write some code before asking for a review.');
+      return;
+    }
+
+    try {
+      setAgentLoading(true);
+      setAgentError(null);
+      setAgentResponse(null);
+
+      const res = await fetch('/api/agent/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          problemTitle: activeProblem.title,
+          description: activeProblem.description,
+          userCode: currentCode,
+          hints: activeProblem.guided_hints,
+          difficulty: activeProblem.difficulty,
+          category: activeProblem.category
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setAgentResponse(data.feedback);
+      } else {
+        setAgentError(data.error || 'Failed to get feedback');
+      }
+    } catch (err) {
+      setAgentError('An error occurred. Please try again.');
+    } finally {
+      setAgentLoading(false);
+    }
+  };
+
+  const applySuggestion = () => {
+    if (!agentResponse) return;
+    const codeMatch = agentResponse.match(/```(?:python)?\n([\s\S]*?)```/);
+    if (codeMatch && codeMatch[1]) {
+      if (window.confirm('Apply the suggested code to your editor? This will overwrite your current draft.')) {
+        if (interfaceMode === 'practice') {
+          setPracticeCode(codeMatch[1].trim());
+        } else {
+          setUserCode(codeMatch[1].trim());
+        }
+        setAgentResponse(null);
+      }
+    } else {
+      alert('No clear code block found in the suggestion to automatically apply.');
+    }
+  };
+
+  const navigateToProblem = useCallback((problem, context = null) => {
+    if (!problem) return;
+    setActiveProblemId(problem.id);
+    if (context) setNavigationContext(context);
+    else if (activeView === 'dashboard' || activeView === 'browse') {
+      setNavigationContext(activeView);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeView]);
+
+  const resetCode = () => {
+    if (window.confirm('Reset your progress to the initial scaffold? This will overwrite your current draft.')) {
+      setUserCode(practiceCode || '');
+    }
+  };
+
+  const handleCopyToDraft = () => {
+    if (window.confirm('Copy this scaffold to your drafting area? This will overwrite your current draft.')) {
+      setUserCode(practiceCode);
+      setInterfaceMode('edit');
+    }
+  };
+
+  const navigateToSystemDesign = (problemId) => {
+    setActiveSdId(problemId);
+    setActiveView('system-design');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleNotesChange = (value) => {
     setLocalNotes(value);
@@ -279,14 +381,17 @@ const App = () => {
     if (!activeProblem) return;
     const newStatus = activeProblem.user_status === 'completed' ? 'not_started' : 'completed';
     try {
-      await axios.post(`${API_URL}/progress`, {
-        problem_id: activeProblem.id,
-        status: newStatus
+      await fetch('/api/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          problemId: activeProblem.id,
+          status: newStatus,
+          code: activeProblem.user_code,
+          notes: activeProblem.user_notes
+        })
       });
-      // Update local state
-      setProblems(problems.map(p => 
-        p.id === activeProblem.id ? { ...p, user_status: newStatus } : p
-      ));
+      setProblems(problems.map(p => p.id === activeProblem.id ? { ...p, user_status: newStatus } : p));
     } catch (err) {
       console.error('Error updating progress:', err);
     }
@@ -298,14 +403,12 @@ const App = () => {
     
     const newStatus = currentProblem.status === 'completed' ? 'not_started' : 'completed';
     try {
-      await axios.post(`${API_URL}/system-design/progress`, {
-        problem_id: currentProblem.id,
-        status: newStatus
+      await fetch('/api/system-design/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ problem_id: currentProblem.id, status: newStatus })
       });
-      // Update local state
-      setSdProblems(sdProblems.map(p => 
-        p.id === currentProblem.id ? { ...p, status: newStatus } : p
-      ));
+      setSdProblems(sdProblems.map(p => p.id === currentProblem.id ? { ...p, status: newStatus } : p));
       if (sdToday?.id === currentProblem.id) {
         setSdToday({ ...sdToday, status: newStatus });
       }
@@ -325,12 +428,13 @@ const App = () => {
 
   const handleResetNotes = async () => {
     if (!activeProblemId) return;
-    try {
-      const res = await fetch('/api/problems');
-      const allProblems = await res.json();
-      setProblems(allProblems);
-    } catch (err) {
-      console.error('Failed to reset notes:', err);
+    if (window.confirm('Reset your notes for this problem?')) {
+      try {
+        setLocalNotes('');
+        await updateBackend(activeProblemId, activeProblem.user_status, userCode, '');
+      } catch (err) {
+        console.error('Failed to reset notes:', err);
+      }
     }
   };
 
@@ -343,6 +447,77 @@ const App = () => {
     }
     closeSidebar();
   };
+
+  // --- Effects ---
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [pRes, sdRes, mlRes, allMlRes] = await Promise.all([
+          fetch('/api/problems'),
+          fetch('/api/system-design/today'),
+          fetch('/api/ml-design/today'),
+          fetch('/api/ml-design')
+        ]);
+        
+        const pData = await pRes.json();
+        setProblems(pData);
+        if (pData.length > 0 && !activeProblemId) {
+          setActiveProblemId(pData[0].id);
+        }
+
+        if (sdRes.ok) setSdToday(await sdRes.json());
+        if (mlRes.ok) {
+          const mlData = await mlRes.json();
+          setMlToday(mlData);
+          if (!activeMlNoteId) setActiveMlNoteId(mlData.id);
+        }
+        if (allMlRes.ok) setMlNotes(await allMlRes.json());
+        
+        setError(null);
+      } catch (err) {
+        setError('Connection error: Make sure the local database is connected.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (!activeProblem) return;
+    if (activeProblemId) {
+      setUserCode(activeProblem.user_code || '');
+      setPracticeCode(generatePracticeScaffold(activeProblem.python_code, activeProblem.guided_hints));
+      setInterfaceMode('practice');
+      setAgentResponse(null);
+      setAgentError(null);
+      setLocalNotes(activeProblem.user_notes || '');
+    }
+  }, [activeProblemId, activeProblem]);
+
+  useEffect(() => {
+    if (!activeProblem) return;
+    const timer = setTimeout(async () => {
+      if (userCode !== activeProblem.user_code) {
+        updateBackend(activeProblem.id, activeProblem.user_status, userCode, localNotes);
+      }
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [userCode, activeProblemId, activeProblem, updateBackend, localNotes]);
+
+  useEffect(() => {
+    if (dayPickerRef.current) {
+      const selected = dayPickerRef.current.querySelector('.day-tile.selected');
+      if (selected) selected.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  }, [selectedDay]);
+
+  useEffect(() => {
+    const container = document.querySelector('.active-problem-view');
+    if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeProblemId, activeView]);
 
   if (loading) {
     return (
@@ -404,6 +579,9 @@ const App = () => {
           <button className={`nav-item ${activeView === 'system-design' ? 'active' : ''}`} onClick={() => handleNavClick('system-design')}>
             <BrainCircuit size={18} /> System Design
           </button>
+          <button className={`nav-item ${activeView === 'machine-learning' ? 'active' : ''}`} onClick={() => handleNavClick('machine-learning')}>
+            <Cpu size={18} /> ML Library
+          </button>
           <div className="divider"></div>
         </nav>
 
@@ -447,6 +625,22 @@ const App = () => {
 
         {activeView === 'browse' && (
           <div className="problem-list-container">
+            <div className="specialized-library-links">
+              <div className="lib-link glass" onClick={() => setActiveView('system-design')}>
+                <BrainCircuit size={16} /> <span>System Design</span> <ChevronRight size={14} />
+              </div>
+              <div className="lib-link glass" onClick={() => { setActiveView('machine-learning'); setActiveMlNoteId(null); }}>
+                <Cpu size={16} /> <span>ML Library</span> <ChevronRight size={14} />
+              </div>
+            </div>
+            
+            <div className="category-quick-filters">
+              <span className="qf-label">EXPERT DOMAINS:</span>
+              <button className="qf-pill" onClick={() => { setActiveView('machine-learning'); setMlCategoryFilter('NLP'); setActiveMlNoteId(null); }}>NLP</button>
+              <button className="qf-pill" onClick={() => { setActiveView('machine-learning'); setMlCategoryFilter('Recommender Systems'); setActiveMlNoteId(null); }}>Recommender Systems</button>
+              <button className="qf-pill" onClick={() => { setActiveView('machine-learning'); setMlCategoryFilter('ML Infrastructure'); setActiveMlNoteId(null); }}>ML Infra</button>
+            </div>
+
             <div className="filter-controls">
               <select
                 className="filter-select"
@@ -504,6 +698,34 @@ const App = () => {
             </div>
           </div>
         )}
+        {activeView === 'machine-learning' && (
+          <div className="problem-list-container">
+            <div className="library-header-flex">
+              <h1 className="day-title">ML Design Library</h1>
+              {mlCategoryFilter && (
+                <button className="clear-filter-btn" onClick={() => setMlCategoryFilter('')}>
+                  <X size={14} /> Clear: {mlCategoryFilter}
+                </button>
+              )}
+            </div>
+            <div className="problem-list">
+              {['NLP', 'Recommender Systems', 'ML Infrastructure', 'General'].filter(cat => !mlCategoryFilter || cat === mlCategoryFilter).map(cat => (
+                <div key={cat} className="category-group">
+                  <div className="category-label">{cat}</div>
+                  {mlNotes.filter(n => (n.category || 'General') === cat || (cat === 'General' && !n.category)).map(n => (
+                    <div
+                      key={n.id}
+                      className={`problem-item ${activeMlNoteId === n.id ? 'active' : ''}`}
+                      onClick={() => setActiveMlNoteId(n.id)}
+                    >
+                      <div className="problem-title">{n.title}</div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </aside>
 
       {/* Main Content */}
@@ -548,6 +770,58 @@ const App = () => {
             problem={sdProblems.find(p => p.id === activeSdId) || sdToday} 
             onToggleComplete={toggleSdComplete}
           />
+        ) : activeView === 'machine-learning' ? (
+          <div className="ml-library-view-enhanced fade-in">
+            {mlNotes.find(n => n.id === activeMlNoteId) ? (
+              <div className="ml-detail-view-container">
+                <div className="problem-header ml-header-special">
+                  <div className="problem-meta">
+                    <div className="breadcrumb">
+                      <span>Machine Learning</span>
+                      <ChevronRight size={14} />
+                      <span className="difficulty-tag expert">Staff Engineer Insight</span>
+                    </div>
+                    <h1>{mlNotes.find(n => n.id === activeMlNoteId).title}</h1>
+                    <div className="ml-category-badge">{mlNotes.find(n => n.id === activeMlNoteId).category || 'GENERAL'}</div>
+                  </div>
+                </div>
+
+                <div className="ml-technical-grid">
+                  <div className="ml-card-main glass">
+                    <div className="ml-section-label"><Clock size={16} /> HISTORY & CONTEXT</div>
+                    <div className="ml-section-body">{mlNotes.find(n => n.id === activeMlNoteId).history}</div>
+                  </div>
+                  
+                  <div className="ml-card-main glass">
+                    <div className="ml-section-label"><Zap size={16} /> CORE EXAMPLE</div>
+                    <div className="ml-section-body">{mlNotes.find(n => n.id === activeMlNoteId).example}</div>
+                  </div>
+
+                  <div className="ml-card-main glass">
+                    <div className="ml-section-label"><ExternalLink size={16} /> REAL-WORLD USAGE</div>
+                    <div className="ml-section-body">{mlNotes.find(n => n.id === activeMlNoteId).where_it_is_used}</div>
+                  </div>
+                </div>
+
+                <div className="ml-deep-dive-block glass-inset shadow-xl">
+                  <div className="deep-dive-header-ribbon">
+                    <Sparkles size={18} /> TECHNICAL DEEP DIVE
+                  </div>
+                  <div className="deep-dive-inner-content">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {mlNotes.find(n => n.id === activeMlNoteId).technical_deep_dive}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="empty-state">
+                <Cpu size={64} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+                <h3>ML Library</h3>
+                <p>Select a technical note from the sidebar to begin deep diving.</p>
+              </div>
+            )}
+          </div>
         ) : activeProblem ? (
           <div className="problem-view fade-in">
 
@@ -644,6 +918,8 @@ const App = () => {
                   </button>
                 </div>
                 
+                <SolutionToggle mode={interfaceMode} onModeChange={setInterfaceMode} />
+
                 <button
                   className={`btn status-btn ${activeProblem.user_status === 'completed' ? 'btn-secondary' : 'btn-primary'}`}
                   onClick={toggleComplete}
@@ -654,32 +930,195 @@ const App = () => {
               </div>
             </div>
 
-            <div className="problem-content-enriched glass">
-              <div className="content-section">
-                <h3>Problem Statement</h3>
-                <div
-                  className="problem-statement"
-                  dangerouslySetInnerHTML={{ __html: activeProblem.statement && activeProblem.statement !== "" ? activeProblem.statement : '<div class="placeholder-statement">Problem statement details are being fetched... Please refer to NeetCode.io link above in the meantime.</div>' }}
-                />
+            <div className="problem-content-layout">
+              <div className="problem-content-enriched glass">
+                <div className="content-section">
+                  <h3>Problem Statement</h3>
+                  <div
+                    className="problem-statement"
+                    dangerouslySetInnerHTML={{ __html: activeProblem.statement && activeProblem.statement !== "" ? activeProblem.statement : '<div class="placeholder-statement">Problem statement details are being fetched... Please refer to NeetCode.io link above in the meantime.</div>' }}
+                  />
+                </div>
               </div>
-            </div>
 
-            {activeView === 'dashboard' && sdToday && (
-              <div className="sd-today-card glass fade-in" onClick={() => navigateToSystemDesign(sdToday.id)}>
-                <div className="sd-card-header">
-                  <div className="sd-card-tag">SYSTEM DESIGN OF THE DAY</div>
-                  <div className="sd-card-status">
-                    {sdToday.status === 'completed' ? <CheckCircle size={16} className="completed" /> : <Clock size={16} />}
+              {true && (
+                <div className="problem-interface-enriched glass fade-in">
+                  <div className="content-section">
+                    <div className="interface-header">
+                      <h3>
+                        {interfaceMode === 'edit' ? 'Draft Your Solution' : 
+                         interfaceMode === 'practice' ? 'Practice' : 'Reference Solution'}
+                      </h3>
+                      <div className="interface-actions">
+                        {(interfaceMode === 'practice' || interfaceMode === 'edit') && (
+                          <button 
+                            className={`btn coach-btn ${agentLoading ? 'loading' : ''}`}
+                            onClick={handleAgentReview}
+                            disabled={agentLoading}
+                          >
+                            <BrainCircuit size={16} /> 
+                            {agentLoading ? 'Reviewing...' : 'Review with AI Coach'}
+                          </button>
+                        )}
+                        {interfaceMode === 'edit' && (
+                          <button 
+                            className="btn reset-btn"
+                            onClick={resetCode}
+                            title="Reset to Scaffold"
+                          >
+                            <X size={14} /> Reset
+                          </button>
+                        )}
+                        {interfaceMode === 'edit' && <span className="auto-save-tag">Auto-saving...</span>}
+                      </div>
+                    </div>
+                    {interfaceMode === 'practice' ? (
+                      <div className="code-editor-container practice-mode">
+                        <PythonEditor
+                          code={practiceCode}
+                          onChange={setPracticeCode}
+                          placeholder="# Guided implementation..."
+                        />
+                      </div>
+                    ) : interfaceMode === 'reference' ? (
+                      <div className="solution-container">
+                        <SyntaxHighlighter
+                          language="python"
+                          style={atomDark}
+                          customStyle={{
+                            borderRadius: '12px',
+                            padding: '1.5rem',
+                            fontSize: '0.9rem',
+                            margin: 0,
+                            background: 'rgba(0,0,0,0.3)'
+                          }}
+                        >
+                          {activeProblem.python_code || '# No solution available yet.'}
+                        </SyntaxHighlighter>
+                      </div>
+                    ) : (
+                      <div className="code-editor-container">
+                        <PythonEditor
+                          code={userCode}
+                          onChange={setUserCode}
+                          placeholder="# Start typing your solution here..."
+                        />
+                      </div>
+                    )}
+
+                    {interfaceMode === 'edit' && activeProblem.guided_hints && (
+                      <div className="guided-hints-section glass-inset">
+                        <div className="hints-header">
+                          <Zap size={14} /> GUIDED APPROACH HINTS
+                        </div>
+                        <pre className="hints-content">
+                          {activeProblem.guided_hints}
+                        </pre>
+                      </div>
+                    )}
+
+                    {(agentResponse || agentError) && (
+                      <div className={`agent-feedback-panel glass ${agentError ? 'error' : ''} fade-in`}>
+                         <div className="feedback-header">
+                           <div className="feedback-title">
+                             <Sparkles size={16} /> COACHING FEEDBACK
+                           </div>
+                           <div className="feedback-actions">
+                             {!agentError && agentResponse && agentResponse.includes('```') && (
+                               <button 
+                                 className="btn apply-suggestion-btn"
+                                 onClick={applySuggestion}
+                                 title="Apply code block from suggestion"
+                               >
+                                 <Check size={14} /> Apply Code
+                               </button>
+                             )}
+                             <button className="close-feedback" onClick={() => setAgentResponse(null)}>×</button>
+                           </div>
+                         </div>
+                        <div className="feedback-content markdown-body">
+                          {agentError ? (
+                            <div className="agent-error-msg">{agentError}</div>
+                          ) : (
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {agentResponse}
+                            </ReactMarkdown>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="sd-card-body">
-                  <h3>{sdToday.title}</h3>
-                  <p>Learn how to design {sdToday.title.toLowerCase()} from scratch.</p>
-                </div>
-                <div className="sd-card-footer">
-                  <span className={`difficulty-tag ${sdToday.difficulty.toLowerCase()}`}>{sdToday.difficulty}</span>
-                  <span className="learn-more">Read Breakdown <ChevronRight size={14} /></span>
-                </div>
+              )}
+            </div>
+
+            {activeView === 'dashboard' && (sdToday || mlToday) && (
+              <div className="dashboard-cards-row">
+                {sdToday && (
+                  <div className="sd-today-card glass fade-in" onClick={() => navigateToSystemDesign(sdToday.id)}>
+                    <div className="sd-card-header">
+                      <div className="sd-card-tag">SYSTEM DESIGN OF THE DAY</div>
+                      <div className="sd-card-status">
+                        {sdToday.status === 'completed' ? <CheckCircle size={16} className="completed" /> : <Clock size={16} />}
+                      </div>
+                    </div>
+                    <div className="sd-card-body">
+                      <h3>{sdToday.title}</h3>
+                      <p>Learn how to design {sdToday.title.toLowerCase()} from scratch.</p>
+                    </div>
+                    <div className="sd-card-footer">
+                      <span className={`difficulty-tag ${sdToday.difficulty.toLowerCase()}`}>{sdToday.difficulty}</span>
+                      <span className="learn-more">Read Breakdown <ChevronRight size={14} /></span>
+                    </div>
+                  </div>
+                )}
+
+                {mlToday && (
+                  <div className="ml-today-card glass fade-in">
+                    <div className="ml-card-header">
+                      <div className="ml-card-tag"><Zap size={14} strokeWidth={3} /> ML SYSTEM DESIGN NOTE</div>
+                      <div className="ml-card-badge">STAFF ENGINEER INSIGHTS</div>
+                    </div>
+                    <div className="ml-card-body">
+                      <div className="ml-title-row">
+                        <h3>{mlToday.title}</h3>
+                        <div className="ml-browse-link" onClick={() => setActiveView('machine-learning')}>
+                          Browse Library <ChevronRight size={14} />
+                        </div>
+                      </div>
+
+                      <div className="expert-domain-filters">
+                        <button className="qf-pill" onClick={() => { setActiveView('machine-learning'); setMlCategoryFilter('NLP'); setActiveMlNoteId(null); }}>NLP</button>
+                        <button className="qf-pill" onClick={() => { setActiveView('machine-learning'); setMlCategoryFilter('Recommender Systems'); setActiveMlNoteId(null); }}>RecSys</button>
+                        <button className="qf-pill" onClick={() => { setActiveView('machine-learning'); setMlCategoryFilter('ML Infrastructure'); setActiveMlNoteId(null); }}>ML Infra</button>
+                      </div>
+                      
+                      <div className="ml-insight-grid">
+                        <div className="ml-insight-item">
+                          <div className="ml-insight-label">HISTORY & MOTIVATION</div>
+                          <div className="ml-insight-text">{mlToday.history}</div>
+                        </div>
+                        <div className="ml-insight-item">
+                          <div className="ml-insight-label">CORE EXAMPLE</div>
+                          <div className="ml-insight-text">{mlToday.example}</div>
+                        </div>
+                        <div className="ml-insight-item">
+                          <div className="ml-insight-label">WHERE IT IS USED</div>
+                          <div className="ml-insight-text">{mlToday.where_it_is_used}</div>
+                        </div>
+                      </div>
+
+                      <div className="ml-deep-dive">
+                        <div className="ml-deep-dive-header">
+                          <BrainCircuit size={16} /> TECHNICAL DEEP DIVE
+                        </div>
+                        <div className="ml-deep-dive-content">
+                          {mlToday.technical_deep_dive}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -707,55 +1146,25 @@ const App = () => {
                 </div>
               )}
 
-              <div className="card code-container glass">
-                <div className="solution-header">
-                  <h3><Code2 size={16} /> Reference Solution</h3>
-                  <button
-                    className={`solution-toggle-btn ${isSolutionVisible ? 'active' : ''}`}
-                    onClick={() => setIsSolutionVisible(!isSolutionVisible)}
-                  >
-                    {isSolutionVisible ? 'Hide Solution' : 'Show Solution'}
+              <div className="card glass mnemonic-card fade-in">
+                <div className="card-header-with-actions">
+                  <h3><BrainCircuit size={16} /> Mnemonics & Notes</h3>
+                  <button className="btn-text-small" onClick={handleResetNotes}>
+                    Reset
                   </button>
                 </div>
-                <div className={`editor-wrapper ${!isSolutionVisible ? 'code-hidden' : 'code-visible'}`}>
-                  {isSolutionVisible ? (
-                    <SyntaxHighlighter
-                      language="python"
-                      style={atomDark}
-                      className="code-display"
-                      customStyle={{ background: 'transparent', padding: '1rem' }}
-                    >
-                      {activeProblem.python_code || '# No solution available yet.'}
-                    </SyntaxHighlighter>
-                  ) : (
-                    <div className="hidden-placeholder">
-                      <Lock size={32} />
-                      <p>Solution is hidden to encourage practice.</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="sections-grid">
-              <div className="card glass">
-                <h3><BrainCircuit size={16} /> Mnemonics</h3>
-                <p className="instruction-text">Core pattern to remember for this problem type.</p>
+                <p className="instruction-text">Core pattern and your personal practice notes.</p>
+                
                 <div className="mnemonic-display">
-                  {activeProblem.mnemonic || 'No mnemonic available'}
+                  {activeProblem.mnemonic || 'No mnemonic pattern available.'}
                 </div>
-              </div>
 
-              <div className="card glass">
-                <h3><MessageSquare size={16} /> Practice Notes</h3>
                 <textarea
-                  placeholder="Notes on corner cases, time complexity, etc..."
+                  className="mnemonic-notes"
+                  placeholder="Notes on corner cases, time complexity, or personal tips..."
                   value={localNotes}
                   onChange={(e) => handleNotesChange(e.target.value)}
                 />
-                <button className="btn btn-secondary reset-button" onClick={handleResetNotes}>
-                  Reset Notes
-                </button>
               </div>
             </div>
 
