@@ -44,17 +44,13 @@ fi
 
 # 3. Cloud SQL Connection
 if [ ! -z "$INSTANCE_CONNECTION_NAME" ]; then
-    # Try to find an already running proxy
+    # Kill any existing proxy to ensure we get a fresh token (Cloud SQL tokens usually expire in 1 hour)
     EXISTING_PROXY_PID=$(pgrep -f "cloud-sql-proxy" | head -n 1)
     if [ ! -z "$EXISTING_PROXY_PID" ]; then
-        # Try to detect the port it's listening on
-        EXISTING_PORT=$(lsof -Pan -p "$EXISTING_PROXY_PID" -i -sTCP:LISTEN 2>/dev/null | grep -E "127.0.0.1:[0-9]+" | head -n 1 | awk -F: '{print $NF}' | awk '{print $1}')
-        if [ ! -z "$EXISTING_PORT" ]; then
-            echo "ℹ️  Found existing Cloud SQL Proxy (PID $EXISTING_PROXY_PID) on port $EXISTING_PORT. Reusing it."
-            DB_PORT=$EXISTING_PORT
-            export DB_PORT
-            SKIP_PROXY_START=true
-        fi
+        echo "🔄 Killing existing Cloud SQL Auth Proxy (PID $EXISTING_PROXY_PID) to ensure a fresh authentication token..."
+        kill "$EXISTING_PROXY_PID" 2>/dev/null || true
+        # Wait for the port to be freed
+        sleep 2
     fi
 
     if [ "$SKIP_PROXY_START" != "true" ]; then

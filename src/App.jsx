@@ -24,7 +24,11 @@ import {
   Database,
   Cpu,
   Layers,
-  Search
+  Search,
+  Code,
+  Tv,
+  Brain,
+  ShieldCheck
 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -1119,74 +1123,113 @@ const App = () => {
           </div>
         ) : activeView === 'dashboard' ? (
           <div className="master-home-layout fade-in">
-            {/* Section 1: Algorithms */}
+            {/* Section 1: Algorithms (LeetCode) */}
             <div className="home-section home-section-leetcode">
-              <div className="section-label-main">LeetCode Practice</div>
+              <div className="section-label-main">
+                <LayoutGrid size={16} /> Data Structures & Algorithms
+              </div>
+              <div className="track-summary-tags">
+                <span className="summary-pill"><Code size={12} /> Practice</span>
+                <span className="summary-pill"><Tv size={12} /> Video</span>
+                <span className="summary-pill"><Brain size={12} /> Mnemonics</span>
+                <span className="summary-pill"><ShieldCheck size={12} /> Solution</span>
+              </div>
               {renderAlgorithmView()}
             </div>
 
             {/* Section 2: System Design */}
             <div className="home-section home-section-sd">
-              <div className="section-label-main">System Design Focus</div>
+              <div className="section-label-main">
+                <BrainCircuit size={16} /> System Design Track
+              </div>
               <div className="home-section-scrollable">
                 {sdToday ? (
-                  <div className="sd-today-card glass fade-in" onClick={() => navigateToSystemDesign(sdToday.id)}>
+                  <div className="sd-today-card glass fade-in">
                     <div className="sd-card-header">
-                      <div className="sd-card-tag">SYSTEM DESIGN OF THE DAY</div>
-                      <div className="sd-card-status">
-                        {sdToday.status === 'completed' ? <CheckCircle size={16} className="completed" /> : <Clock size={16} />}
-                      </div>
+                      <div className="sd-card-tag">DAILY CHALLENGE</div>
+                      <button 
+                        className={`sd-status-toggle ${sdToday.status === 'completed' ? 'done' : ''}`}
+                        onClick={toggleSdComplete}
+                      >
+                        {sdToday.status === 'completed' ? <CheckCircle size={16} /> : <Circle size={16} />}
+                      </button>
                     </div>
                     <div className="sd-card-body">
                       <h3>{sdToday.title}</h3>
-                      <p>Learn how to design {sdToday.title.toLowerCase()} from scratch.</p>
+                      <div className="sd-category-pill">{sdToday.difficulty}</div>
+                      
+                      {/* Pulling some content from the markdown if possible */}
+                      <div className="sd-preview-content">
+                        {(() => {
+                          const parsed = parseSystemDesignContent(sdToday.description);
+                          return (
+                            <div className="sd-brief-grid">
+                              {parsed.functional && (
+                                <div className="sd-brief-item">
+                                  <div className="brief-label">Core Functions</div>
+                                  <div className="brief-text truncate-lines">{parsed.functional.split('\n')[0]}</div>
+                                </div>
+                              )}
+                              {parsed.hld && (
+                                <div className="sd-brief-item">
+                                  <div className="brief-label">Architectural Pivot</div>
+                                  <div className="brief-text">Click to read full breakdown...</div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </div>
                     </div>
                     <div className="sd-card-footer">
-                      <span className={`difficulty-tag ${sdToday.difficulty.toLowerCase()}`}>{sdToday.difficulty}</span>
-                      <span className="learn-more">Read Breakdown <ChevronRight size={14} /></span>
+                      <button className="btn btn-primary full-width" onClick={() => navigateToSystemDesign(sdToday.id)}>
+                        Read Full Breakdown <ChevronRight size={16} />
+                      </button>
                     </div>
                   </div>
                 ) : (
                   <div className="empty-state">No System Design challenge for today.</div>
                 )}
+                
+                <div className="dashboard-stats-card glass mt-4">
+                  <h4>Track Progress</h4>
+                  <div className="mini-stat">
+                    <span>Breakdowns Read</span>
+                    <span>{sdProblems.filter(p => p.status === 'completed').length} / {sdProblems.length}</span>
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Section 3: Machine Learning */}
             <div className="home-section home-section-ml">
-              <div className="section-label-main">ML Deep Dive</div>
+              <div className="section-label-main">
+                <Cpu size={16} /> Machine Learning Insights
+              </div>
               <div className="home-section-scrollable">
                 {mlToday ? (
-                  <div className="ml-today-card glass fade-in">
+                  <div className="ml-today-card glass fade-in" onClick={() => setActiveView('machine-learning')}>
                     <div className="ml-card-header">
-                      <div className="ml-card-tag"><Zap size={14} strokeWidth={3} /> ML SYSTEM DESIGN NOTE</div>
-                      <div className="ml-card-badge">STAFF ENGINEER INSIGHTS</div>
+                      <div className="ml-card-tag">STAFF RECOMMENDATION</div>
+                      <div className="ml-card-badge">ML DESIGN</div>
                     </div>
                     <div className="ml-card-body">
-                      <div className="ml-title-row">
-                        <h3>{mlToday.title}</h3>
-                        <div className="ml-browse-link" onClick={() => setActiveView('machine-learning')}>
-                          Browse Library <ChevronRight size={14} />
-                        </div>
-                      </div>
-                      <div className="ml-insight-grid">
+                      <h3>{mlToday.title}</h3>
+                      <div className="ml-insight-grid-dashboard">
                         <div className="ml-insight-item">
-                          <div className="ml-insight-label">HISTORY & MOTIVATION</div>
+                          <div className="ml-insight-label">CONTEXT</div>
                           <div className="ml-insight-text">{mlToday.history}</div>
                         </div>
                         <div className="ml-insight-item">
-                          <div className="ml-insight-label">CORE EXAMPLE</div>
-                          <div className="ml-insight-text">{mlToday.example}</div>
+                          <div className="ml-insight-label">TECHNICAL DEEP DIVE</div>
+                          <div className="ml-insight-text truncate-lines-4">
+                            {mlToday.technical_deep_dive}
+                          </div>
                         </div>
                       </div>
-                      <div className="ml-deep-dive">
-                        <div className="ml-deep-dive-header">
-                          <BrainCircuit size={16} /> TECHNICAL DEEP DIVE
-                        </div>
-                        <div className="ml-deep-dive-content">
-                          {mlToday.technical_deep_dive}
-                        </div>
-                      </div>
+                    </div>
+                    <div className="ml-card-footer">
+                      <span className="learn-more">Open ML Library <ChevronRight size={14} /></span>
                     </div>
                   </div>
                 ) : (
