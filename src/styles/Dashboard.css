@@ -698,9 +698,6 @@ body {
   align-items: flex-start;
 }
 
-.problem-content-enriched {
-  margin-bottom: 4rem;
-}
 
 .breadcrumb {
   display: flex;
@@ -746,13 +743,25 @@ body {
 .btn-secondary { background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid var(--border); }
 
 /* Sections */
-.solution-media-grid {
+/* Master Grid for Problem View */
+.problem-view-master-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2.5rem;
-  margin-top: 3rem;
-  margin-bottom: 3rem;
+  gap: 4rem;
   align-items: stretch;
+  margin-top: 2rem;
+  margin-bottom: 4rem;
+}
+
+@media (max-width: 1200px) {
+  .problem-view-master-grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}
+
+.solution-media-grid {
+  display: contents; /* Let children participate in master grid */
 }
 
 .solution-media-grid.single-column {
@@ -941,7 +950,10 @@ textarea:focus { outline: none; border-color: var(--accent); }
 .view-header p { color: var(--text-muted); margin: 0; }
 
 /* Analytics section */
-.analytics-section { margin-top: 1rem; }
+.analytics-section { 
+  grid-column: 1 / -1;
+  padding-bottom: 4rem;
+}
 
 /* Loading */
 .loading-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg-main); color: var(--text-main); }
@@ -1029,11 +1041,6 @@ textarea:focus { outline: none; border-color: var(--accent); }
   .calendar-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
 }
 
-@media (max-width: 1200px) {
-  .solution-media-grid {
-    grid-template-columns: 1fr;
-  }
-}
 
 
 /* System Design Card on Dashboard */
@@ -1940,11 +1947,7 @@ textarea:focus { outline: none; border-color: var(--accent); }
 }
 
 .problem-content-layout {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-  margin-bottom: 2.5rem;
-  align-items: stretch;
+  display: contents; /* Inherits master grid placement */
 }
 
 @media (min-width: 1200px) {

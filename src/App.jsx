@@ -930,7 +930,7 @@ const App = () => {
               </div>
             </div>
 
-            <div className="problem-content-layout">
+            <div className="problem-view-master-grid">
               <div className="problem-content-enriched glass">
                 <div className="content-section">
                   <h3>Problem Statement</h3>
@@ -1050,7 +1050,7 @@ const App = () => {
                   </div>
                 </div>
               )}
-            </div>
+
 
             {activeView === 'dashboard' && (sdToday || mlToday) && (
               <div className="dashboard-cards-row">
@@ -1122,7 +1122,6 @@ const App = () => {
               </div>
             )}
 
-            <div className="solution-media-grid">
               {activeProblem.youtube_url && (
                 <div className="video-section glass fade-in">
                   <h3><span className="yt-icon">▶</span> Solution Walkthrough</h3>
@@ -1166,17 +1165,17 @@ const App = () => {
                   onChange={(e) => handleNotesChange(e.target.value)}
                 />
               </div>
-            </div>
 
-            <div className="analytics-section">
-              <h2 className="section-title"><BarChart3 size={20} /> Category Breakdown</h2>
-              <div className="category-tags">
-                {Object.entries(analytics.Categories).map(([cat, count]) => (
-                  <div key={cat} className="cat-pill">
-                    <span className="cat-name">{cat}</span>
-                    <span className="cat-count">{count}</span>
-                  </div>
-                ))}
+              <div className="analytics-section">
+                <h2 className="section-title"><BarChart3 size={20} /> Category Breakdown</h2>
+                <div className="category-tags">
+                  {Object.entries(analytics.Categories).map(([cat, count]) => (
+                    <div key={cat} className="cat-pill">
+                      <span className="cat-name">{cat}</span>
+                      <span className="cat-count">{count}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
