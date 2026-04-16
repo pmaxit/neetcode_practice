@@ -55,6 +55,7 @@ body {
   background-color: var(--bg-main);
   margin: 0;
   overflow: hidden;
+  overflow-x: hidden;
 }
 
 .fade-in {
@@ -81,8 +82,9 @@ body {
   flex-direction: column;
   padding: 1.5rem;
   z-index: 10;
-  overflow: hidden;
+  overflow: hidden;   /* clip horizontal overflow */
   min-height: 0;
+  height: 100vh;      /* ensure full height so flex children can fill it */
 }
 
 .sidebar-header {
@@ -207,10 +209,10 @@ body {
 }
 
 .problem-list-container {
-  flex: 1;
+  flex: 1;           /* grows to fill all remaining sidebar space */
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  min-height: 0;     /* allows flex child to shrink below content size */
   overflow: hidden;
 }
 
@@ -221,6 +223,7 @@ body {
   gap: 0.5rem;
   overflow-y: auto;
   min-height: 0;
+  padding-bottom: 2rem;  /* breathing room below the last item */
 }
 
 .problem-list::-webkit-scrollbar { width: 4px; }
@@ -283,8 +286,10 @@ body {
 /* Main Content */
 .main-content {
   flex: 1;
-  padding: 2.5rem 3.5rem;
+  padding: 2.5rem 3rem;
   overflow-y: auto;
+  overflow-x: hidden;
+  min-width: 0;
   background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.05), transparent);
 }
 
@@ -951,8 +956,8 @@ textarea:focus { outline: none; border-color: var(--accent); }
 
 /* Analytics section */
 .analytics-section { 
-  grid-column: 1 / -1;
-  padding-bottom: 4rem;
+  margin-top: 2rem;
+  padding-bottom: 2rem;
 }
 
 /* Loading */
@@ -1469,6 +1474,11 @@ textarea:focus { outline: none; border-color: var(--accent); }
 }
 
 /* Machine Learning Note Card Styles */
+.mnemonic-card {
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
 .ml-today-card {
   padding: 2.5rem;
   height: 100%;
@@ -2229,32 +2239,23 @@ textarea:focus { outline: none; border-color: var(--accent); }
 
 /* ── Master Home Layout (3-Section Dashboard) ── */
 .master-home-layout {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 2rem;
-  align-items: stretch;
-  min-height: calc(100vh - 100px);
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
-@media (max-width: 1600px) {
-  .master-home-layout {
-    grid-template-columns: 1.5fr 1fr 1fr;
-    gap: 1.5rem;
-  }
-}
-
-@media (max-width: 1280px) {
-  .master-home-layout {
-    grid-template-columns: 1fr; /* Stack on smaller screens */
-    gap: 3rem;
-  }
-}
+/* Responsive: no changes needed, rows always stack */
 
 .home-section {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
+  min-width: 0;        /* critical: prevent grid blowout */
+  overflow-x: hidden;
+  /* No max-height or overflow-y — let the page scroll naturally */
 }
 
 .section-label-main {
@@ -2425,9 +2426,9 @@ textarea:focus { outline: none; border-color: var(--accent); }
 }
 
 .home-section-sd, .home-section-ml {
-  /* Side sections specific fine-tuning */
   max-width: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .home-section-sd .problem-content-enriched,
@@ -2440,6 +2441,8 @@ textarea:focus { outline: none; border-color: var(--accent); }
 .master-home-layout .problem-view-master-grid {
   grid-template-columns: 1fr; /* Stack statement and editor in the algo column */
   gap: 1.5rem;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .master-home-layout .sd-view-harmonized {
