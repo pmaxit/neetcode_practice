@@ -514,6 +514,301 @@ const App = () => {
     }
   }, [selectedDay]);
 
+  const renderAlgorithmView = () => {
+    if (!activeProblem) return (
+      <div className="empty-state">
+        <Trophy size={64} style={{ color: 'var(--accent)', opacity: 0.5 }} />
+        <h2>Ready to level up?</h2>
+        <p>Select a problem to begin.</p>
+      </div>
+    );
+
+    return (
+      <div className="problem-view fade-in">
+        {navigationContext === 'dashboard' && (
+          <div className="day-picker">
+            <div className="day-picker-header">
+              <button
+                className="day-nav-btn"
+                onClick={() => setSelectedDay(d => Math.max(1, d - 1))}
+                disabled={selectedDay === 1}
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <span className="day-picker-label">{formatDateShort(selectedDay)} <span className="day-picker-total">({selectedDay} of {maxDay})</span></span>
+              <button
+                className="day-nav-btn"
+                onClick={() => setSelectedDay(d => Math.min(maxDay, d + 1))}
+                disabled={selectedDay === maxDay}
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+            <div className="day-picker-scroll" ref={dayPickerRef}>
+              {Array.from({ length: maxDay }, (_, i) => i + 1).map(day => {
+                const status = getDayStatus(day);
+                return (
+                  <button
+                    key={day}
+                    className={`day-tile ${status} ${selectedDay === day ? 'selected' : ''}`}
+                    onClick={() => setSelectedDay(day)}
+                  >
+                    {formatDateShort(day)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div className="problem-header">
+          <div className="problem-meta">
+            <div className="breadcrumb">
+              <span>{activeProblem.category}</span>
+              <ChevronRight size={14} />
+              <span className={`difficulty-tag ${activeProblem.difficulty.toLowerCase()}`}>{activeProblem.difficulty}</span>
+            </div>
+            <h1>{activeProblem.title}</h1>
+            <a href={activeProblem.neetcode_url} target="_blank" rel="noopener noreferrer" className="external-link">
+              Open in NeetCode.io <ExternalLink size={14} />
+            </a>
+          </div>
+          <div className="action-bar-wrapper">
+            <div className="problem-nav-horizontal">
+              <button
+                className="nav-link-tile prev"
+                disabled={!prevProblem}
+                onClick={() => navigateToProblem(prevProblem)}
+              >
+                <div className="nav-tile-icon"><ChevronLeft size={20} /></div>
+                <div className="nav-tile-content">
+                  <span className="nav-tile-label">Previous</span>
+                  <span className="nav-tile-title">
+                    {prevProblem ? (
+                      <>
+                        {navigationContext === 'dashboard' && prevProblem.day !== selectedDay && (
+                          <span className="nav-day-tag">{formatDateShort(prevProblem.day)}</span>
+                        )}
+                        {prevProblem.title}
+                      </>
+                    ) : 'Beginning'}
+                  </span>
+                </div>
+              </button>
+
+              <button
+                className="nav-link-tile next"
+                disabled={!nextProblem}
+                onClick={() => navigateToProblem(nextProblem)}
+              >
+                <div className="nav-tile-content">
+                  <span className="nav-tile-label">Next Up</span>
+                  <span className="nav-tile-title">
+                    {nextProblem ? (
+                      <>
+                        {navigationContext === 'dashboard' && nextProblem.day !== selectedDay && (
+                          <span className="nav-day-tag">{formatDateShort(nextProblem.day)}</span>
+                        )}
+                        {nextProblem.title}
+                      </>
+                    ) : 'All Caught Up!'}
+                  </span>
+                </div>
+                <div className="nav-tile-icon"><ChevronRight size={20} /></div>
+              </button>
+            </div>
+            
+            <SolutionToggle mode={interfaceMode} onModeChange={setInterfaceMode} />
+
+            <button
+              className={`btn status-btn ${activeProblem.user_status === 'completed' ? 'btn-secondary' : 'btn-primary'}`}
+              onClick={toggleComplete}
+            >
+              {activeProblem.user_status === 'completed' ? <CheckCircle size={18} /> : <Circle size={18} />}
+              {activeProblem.user_status === 'completed' ? 'Completed' : 'Mark as Done'}
+            </button>
+          </div>
+        </div>
+
+        <div className="problem-view-master-grid">
+          <div className="problem-content-enriched glass">
+            <div className="content-section">
+              <h3>Problem Statement</h3>
+              <div
+                className="problem-statement"
+                dangerouslySetInnerHTML={{ __html: activeProblem.statement && activeProblem.statement !== "" ? activeProblem.statement : '<div class="placeholder-statement">Problem statement details are being fetched... Please refer to NeetCode.io link above in the meantime.</div>' }}
+              />
+            </div>
+          </div>
+
+          <div className="problem-interface-enriched glass fade-in">
+            <div className="content-section">
+              <div className="interface-header">
+                <h3>
+                  {interfaceMode === 'edit' ? 'Draft Your Solution' : 
+                   interfaceMode === 'practice' ? 'Practice' : 'Reference Solution'}
+                </h3>
+                <div className="interface-actions">
+                  {(interfaceMode === 'practice' || interfaceMode === 'edit') && (
+                    <button 
+                      className={`btn coach-btn ${agentLoading ? 'loading' : ''}`}
+                      onClick={handleAgentReview}
+                      disabled={agentLoading}
+                    >
+                      <BrainCircuit size={16} /> 
+                      {agentLoading ? 'Reviewing...' : 'Review with AI Coach'}
+                    </button>
+                  )}
+                  {interfaceMode === 'edit' && (
+                    <button 
+                      className="btn reset-btn"
+                      onClick={resetCode}
+                      title="Reset to Scaffold"
+                    >
+                      <X size={14} /> Reset
+                    </button>
+                  )}
+                  {interfaceMode === 'edit' && <span className="auto-save-tag">Auto-saving...</span>}
+                </div>
+              </div>
+              {interfaceMode === 'practice' ? (
+                <div className="code-editor-container practice-mode">
+                  <PythonEditor
+                    code={practiceCode}
+                    onChange={setPracticeCode}
+                    placeholder="# Guided implementation..."
+                  />
+                </div>
+              ) : interfaceMode === 'reference' ? (
+                <div className="solution-container">
+                  <SyntaxHighlighter
+                    language="python"
+                    style={atomDark}
+                    customStyle={{
+                      borderRadius: '12px',
+                      padding: '1.5rem',
+                      fontSize: '0.9rem',
+                      margin: 0,
+                      background: 'rgba(0,0,0,0.3)'
+                    }}
+                  >
+                    {activeProblem.python_code || '# No solution available yet.'}
+                  </SyntaxHighlighter>
+                </div>
+              ) : (
+                <div className="code-editor-container">
+                  <PythonEditor
+                    code={userCode}
+                    onChange={setUserCode}
+                    placeholder="# Start typing your solution here..."
+                  />
+                </div>
+              )}
+
+              {interfaceMode === 'edit' && activeProblem.guided_hints && (
+                <div className="guided-hints-section glass-inset">
+                  <div className="hints-header">
+                    <Zap size={14} /> GUIDED APPROACH HINTS
+                  </div>
+                  <pre className="hints-content">
+                    {activeProblem.guided_hints}
+                  </pre>
+                </div>
+              )}
+
+              {(agentResponse || agentError) && (
+                <div className={`agent-feedback-panel glass ${agentError ? 'error' : ''} fade-in`}>
+                   <div className="feedback-header">
+                     <div className="feedback-title">
+                       <Sparkles size={16} /> COACHING FEEDBACK
+                     </div>
+                     <div className="feedback-actions">
+                       {!agentError && agentResponse && agentResponse.includes('```') && (
+                         <button 
+                           className="btn apply-suggestion-btn"
+                           onClick={applySuggestion}
+                           title="Apply code block from suggestion"
+                         >
+                           <Check size={14} /> Apply Code
+                         </button>
+                       )}
+                       <button className="close-feedback" onClick={() => setAgentResponse(null)}>×</button>
+                     </div>
+                   </div>
+                  <div className="feedback-content markdown-body">
+                    {agentError ? (
+                      <div className="agent-error-msg">{agentError}</div>
+                    ) : (
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {agentResponse}
+                      </ReactMarkdown>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {activeProblem.youtube_url && (
+            <div className="video-section glass fade-in">
+              <h3><span className="yt-icon">▶</span> Solution Walkthrough</h3>
+              <div className="video-wrapper shadow-lg">
+                <iframe
+                  src={`https://www.youtube.com/embed/${(() => {
+                    try {
+                      const url = new URL(activeProblem.youtube_url);
+                      if (url.hostname === 'youtu.be') return url.pathname.slice(1);
+                      return url.searchParams.get('v');
+                    } catch (e) {
+                      return activeProblem.youtube_url.split('/').pop().split('v=').pop();
+                    }
+                  })()}`}
+                  title={`${activeProblem.title} - NeetCode Solution`}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="card glass mnemonic-card fade-in">
+            <div className="card-header-with-actions">
+              <h3><BrainCircuit size={16} /> Mnemonics & Notes</h3>
+              <button className="btn-text-small" onClick={handleResetNotes}>
+                Reset
+              </button>
+            </div>
+            <p className="instruction-text">Core pattern and your personal practice notes.</p>
+            
+            <div className="mnemonic-display">
+              {activeProblem.mnemonic || 'No mnemonic pattern available.'}
+            </div>
+
+            <textarea
+              className="mnemonic-notes"
+              placeholder="Notes on corner cases, time complexity, or personal tips..."
+              value={localNotes}
+              onChange={(e) => handleNotesChange(e.target.value)}
+            />
+          </div>
+
+          <div className="analytics-section">
+            <h2 className="section-title"><BarChart3 size={20} /> Category Breakdown</h2>
+            <div className="category-tags">
+              {Object.entries(analytics.Categories).map(([cat, count]) => (
+                <div key={cat} className="cat-pill">
+                  <span className="cat-name">{cat}</span>
+                  <span className="cat-count">{count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   useEffect(() => {
     const container = document.querySelector('.active-problem-view');
     if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
@@ -822,239 +1117,19 @@ const App = () => {
               </div>
             )}
           </div>
-        ) : activeProblem ? (
-          <div className="problem-view fade-in">
-
-            {navigationContext === 'dashboard' && (
-              <div className="day-picker">
-                <div className="day-picker-header">
-                  <button
-                    className="day-nav-btn"
-                    onClick={() => setSelectedDay(d => Math.max(1, d - 1))}
-                    disabled={selectedDay === 1}
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <span className="day-picker-label">{formatDateShort(selectedDay)} <span className="day-picker-total">({selectedDay} of {maxDay})</span></span>
-                  <button
-                    className="day-nav-btn"
-                    onClick={() => setSelectedDay(d => Math.min(maxDay, d + 1))}
-                    disabled={selectedDay === maxDay}
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-                <div className="day-picker-scroll" ref={dayPickerRef}>
-                  {Array.from({ length: maxDay }, (_, i) => i + 1).map(day => {
-                    const status = getDayStatus(day);
-                    return (
-                      <button
-                        key={day}
-                        className={`day-tile ${status} ${selectedDay === day ? 'selected' : ''}`}
-                        onClick={() => setSelectedDay(day)}
-                      >
-                        {formatDateShort(day)}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            <div className="problem-header">
-              <div className="problem-meta">
-                <div className="breadcrumb">
-                  <span>{activeProblem.category}</span>
-                  <ChevronRight size={14} />
-                  <span className={`difficulty-tag ${activeProblem.difficulty.toLowerCase()}`}>{activeProblem.difficulty}</span>
-                </div>
-                <h1>{activeProblem.title}</h1>
-                <a href={activeProblem.neetcode_url} target="_blank" rel="noopener noreferrer" className="external-link">
-                  Open in NeetCode.io <ExternalLink size={14} />
-                </a>
-              </div>
-              <div className="action-bar-wrapper">
-                <div className="problem-nav-horizontal">
-                  <button
-                    className="nav-link-tile prev"
-                    disabled={!prevProblem}
-                    onClick={() => navigateToProblem(prevProblem)}
-                  >
-                    <div className="nav-tile-icon"><ChevronLeft size={20} /></div>
-                    <div className="nav-tile-content">
-                      <span className="nav-tile-label">Previous</span>
-                      <span className="nav-tile-title">
-                        {prevProblem ? (
-                          <>
-                            {navigationContext === 'dashboard' && prevProblem.day !== selectedDay && (
-                              <span className="nav-day-tag">{formatDateShort(prevProblem.day)}</span>
-                            )}
-                            {prevProblem.title}
-                          </>
-                        ) : 'Beginning'}
-                      </span>
-                    </div>
-                  </button>
-
-                  <button
-                    className="nav-link-tile next"
-                    disabled={!nextProblem}
-                    onClick={() => navigateToProblem(nextProblem)}
-                  >
-                    <div className="nav-tile-content">
-                      <span className="nav-tile-label">Next Up</span>
-                      <span className="nav-tile-title">
-                        {nextProblem ? (
-                          <>
-                            {navigationContext === 'dashboard' && nextProblem.day !== selectedDay && (
-                              <span className="nav-day-tag">{formatDateShort(nextProblem.day)}</span>
-                            )}
-                            {nextProblem.title}
-                          </>
-                        ) : 'All Caught Up!'}
-                      </span>
-                    </div>
-                    <div className="nav-tile-icon"><ChevronRight size={20} /></div>
-                  </button>
-                </div>
-                
-                <SolutionToggle mode={interfaceMode} onModeChange={setInterfaceMode} />
-
-                <button
-                  className={`btn status-btn ${activeProblem.user_status === 'completed' ? 'btn-secondary' : 'btn-primary'}`}
-                  onClick={toggleComplete}
-                >
-                  {activeProblem.user_status === 'completed' ? <CheckCircle size={18} /> : <Circle size={18} />}
-                  {activeProblem.user_status === 'completed' ? 'Completed' : 'Mark as Done'}
-                </button>
-              </div>
+        ) : activeView === 'dashboard' ? (
+          <div className="master-home-layout fade-in">
+            {/* Section 1: Algorithms */}
+            <div className="home-section home-section-leetcode">
+              <div className="section-label-main">LeetCode Practice</div>
+              {renderAlgorithmView()}
             </div>
 
-            <div className="problem-view-master-grid">
-              <div className="problem-content-enriched glass">
-                <div className="content-section">
-                  <h3>Problem Statement</h3>
-                  <div
-                    className="problem-statement"
-                    dangerouslySetInnerHTML={{ __html: activeProblem.statement && activeProblem.statement !== "" ? activeProblem.statement : '<div class="placeholder-statement">Problem statement details are being fetched... Please refer to NeetCode.io link above in the meantime.</div>' }}
-                  />
-                </div>
-              </div>
-
-              {true && (
-                <div className="problem-interface-enriched glass fade-in">
-                  <div className="content-section">
-                    <div className="interface-header">
-                      <h3>
-                        {interfaceMode === 'edit' ? 'Draft Your Solution' : 
-                         interfaceMode === 'practice' ? 'Practice' : 'Reference Solution'}
-                      </h3>
-                      <div className="interface-actions">
-                        {(interfaceMode === 'practice' || interfaceMode === 'edit') && (
-                          <button 
-                            className={`btn coach-btn ${agentLoading ? 'loading' : ''}`}
-                            onClick={handleAgentReview}
-                            disabled={agentLoading}
-                          >
-                            <BrainCircuit size={16} /> 
-                            {agentLoading ? 'Reviewing...' : 'Review with AI Coach'}
-                          </button>
-                        )}
-                        {interfaceMode === 'edit' && (
-                          <button 
-                            className="btn reset-btn"
-                            onClick={resetCode}
-                            title="Reset to Scaffold"
-                          >
-                            <X size={14} /> Reset
-                          </button>
-                        )}
-                        {interfaceMode === 'edit' && <span className="auto-save-tag">Auto-saving...</span>}
-                      </div>
-                    </div>
-                    {interfaceMode === 'practice' ? (
-                      <div className="code-editor-container practice-mode">
-                        <PythonEditor
-                          code={practiceCode}
-                          onChange={setPracticeCode}
-                          placeholder="# Guided implementation..."
-                        />
-                      </div>
-                    ) : interfaceMode === 'reference' ? (
-                      <div className="solution-container">
-                        <SyntaxHighlighter
-                          language="python"
-                          style={atomDark}
-                          customStyle={{
-                            borderRadius: '12px',
-                            padding: '1.5rem',
-                            fontSize: '0.9rem',
-                            margin: 0,
-                            background: 'rgba(0,0,0,0.3)'
-                          }}
-                        >
-                          {activeProblem.python_code || '# No solution available yet.'}
-                        </SyntaxHighlighter>
-                      </div>
-                    ) : (
-                      <div className="code-editor-container">
-                        <PythonEditor
-                          code={userCode}
-                          onChange={setUserCode}
-                          placeholder="# Start typing your solution here..."
-                        />
-                      </div>
-                    )}
-
-                    {interfaceMode === 'edit' && activeProblem.guided_hints && (
-                      <div className="guided-hints-section glass-inset">
-                        <div className="hints-header">
-                          <Zap size={14} /> GUIDED APPROACH HINTS
-                        </div>
-                        <pre className="hints-content">
-                          {activeProblem.guided_hints}
-                        </pre>
-                      </div>
-                    )}
-
-                    {(agentResponse || agentError) && (
-                      <div className={`agent-feedback-panel glass ${agentError ? 'error' : ''} fade-in`}>
-                         <div className="feedback-header">
-                           <div className="feedback-title">
-                             <Sparkles size={16} /> COACHING FEEDBACK
-                           </div>
-                           <div className="feedback-actions">
-                             {!agentError && agentResponse && agentResponse.includes('```') && (
-                               <button 
-                                 className="btn apply-suggestion-btn"
-                                 onClick={applySuggestion}
-                                 title="Apply code block from suggestion"
-                               >
-                                 <Check size={14} /> Apply Code
-                               </button>
-                             )}
-                             <button className="close-feedback" onClick={() => setAgentResponse(null)}>×</button>
-                           </div>
-                         </div>
-                        <div className="feedback-content markdown-body">
-                          {agentError ? (
-                            <div className="agent-error-msg">{agentError}</div>
-                          ) : (
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {agentResponse}
-                            </ReactMarkdown>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-
-            {activeView === 'dashboard' && (sdToday || mlToday) && (
-              <div className="dashboard-cards-row">
-                {sdToday && (
+            {/* Section 2: System Design */}
+            <div className="home-section home-section-sd">
+              <div className="section-label-main">System Design Focus</div>
+              <div className="home-section-scrollable">
+                {sdToday ? (
                   <div className="sd-today-card glass fade-in" onClick={() => navigateToSystemDesign(sdToday.id)}>
                     <div className="sd-card-header">
                       <div className="sd-card-tag">SYSTEM DESIGN OF THE DAY</div>
@@ -1071,9 +1146,17 @@ const App = () => {
                       <span className="learn-more">Read Breakdown <ChevronRight size={14} /></span>
                     </div>
                   </div>
+                ) : (
+                  <div className="empty-state">No System Design challenge for today.</div>
                 )}
+              </div>
+            </div>
 
-                {mlToday && (
+            {/* Section 3: Machine Learning */}
+            <div className="home-section home-section-ml">
+              <div className="section-label-main">ML Deep Dive</div>
+              <div className="home-section-scrollable">
+                {mlToday ? (
                   <div className="ml-today-card glass fade-in">
                     <div className="ml-card-header">
                       <div className="ml-card-tag"><Zap size={14} strokeWidth={3} /> ML SYSTEM DESIGN NOTE</div>
@@ -1086,13 +1169,6 @@ const App = () => {
                           Browse Library <ChevronRight size={14} />
                         </div>
                       </div>
-
-                      <div className="expert-domain-filters">
-                        <button className="qf-pill" onClick={() => { setActiveView('machine-learning'); setMlCategoryFilter('NLP'); setActiveMlNoteId(null); }}>NLP</button>
-                        <button className="qf-pill" onClick={() => { setActiveView('machine-learning'); setMlCategoryFilter('Recommender Systems'); setActiveMlNoteId(null); }}>RecSys</button>
-                        <button className="qf-pill" onClick={() => { setActiveView('machine-learning'); setMlCategoryFilter('ML Infrastructure'); setActiveMlNoteId(null); }}>ML Infra</button>
-                      </div>
-                      
                       <div className="ml-insight-grid">
                         <div className="ml-insight-item">
                           <div className="ml-insight-label">HISTORY & MOTIVATION</div>
@@ -1102,12 +1178,7 @@ const App = () => {
                           <div className="ml-insight-label">CORE EXAMPLE</div>
                           <div className="ml-insight-text">{mlToday.example}</div>
                         </div>
-                        <div className="ml-insight-item">
-                          <div className="ml-insight-label">WHERE IT IS USED</div>
-                          <div className="ml-insight-text">{mlToday.where_it_is_used}</div>
-                        </div>
                       </div>
-
                       <div className="ml-deep-dive">
                         <div className="ml-deep-dive-header">
                           <BrainCircuit size={16} /> TECHNICAL DEEP DIVE
@@ -1118,67 +1189,14 @@ const App = () => {
                       </div>
                     </div>
                   </div>
+                ) : (
+                  <div className="empty-state">No ML insights for today.</div>
                 )}
-              </div>
-            )}
-
-              {activeProblem.youtube_url && (
-                <div className="video-section glass fade-in">
-                  <h3><span className="yt-icon">▶</span> Solution Walkthrough</h3>
-                  <div className="video-wrapper shadow-lg">
-                    <iframe
-                      src={`https://www.youtube.com/embed/${(() => {
-                        try {
-                          const url = new URL(activeProblem.youtube_url);
-                          if (url.hostname === 'youtu.be') return url.pathname.slice(1);
-                          return url.searchParams.get('v');
-                        } catch (e) {
-                          return activeProblem.youtube_url.split('/').pop().split('v=').pop();
-                        }
-                      })()}`}
-                      title={`${activeProblem.title} - NeetCode Solution`}
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="card glass mnemonic-card fade-in">
-                <div className="card-header-with-actions">
-                  <h3><BrainCircuit size={16} /> Mnemonics & Notes</h3>
-                  <button className="btn-text-small" onClick={handleResetNotes}>
-                    Reset
-                  </button>
-                </div>
-                <p className="instruction-text">Core pattern and your personal practice notes.</p>
-                
-                <div className="mnemonic-display">
-                  {activeProblem.mnemonic || 'No mnemonic pattern available.'}
-                </div>
-
-                <textarea
-                  className="mnemonic-notes"
-                  placeholder="Notes on corner cases, time complexity, or personal tips..."
-                  value={localNotes}
-                  onChange={(e) => handleNotesChange(e.target.value)}
-                />
-              </div>
-
-              <div className="analytics-section">
-                <h2 className="section-title"><BarChart3 size={20} /> Category Breakdown</h2>
-                <div className="category-tags">
-                  {Object.entries(analytics.Categories).map(([cat, count]) => (
-                    <div key={cat} className="cat-pill">
-                      <span className="cat-name">{cat}</span>
-                      <span className="cat-count">{count}</span>
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
           </div>
+        ) : activeProblem ? (
+          renderAlgorithmView()
         ) : (
           <div className="empty-state">
             <Trophy size={64} style={{ color: 'var(--accent)', opacity: 0.5 }} />
