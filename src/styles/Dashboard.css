@@ -384,8 +384,8 @@ body {
 
 .video-wrapper {
   position: relative;
-  padding-bottom: 56.25%;
-  height: 0;
+  aspect-ratio: 16 / 9;   /* modern, reliable — no more height:0 hack */
+  width: 100%;
   border-radius: 12px;
   overflow: hidden;
   background: #000;
