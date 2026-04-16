@@ -753,48 +753,50 @@ const App = () => {
             </div>
           </div>
 
-          {activeProblem.youtube_url && (
-            <div className="video-section glass fade-in">
-              <h3><span className="yt-icon">▶</span> Solution Walkthrough</h3>
-              <div className="video-wrapper shadow-lg">
-                <iframe
-                  src={`https://www.youtube.com/embed/${(() => {
-                    try {
-                      const url = new URL(activeProblem.youtube_url);
-                      if (url.hostname === 'youtu.be') return url.pathname.slice(1);
-                      return url.searchParams.get('v');
-                    } catch (e) {
-                      return activeProblem.youtube_url.split('/').pop().split('v=').pop();
-                    }
-                  })()}`}
-                  title={`${activeProblem.title} - NeetCode Solution`}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
+          <div className="video-mnemonic-row">
+            {activeProblem.youtube_url && (
+              <div className="video-section glass fade-in">
+                <h3><span className="yt-icon">▶</span> Solution Walkthrough</h3>
+                <div className="video-wrapper shadow-lg">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${(() => {
+                      try {
+                        const url = new URL(activeProblem.youtube_url);
+                        if (url.hostname === 'youtu.be') return url.pathname.slice(1);
+                        return url.searchParams.get('v');
+                      } catch (e) {
+                        return activeProblem.youtube_url.split('/').pop().split('v=').pop();
+                      }
+                    })()}`}
+                    title={`${activeProblem.title} - NeetCode Solution`}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <div className="card glass mnemonic-card fade-in">
-            <div className="card-header-with-actions">
-              <h3><BrainCircuit size={16} /> Mnemonics & Notes</h3>
-              <button className="btn-text-small" onClick={handleResetNotes}>
-                Reset
-              </button>
-            </div>
-            <p className="instruction-text">Core pattern and your personal practice notes.</p>
-            
-            <div className="mnemonic-display">
-              {activeProblem.mnemonic || 'No mnemonic pattern available.'}
-            </div>
+            <div className="card glass mnemonic-card fade-in">
+              <div className="card-header-with-actions">
+                <h3><BrainCircuit size={16} /> Mnemonics & Notes</h3>
+                <button className="btn-text-small" onClick={handleResetNotes}>
+                  Reset
+                </button>
+              </div>
+              <p className="instruction-text">Core pattern and your personal practice notes.</p>
+              
+              <div className="mnemonic-display">
+                {activeProblem.mnemonic || 'No mnemonic pattern available.'}
+              </div>
 
-            <textarea
-              className="mnemonic-notes"
-              placeholder="Notes on corner cases, time complexity, or personal tips..."
-              value={localNotes}
-              onChange={(e) => handleNotesChange(e.target.value)}
-            />
+              <textarea
+                className="mnemonic-notes"
+                placeholder="Notes on corner cases, time complexity, or personal tips..."
+                value={localNotes}
+                onChange={(e) => handleNotesChange(e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="analytics-section">

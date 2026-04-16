@@ -398,6 +398,36 @@ body {
   border: none;
 }
 
+/* Video + Mnemonics side-by-side row */
+.video-mnemonic-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+  margin-top: 1.5rem;
+}
+
+.video-mnemonic-row .video-section {
+  margin-top: 0;   /* override any existing top margin */
+}
+
+.video-mnemonic-row .mnemonic-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.video-mnemonic-row .mnemonic-notes {
+  flex: 1;
+  min-height: 120px;
+}
+
+@media (max-width: 900px) {
+  .video-mnemonic-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Problem Navigation Redesign */
 .action-bar-wrapper {
   display: flex;
