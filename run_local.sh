@@ -56,10 +56,26 @@ if [ ! -z "$INSTANCE_CONNECTION_NAME" ]; then
         exit 1
     fi
 
+    # Detect DB_PORT or default to 3306
+    DB_PORT=${DB_PORT:-3306}
+    
+    # Check if port is busy
+    if lsof -Pi :$DB_PORT -sTCP:LISTEN -t >/dev/null 2>&1 ; then
+        echo "⚠️ Port $DB_PORT is already in use."
+        if [ "$DB_PORT" -eq 3306 ]; then
+            echo "🔄 Automatically switching to port 3307 for Cloud SQL Proxy..."
+            DB_PORT=3307
+            export DB_PORT
+        else
+            echo "❌ Error: Port $DB_PORT is busy. Please free it or specify a different DB_PORT in .env."
+            exit 1
+        fi
+    fi
+
     # Start proxy in background
-    ./cloud-sql-proxy --token $(gcloud auth print-access-token) "$INSTANCE_CONNECTION_NAME" &
+    ./cloud-sql-proxy --port "$DB_PORT" --token $(gcloud auth print-access-token) "$INSTANCE_CONNECTION_NAME" &
     PROXY_PID=$!
-    echo "✅ Proxy started with PID $PROXY_PID"
+    echo "✅ Proxy started on port $DB_PORT with PID $PROXY_PID"
     
     # Wait a bit for proxy to initialize TCP listener
     sleep 3

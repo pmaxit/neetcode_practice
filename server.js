@@ -22,6 +22,7 @@ const DB_HOST = process.env.DB_HOST;
 const DB_USER = process.env.DB_USER;
 const DB_PASS = process.env.DB_PASS;
 const DB_NAME = process.env.DB_NAME;
+const DB_PORT = process.env.DB_PORT || 3306;
 
 // Database connection logic
 // In Cloud Run, K_SERVICE is set. Use Unix socket there.
@@ -37,6 +38,7 @@ const sequelize = useSocket
     })
     : new Sequelize(DB_NAME, DB_USER, DB_PASS, {
         host: DB_HOST || '127.0.0.1',
+        port: DB_PORT,
         dialect: 'mysql',
         logging: false,
         pool: {

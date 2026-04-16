@@ -447,7 +447,7 @@ const App = () => {
                   >
                     <ChevronLeft size={16} />
                   </button>
-                  <span className="day-picker-label">Day {selectedDay} <span className="day-picker-total">/ {maxDay}</span></span>
+                  <span className="day-picker-label">{formatDateShort(selectedDay)} <span className="day-picker-total">({selectedDay} of {maxDay})</span></span>
                   <button
                     className="day-nav-btn"
                     onClick={() => setSelectedDay(d => Math.min(maxDay, d + 1))}
@@ -465,7 +465,7 @@ const App = () => {
                         className={`day-tile ${status} ${selectedDay === day ? 'selected' : ''}`}
                         onClick={() => setSelectedDay(day)}
                       >
-                        {day}
+                        {formatDateShort(day)}
                       </button>
                     );
                   })}
@@ -499,7 +499,7 @@ const App = () => {
                         {prevProblem ? (
                           <>
                             {activeView === 'dashboard' && prevProblem.day !== selectedDay && (
-                              <span className="nav-day-tag">Day {prevProblem.day}</span>
+                              <span className="nav-day-tag">{formatDateShort(prevProblem.day)}</span>
                             )}
                             {prevProblem.title}
                           </>
@@ -519,7 +519,7 @@ const App = () => {
                         {nextProblem ? (
                           <>
                             {activeView === 'dashboard' && nextProblem.day !== selectedDay && (
-                              <span className="nav-day-tag">Day {nextProblem.day}</span>
+                              <span className="nav-day-tag">{formatDateShort(nextProblem.day)}</span>
                             )}
                             {nextProblem.title}
                           </>

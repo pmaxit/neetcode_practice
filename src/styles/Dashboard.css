@@ -452,7 +452,7 @@ body {
   margin-bottom: 0.75rem;
 }
 
-.day-picker-label { font-size: 0.9rem; font-weight: 700; color: var(--text-main); min-width: 80px; text-align: center; }
+.day-picker-label { font-size: 0.9rem; font-weight: 700; color: var(--text-main); min-width: 120px; text-align: center; }
 .day-picker-total { color: var(--text-muted); font-weight: 500; }
 
 .day-nav-btn {
@@ -495,7 +495,7 @@ body {
 }
 
 .day-tile {
-  min-width: 80px; height: 50px;
+  min-width: 70px; height: 50px;
   border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--bg-card);
