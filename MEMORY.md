@@ -187,8 +187,8 @@ bash deploy.sh
 ### Cloud Run Env Vars (already set on service)
 ```
 INSTANCE_CONNECTION_NAME=adveralabs:us-central1:adveralabs-mysql
-DB_USER=neetcode_user
-DB_PASS=neetcode_pass
+DB_USER=test
+DB_PASS=test123
 DB_NAME=neetcode_db
 ```
 

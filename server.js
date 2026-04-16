@@ -72,6 +72,25 @@ const UserProgress = sequelize.define('UserProgress', {
     user_notes: DataTypes.TEXT
 }, { timestamps: true, tableName: 'user_progress' });
 
+// Health check endpoint
+app.get('/api/health', async (req, res) => {
+    try {
+        await sequelize.authenticate();
+        res.json({ 
+            status: 'healthy',
+            database: 'connected',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('[Health Check] FAILED:', error);
+        res.status(503).json({ 
+            status: 'unhealthy',
+            database: 'disconnected',
+            error: error.message 
+        });
+    }
+});
+
 // API Routes
 app.get('/api/problems', async (req, res) => {
     try {
@@ -82,7 +101,7 @@ app.get('/api/problems', async (req, res) => {
             const prog = progress.find(u => u.problem_id === p.id);
             return {
                 ...p.toJSON(),
-                day: ((p.id - 1) % 19) + 1,
+                day: Math.floor((p.id - 1) / 6) + 1,
                 user_status: prog ? prog.status : 'not-started',
                 user_code: prog ? prog.user_code : '',
                 user_notes: prog ? prog.user_notes : ''
@@ -256,7 +275,7 @@ app.post('/api/admin/enrich', async (req, res) => {
     }
 });
 
-app.get('*all', (req, res) => {
+app.get('/*splat', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 

@@ -64,8 +64,26 @@ const App = () => {
     fetchData();
   }, []);
 
-  const newCountPerDay = 8;
+  const newCountPerDay = 6;
   const totalDays = Math.ceil(problems.length / newCountPerDay);
+
+  const getDateForDay = (dayIndex) => {
+    const date = new Date();
+    date.setDate(date.getDate() + dayIndex); // (today + dayIndex) where Day 1 = Tomorrow
+    return date;
+  };
+
+  const formatDateShort = (dayIndex) => {
+    const date = getDateForDay(dayIndex);
+    const weekday = new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(date);
+    const dayNumeric = date.getDate();
+    return `${weekday}, ${dayNumeric}`;
+  };
+
+  const formatDateFull = (dayIndex) => {
+    const date = getDateForDay(dayIndex);
+    return new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(date);
+  };
 
   const getProblemsForDay = (day) => {
     const newProbs = problems.filter(p => p.day === day).map(p => ({ ...p, isRevision: false }));
@@ -73,14 +91,21 @@ const App = () => {
     if (day > 1) {
       const prevProbs = problems.filter(p => p.day < day);
       const revSource = prevProbs.filter(p => p.difficulty !== 'Easy');
-      const source = revSource.length >= 2 ? revSource : prevProbs;
-      if (source.length > 0) {
-        const p1 = source[(day * 7) % source.length];
-        const p2 = source[(day * 13) % source.length];
-        revProbs = [
-          { ...p1, isRevision: true },
-          { ...(p1.id === p2.id ? source[(day * 17) % source.length] : p2), isRevision: true }
-        ];
+      
+      if (revSource.length > 0) {
+        // Deterministic selection of 3 review problems
+        const selectedIndices = new Set();
+        const primes = [31, 37, 41];
+        
+        for (let i = 0; i < 3 && selectedIndices.size < revSource.length; i++) {
+          let idx = (day * primes[i]) % revSource.length;
+          while (selectedIndices.has(idx)) {
+            idx = (idx + 1) % revSource.length;
+          }
+          selectedIndices.add(idx);
+        }
+        
+        revProbs = Array.from(selectedIndices).map(idx => ({ ...revSource[idx], isRevision: true }));
       }
     }
     return [...newProbs, ...revProbs];
@@ -111,17 +136,40 @@ const App = () => {
     return list.find(p => p.id === activeProblemId) || list[0];
   }, [activeProblemId, dailyProblems, browsedProblems, activeView]);
 
+  const navigateToProblem = useCallback((problem) => {
+    if (!problem) return;
+    if (activeView === 'dashboard' && problem.day !== selectedDay && !problem.isRevision) {
+      setSelectedDay(problem.day);
+    }
+    setActiveProblemId(problem.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeView, selectedDay]);
+
   const { prevProblem, nextProblem } = useMemo(() => {
     const list = activeView === 'browse' ? browsedProblems : dailyProblems;
     const idx = list.findIndex(p => p.id === activeProblemId);
-    return {
-      prevProblem: idx > 0 ? list[idx - 1] : null,
-      nextProblem: idx >= 0 && idx < list.length - 1 ? list[idx + 1] : null,
-    };
-  }, [activeProblemId, dailyProblems, browsedProblems, activeView]);
+    
+    let prev = idx > 0 ? list[idx - 1] : null;
+    let next = idx >= 0 && idx < list.length - 1 ? list[idx + 1] : null;
+
+    // Cross-day navigation for dashboard view
+    if (activeView === 'dashboard' && !prev && selectedDay > 1) {
+      const prevDayPool = getProblemsForDay(selectedDay - 1);
+      prev = prevDayPool[prevDayPool.length - 1];
+    }
+    if (activeView === 'dashboard' && !next && selectedDay < maxDay) {
+      const nextDayPool = getProblemsForDay(selectedDay + 1);
+      next = nextDayPool[0];
+    }
+
+    return { prevProblem: prev, nextProblem: next };
+  }, [activeProblemId, dailyProblems, browsedProblems, activeView, selectedDay, maxDay]);
 
   useEffect(() => {
     setIsSolutionVisible(false);
+    // Ensure we scroll to top when problem changes
+    const container = document.querySelector('.active-problem-view');
+    if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
   }, [activeProblemId, activeView]);
 
   // Analytics
@@ -287,13 +335,13 @@ const App = () => {
 
         {activeView === 'dashboard' && (
           <div className="problem-list-container">
-            <h3 className="section-title">DAY {selectedDay} TASKS</h3>
+            <h1 className="day-title">{formatDateFull(selectedDay)}</h1>
             <div className="problem-list">
               {dailyProblems.map(p => (
                 <div
                   key={`${p.id}-${p.isRevision}`}
                   className={`problem-item ${activeProblemId === p.id ? 'active' : ''} ${p.user_status === 'completed' ? 'completed' : ''}`}
-                  onClick={() => { setActiveProblemId(p.id); closeSidebar(); }}
+                  onClick={() => navigateToProblem(p)}
                 >
                   <div className="problem-title">
                     {p.isRevision && <span className="revision-tag">↺</span>}
@@ -336,7 +384,7 @@ const App = () => {
                 <div
                   key={p.id}
                   className={`problem-item ${activeProblemId === p.id ? 'active' : ''} ${p.user_status === 'completed' ? 'completed' : ''}`}
-                  onClick={() => { setActiveProblemId(p.id); closeSidebar(); }}
+                  onClick={() => navigateToProblem(p)}
                 >
                   <div className="problem-title">{p.title}</div>
                   <span className={`difficulty-badge ${p.difficulty.toLowerCase()}`}>
@@ -373,7 +421,9 @@ const App = () => {
                       setActiveView('dashboard');
                     }}
                   >
-                    <span className="day-number">Day {day}</span>
+                  <div className="day-tile-content">
+                    <span className="day-label">{formatDateShort(day)}</span>
+                  </div>
                     <div className="day-progress-dots">
                       {getProblemsForDay(day).map(p => (
                         <div key={p.id} className={`p-dot ${p.user_status === 'completed' ? 'filled' : ''}`}></div>
@@ -435,33 +485,53 @@ const App = () => {
                   Open in NeetCode.io <ExternalLink size={14} />
                 </a>
               </div>
-              <div className="action-bar">
-                <div className="problem-nav">
+              <div className="action-bar-wrapper">
+                <div className="problem-nav-horizontal">
                   <button
-                    className="problem-nav-btn"
+                    className="nav-link-tile prev"
                     disabled={!prevProblem}
-                    onClick={() => prevProblem && setActiveProblemId(prevProblem.id)}
-                    title={prevProblem ? prevProblem.title : ''}
+                    onClick={() => navigateToProblem(prevProblem)}
                   >
-                    <ChevronLeft size={14} />
-                    <span className="problem-nav-label">
-                      {prevProblem ? prevProblem.title : 'First problem'}
-                    </span>
+                    <div className="nav-tile-icon"><ChevronLeft size={20} /></div>
+                    <div className="nav-tile-content">
+                      <span className="nav-tile-label">Previous</span>
+                      <span className="nav-tile-title">
+                        {prevProblem ? (
+                          <>
+                            {activeView === 'dashboard' && prevProblem.day !== selectedDay && (
+                              <span className="nav-day-tag">Day {prevProblem.day}</span>
+                            )}
+                            {prevProblem.title}
+                          </>
+                        ) : 'Beginning'}
+                      </span>
+                    </div>
                   </button>
+
                   <button
-                    className="problem-nav-btn problem-nav-next"
+                    className="nav-link-tile next"
                     disabled={!nextProblem}
-                    onClick={() => nextProblem && setActiveProblemId(nextProblem.id)}
-                    title={nextProblem ? nextProblem.title : ''}
+                    onClick={() => navigateToProblem(nextProblem)}
                   >
-                    <span className="problem-nav-label">
-                      {nextProblem ? nextProblem.title : 'Last problem'}
-                    </span>
-                    <ChevronRight size={14} />
+                    <div className="nav-tile-content">
+                      <span className="nav-tile-label">Next Up</span>
+                      <span className="nav-tile-title">
+                        {nextProblem ? (
+                          <>
+                            {activeView === 'dashboard' && nextProblem.day !== selectedDay && (
+                              <span className="nav-day-tag">Day {nextProblem.day}</span>
+                            )}
+                            {nextProblem.title}
+                          </>
+                        ) : 'All Caught Up!'}
+                      </span>
+                    </div>
+                    <div className="nav-tile-icon"><ChevronRight size={20} /></div>
                   </button>
                 </div>
+                
                 <button
-                  className={`btn ${activeProblem.user_status === 'completed' ? 'btn-secondary' : 'btn-primary'}`}
+                  className={`btn status-btn ${activeProblem.user_status === 'completed' ? 'btn-secondary' : 'btn-primary'}`}
                   onClick={toggleComplete}
                 >
                   {activeProblem.user_status === 'completed' ? <CheckCircle size={18} /> : <Circle size={18} />}

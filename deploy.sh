@@ -18,8 +18,8 @@ gcloud run deploy "$SERVICE_NAME" \
   --allow-unauthenticated \
   --add-cloudsql-instances "$INSTANCE_CONNECTION_NAME" \
   --set-env-vars "INSTANCE_CONNECTION_NAME=${INSTANCE_CONNECTION_NAME}" \
-  --set-env-vars "DB_NAME=neetcode_practice" \
-  --set-env-vars "DB_USER=neetcode_user" \
+  --set-env-vars "DB_NAME=neetcode_db" \
+  --set-env-vars "DB_USER=test" \
   --set-secrets "DB_PASS=neetcode-db-password:latest" \
   --port 8080 \
   --memory 512Mi \
@@ -27,4 +27,6 @@ gcloud run deploy "$SERVICE_NAME" \
   --max-instances 3
 
 echo "Deploy complete!"
-gcloud run services describe "$SERVICE_NAME" --region "$REGION" --format 'value(status.url)'
+URL=$(gcloud run services describe "$SERVICE_NAME" --region "$REGION" --format 'value(status.url)')
+echo "Service URL: $URL"
+echo "Health Check: ${URL}/api/health"

@@ -1,0 +1,13 @@
+node_modules
+dist
+.env
+.env.example
+cloud-sql-proxy
+.git
+.gitignore
+deploy.sh
+run_local.sh
+README.md
+scratch
+logs
+*.log
