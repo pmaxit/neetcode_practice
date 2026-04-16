@@ -1,0 +1,54 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: adveralabs
+  SERVICE_NAME: neetcode-practice
+  REGION: us-central1
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Google Auth
+        id: auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: 'Build and Push to GCR'
+        run: |
+          gcloud builds submit --tag "gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }}" .
+
+      - name: 'Deploy to Cloud Run'
+        id: deploy
+        uses: 'google-github-actions/deploy-cloudrun@v2'
+        with:
+          service: '${{ env.SERVICE_NAME }}'
+          image: 'gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:${{ github.sha }}'
+          region: '${{ env.REGION }}'
+          env_vars: |
+            INSTANCE_CONNECTION_NAME=adveralabs:us-central1:adveralabs-mysql
+            DB_NAME=neetcode_db
+            DB_USER=test
+          secrets: |
+            DB_PASS=neetcode-db-password:latest
+          flags: '--add-cloudsql-instances=adveralabs:us-central1:adveralabs-mysql --allow-unauthenticated --memory=512Mi --min-instances=0 --max-instances=3 --port=8080'
+
+      - name: 'Final Status'
+        run: |
+          echo "Deployment successful!"
+          echo "Service URL: ${{ steps.deploy.outputs.url }}"
+          echo "Health Check: ${{ steps.deploy.outputs.url }}/api/health"
