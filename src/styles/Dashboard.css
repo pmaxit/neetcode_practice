@@ -264,26 +264,55 @@ body {
   aspect-ratio: 1;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: var(--bg-card);
+  background: rgba(30, 41, 59, 0.4);
   padding: 1rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   cursor: pointer;
   transition: var(--transition);
+  color: var(--text-main);
 }
 
-.calendar-day:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-.calendar-day.completed { background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); }
-.calendar-day.in-progress { background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.3); }
-.calendar-day.not-started { background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2); }
-.calendar-day.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+.calendar-day:hover { 
+  transform: translateY(-4px); 
+  border-color: var(--accent); 
+  background: rgba(30, 41, 59, 0.7);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3); 
+}
 
-.day-number { font-weight: 700; font-size: 1.1rem; }
+.calendar-day.completed { 
+  background: rgba(16, 185, 129, 0.15); 
+  border-color: rgba(16, 185, 129, 0.4); 
+}
+
+.calendar-day.in-progress { 
+  background: rgba(245, 158, 11, 0.15); 
+  border-color: rgba(245, 158, 11, 0.4); 
+}
+
+.calendar-day.not-started { 
+  background: rgba(239, 68, 68, 0.08); 
+  border-color: rgba(239, 68, 68, 0.25); 
+}
+
+.calendar-day.selected { 
+  border-color: var(--accent); 
+  box-shadow: 0 0 0 2px var(--accent-glow); 
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.day-label { 
+  font-weight: 700; 
+  font-size: 0.85rem; 
+  color: var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
 
 .day-progress-dots { display: flex; flex-wrap: wrap; gap: 4px; }
 .p-dot { width: 6px; height: 6px; border-radius: 50%; background: #334155; }
-.p-dot.filled { background: var(--accent); }
+.p-dot.filled { background: var(--accent); box-shadow: 0 0 4px var(--accent-glow); }
 
 /* YouTube Video Embed */
 .video-section {
