@@ -980,3 +980,4 @@ const SystemDesignDetail = ({ problem, onToggleComplete }) => {
 
 export default App;
 // Trigger commit for GitHub Actions
+// Verifying automated deployment after IAM fix
