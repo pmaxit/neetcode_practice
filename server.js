@@ -23,8 +23,12 @@ const DB_USER = process.env.DB_USER;
 const DB_PASS = process.env.DB_PASS;
 const DB_NAME = process.env.DB_NAME;
 
-// Cloud Run will pass INSTANCE_CONNECTION_NAME if we use Unix socket
-const sequelize = process.env.INSTANCE_CONNECTION_NAME 
+// Database connection logic
+// In Cloud Run, K_SERVICE is set. Use Unix socket there.
+// Locally, use TCP (usually 127.0.0.1) via Cloud SQL Auth Proxy.
+const useSocket = process.env.INSTANCE_CONNECTION_NAME && process.env.K_SERVICE;
+
+const sequelize = useSocket
     ? new Sequelize(DB_NAME, DB_USER, DB_PASS, {
         host: `/cloudsql/${process.env.INSTANCE_CONNECTION_NAME}`,
         dialect: 'mysql',
@@ -32,9 +36,19 @@ const sequelize = process.env.INSTANCE_CONNECTION_NAME
         dialectOptions: { socketPath: `/cloudsql/${process.env.INSTANCE_CONNECTION_NAME}` }
     })
     : new Sequelize(DB_NAME, DB_USER, DB_PASS, {
-        host: DB_HOST,
+        host: DB_HOST || '127.0.0.1',
         dialect: 'mysql',
-        logging: false
+        logging: false,
+        pool: {
+            max: 5,
+            min: 0,
+            acquire: 30000,
+            idle: 10000
+        },
+        retry: {
+            match: [/Connection lost/i, /SequelizeConnectionError/i],
+            max: 3
+        }
     });
 
 const Problem = sequelize.define('Problem', {

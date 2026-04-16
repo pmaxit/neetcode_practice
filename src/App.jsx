@@ -26,6 +26,7 @@ import './styles/Dashboard.css';
 const App = () => {
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedDay, setSelectedDay] = useState(1);
   const [activeProblemId, setActiveProblemId] = useState(null);
   const [activeView, setActiveView] = useState('dashboard'); // 'dashboard' | 'calendar' | 'browse'
@@ -41,12 +42,21 @@ const App = () => {
         setLoading(true);
         const res = await fetch('/api/problems');
         const data = await res.json();
-        setProblems(data);
-        if (data.length > 0) {
-          setActiveProblemId(data[0].id);
+        
+        if (Array.isArray(data)) {
+          setProblems(data);
+          setError(null);
+          if (data.length > 0) {
+            setActiveProblemId(data[0].id);
+          }
+        } else {
+          setError(data.error || 'Failed to fetch problems');
+          setProblems([]);
         }
       } catch (err) {
         console.error('Failed to load problems:', err);
+        setError('Connection error: Make sure the local database is connected.');
+        setProblems([]);
       } finally {
         setLoading(false);
       }
@@ -205,6 +215,27 @@ const App = () => {
       <div className="loading-container">
         <div className="spinner"></div>
         <p>Initializing practice session...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="loading-container">
+        <div className="error-icon" style={{ color: 'var(--hard)', fontSize: '3rem', marginBottom: '1rem' }}>⚠️</div>
+        <h2 style={{ margin: '0 0 1rem' }}>Database Connection Failed</h2>
+        <p style={{ color: 'var(--text-muted)', maxWidth: '400px', textAlign: 'center', lineHeight: '1.6' }}>
+          {error}
+          <br /><br />
+          Please ensure the <strong>Cloud SQL Proxy</strong> is running and you have an active internet connection.
+        </p>
+        <button 
+          className="btn btn-primary" 
+          style={{ marginTop: '2rem' }}
+          onClick={() => window.location.reload()}
+        >
+          Retry Connection
+        </button>
       </div>
     );
   }
@@ -449,41 +480,29 @@ const App = () => {
               </div>
             </div>
 
-            {activeProblem.youtube_url && (
-              <div className="video-section glass">
-                <h3><span className="yt-icon">▶</span> Solution Walkthrough</h3>
-                <div className="video-wrapper">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${new URL(activeProblem.youtube_url).searchParams.get('v')}`}
-                    title={`${activeProblem.title} - NeetCode Solution`}
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
+            <div className="solution-media-grid">
+              {activeProblem.youtube_url && (
+                <div className="video-section glass fade-in">
+                  <h3><span className="yt-icon">▶</span> Solution Walkthrough</h3>
+                  <div className="video-wrapper shadow-lg">
+                    <iframe
+                      src={`https://www.youtube.com/embed/${(() => {
+                        try {
+                          const url = new URL(activeProblem.youtube_url);
+                          if (url.hostname === 'youtu.be') return url.pathname.slice(1);
+                          return url.searchParams.get('v');
+                        } catch (e) {
+                          return activeProblem.youtube_url.split('/').pop().split('v=').pop();
+                        }
+                      })()}`}
+                      title={`${activeProblem.title} - NeetCode Solution`}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
-
-            <div className="sections-grid">
-              <div className="card glass">
-                <h3><BrainCircuit size={16} /> Mnemonics</h3>
-                <p className="instruction-text">Core pattern to remember for this problem type.</p>
-                <div className="mnemonic-display">
-                  {activeProblem.mnemonic || 'No mnemonic available'}
-                </div>
-              </div>
-
-              <div className="card glass">
-                <h3><MessageSquare size={16} /> Practice Notes</h3>
-                <textarea
-                  placeholder="Notes on corner cases, time complexity, etc..."
-                  value={localNotes}
-                  onChange={(e) => handleNotesChange(e.target.value)}
-                />
-                <button className="btn btn-secondary reset-button" onClick={handleResetNotes}>
-                  Reset Notes
-                </button>
-              </div>
+              )}
 
               <div className="card code-container glass">
                 <div className="solution-header">
@@ -512,6 +531,28 @@ const App = () => {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+
+            <div className="sections-grid">
+              <div className="card glass">
+                <h3><BrainCircuit size={16} /> Mnemonics</h3>
+                <p className="instruction-text">Core pattern to remember for this problem type.</p>
+                <div className="mnemonic-display">
+                  {activeProblem.mnemonic || 'No mnemonic available'}
+                </div>
+              </div>
+
+              <div className="card glass">
+                <h3><MessageSquare size={16} /> Practice Notes</h3>
+                <textarea
+                  placeholder="Notes on corner cases, time complexity, etc..."
+                  value={localNotes}
+                  onChange={(e) => handleNotesChange(e.target.value)}
+                />
+                <button className="btn btn-secondary reset-button" onClick={handleResetNotes}>
+                  Reset Notes
+                </button>
               </div>
             </div>
 
