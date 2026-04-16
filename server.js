@@ -74,6 +74,23 @@ const UserProgress = sequelize.define('UserProgress', {
     user_notes: DataTypes.TEXT
 }, { timestamps: true, tableName: 'user_progress' });
 
+const SystemDesignProblem = sequelize.define('SystemDesignProblem', {
+    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    title: DataTypes.STRING,
+    slug: { type: DataTypes.STRING, unique: true },
+    url: DataTypes.STRING,
+    difficulty: DataTypes.STRING,
+    content: DataTypes.TEXT('long'),
+    scheduled_date: DataTypes.DATEONLY
+}, { timestamps: false, tableName: 'system_design_problems' });
+
+const SystemDesignProgress = sequelize.define('SystemDesignProgress', {
+    problem_id: { type: DataTypes.INTEGER, primaryKey: true },
+    status: { type: DataTypes.STRING, defaultValue: 'not-started' },
+    notes: DataTypes.TEXT
+}, { timestamps: true, tableName: 'system_design_progress' });
+
+
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
     try {
@@ -93,7 +110,106 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
-// API Routes
+// System Design Endpoints
+app.get('/api/system-design', async (req, res) => {
+    try {
+        const problems = await SystemDesignProblem.findAll();
+        const progress = await SystemDesignProgress.findAll();
+        const progressMap = progress.reduce((acc, p) => {
+            acc[p.problem_id] = p;
+            return acc;
+        }, {});
+
+        const result = problems.map(p => ({
+            ...p.toJSON(),
+            status: progressMap[p.id]?.status || 'not-started',
+            notes: progressMap[p.id]?.notes || ''
+        }));
+
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/system-design/today', async (req, res) => {
+    try {
+        const todayStr = new Date().toISOString().split('T')[0];
+        let todayProblem = await SystemDesignProblem.findOne({
+            where: { scheduled_date: todayStr }
+        });
+
+        if (!todayProblem) {
+            // Pick a problem that hasn't been scheduled yet
+            const unscheduled = await SystemDesignProblem.findOne({
+                where: { scheduled_date: null },
+                order: sequelize.random()
+            }) || await SystemDesignProblem.findOne({ order: sequelize.random() });
+
+            if (unscheduled) {
+                unscheduled.scheduled_date = todayStr;
+                await unscheduled.save();
+                todayProblem = unscheduled;
+            }
+        }
+
+        if (!todayProblem) return res.status(404).json({ error: 'No problems found' });
+
+        const progress = await SystemDesignProgress.findByPk(todayProblem.id);
+        res.json({
+            ...todayProblem.toJSON(),
+            status: progress?.status || 'not-started',
+            notes: progress?.notes || ''
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/system-design/progress', async (req, res) => {
+    const { problem_id, status, notes } = req.body;
+    try {
+        const [progress, created] = await SystemDesignProgress.findOrCreate({
+            where: { problem_id },
+            defaults: { status, notes }
+        });
+
+        if (!created) {
+            if (status) progress.status = status;
+            if (notes !== undefined) progress.notes = notes;
+            await progress.save();
+        }
+
+        res.json(progress);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Daily Problem
+app.get('/api/daily', async (req, res) => {
+    try {
+        const problems = await Problem.findAll({ order: [['id', 'ASC']] });
+        const progress = await UserProgress.findAll();
+
+        const merged = problems.map((p) => {
+            const prog = progress.find(u => u.problem_id === p.id);
+            return {
+                ...p.toJSON(),
+                day: Math.floor((p.id - 1) / 6) + 1,
+                user_status: prog ? prog.status : 'not-started',
+                user_code: prog ? prog.user_code : '',
+                user_notes: prog ? prog.user_notes : ''
+            };
+        });
+
+        res.json(merged);
+    } catch (error) {
+        console.error('[API /api/problems] ERROR:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.get('/api/problems', async (req, res) => {
     try {
         const problems = await Problem.findAll({ order: [['id', 'ASC']] });

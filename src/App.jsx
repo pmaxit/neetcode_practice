@@ -15,11 +15,21 @@ import {
   LayoutGrid,
   Lock,
   Filter,
+  Clock,
   Menu,
-  X
+  X,
+  Info,
+  ListChecks,
+  Zap,
+  Database,
+  Cpu,
+  Layers,
+  Search
 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import problemsData from './data/problems.json';
 import './styles/Dashboard.css';
 
@@ -34,6 +44,13 @@ const App = () => {
   const [filterCategory, setFilterCategory] = useState('');
   const [filterDifficulty, setFilterDifficulty] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [navigationContext, setNavigationContext] = useState('dashboard'); // 'dashboard' | 'browse'
+  
+  // System Design state
+  const [sdProblems, setSdProblems] = useState([]);
+  const [sdToday, setSdToday] = useState(null);
+  const [activeSdId, setActiveSdId] = useState(null);
+  const [sdLoading, setSdLoading] = useState(false);
 
   // Fetch all data from Backend
   useEffect(() => {
@@ -62,6 +79,22 @@ const App = () => {
       }
     };
     fetchData();
+
+    const fetchSdData = async () => {
+      try {
+        const [allRes, todayRes] = await Promise.all([
+          fetch('/api/system-design'),
+          fetch('/api/system-design/today')
+        ]);
+        const allData = await allRes.json();
+        const todayData = await todayRes.json();
+        setSdProblems(allData);
+        setSdToday(todayData);
+      } catch (err) {
+        console.error('Failed to load system design data:', err);
+      }
+    };
+    fetchSdData();
   }, []);
 
   const newCountPerDay = 6;
@@ -132,21 +165,36 @@ const App = () => {
   }), [problems, filterCategory, filterDifficulty]);
 
   const activeProblem = useMemo(() => {
-    const list = activeView === 'browse' ? browsedProblems : dailyProblems;
-    return list.find(p => p.id === activeProblemId) || list[0];
-  }, [activeProblemId, dailyProblems, browsedProblems, activeView]);
+    return problems.find(p => p.id === activeProblemId) || problems[0];
+  }, [activeProblemId, problems]);
 
-  const navigateToProblem = useCallback((problem) => {
+  const navigateToProblem = useCallback((problem, context = null) => {
     if (!problem) return;
+    
+    // Only update selectedDay if we are explicitly in dashboard view and it's not a revision
     if (activeView === 'dashboard' && problem.day !== selectedDay && !problem.isRevision) {
-      setSelectedDay(problem.day);
+      // We keep this optionally for the "Days" header synchronization only if explicitly desired
+      // But the user says it's wrong, so we will disable it by default.
+      // setSelectedDay(problem.day); 
     }
+    
     setActiveProblemId(problem.id);
+    if (context) setNavigationContext(context);
+    else if (activeView === 'dashboard' || activeView === 'browse') {
+      setNavigationContext(activeView);
+    }
+    
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [activeView, selectedDay]);
 
+  const navigateToSystemDesign = (problemId) => {
+    setActiveSdId(problemId);
+    setActiveView('system-design');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const { prevProblem, nextProblem } = useMemo(() => {
-    const list = activeView === 'browse' ? browsedProblems : dailyProblems;
+    const list = navigationContext === 'browse' ? browsedProblems : dailyProblems;
     const idx = list.findIndex(p => p.id === activeProblemId);
     
     let prev = idx > 0 ? list[idx - 1] : null;
@@ -227,13 +275,48 @@ const App = () => {
     updateBackend(p.id, update.status, update.code, update.notes);
   };
 
-  const toggleComplete = () => {
-    const newStatus = activeProblem.user_status === 'completed' ? 'not-started' : 'completed';
-    handleUpdateField('status', newStatus);
+  const toggleComplete = async () => {
+    if (!activeProblem) return;
+    const newStatus = activeProblem.user_status === 'completed' ? 'not_started' : 'completed';
+    try {
+      await axios.post(`${API_URL}/progress`, {
+        problem_id: activeProblem.id,
+        status: newStatus
+      });
+      // Update local state
+      setProblems(problems.map(p => 
+        p.id === activeProblem.id ? { ...p, user_status: newStatus } : p
+      ));
+    } catch (err) {
+      console.error('Error updating progress:', err);
+    }
+  };
+
+  const toggleSdComplete = async () => {
+    const currentProblem = sdProblems.find(p => p.id === activeSdId) || sdToday;
+    if (!currentProblem) return;
+    
+    const newStatus = currentProblem.status === 'completed' ? 'not_started' : 'completed';
+    try {
+      await axios.post(`${API_URL}/system-design/progress`, {
+        problem_id: currentProblem.id,
+        status: newStatus
+      });
+      // Update local state
+      setSdProblems(sdProblems.map(p => 
+        p.id === currentProblem.id ? { ...p, status: newStatus } : p
+      ));
+      if (sdToday?.id === currentProblem.id) {
+        setSdToday({ ...sdToday, status: newStatus });
+      }
+    } catch (err) {
+      console.error('Error updating SD progress:', err);
+    }
   };
 
   const getDayStatus = (day) => {
-    const probs = getProblemsForDay(day);
+    const probs = getProblemsForDay(day).filter(p => !p.isRevision);
+    if (probs.length === 0) return 'not-started';
     const completedCount = probs.filter(p => p.user_status === 'completed').length;
     if (completedCount === 0) return 'not-started';
     if (completedCount === probs.length) return 'completed';
@@ -255,6 +338,9 @@ const App = () => {
 
   const handleNavClick = (view) => {
     setActiveView(view);
+    if (view === 'dashboard' || view === 'browse') {
+      setNavigationContext(view);
+    }
     closeSidebar();
   };
 
@@ -315,6 +401,9 @@ const App = () => {
           <button className={`nav-item ${activeView === 'browse' ? 'active' : ''}`} onClick={() => handleNavClick('browse')}>
             <Filter size={18} /> Browse Problems
           </button>
+          <button className={`nav-item ${activeView === 'system-design' ? 'active' : ''}`} onClick={() => handleNavClick('system-design')}>
+            <BrainCircuit size={18} /> System Design
+          </button>
           <div className="divider"></div>
         </nav>
 
@@ -341,7 +430,7 @@ const App = () => {
                 <div
                   key={`${p.id}-${p.isRevision}`}
                   className={`problem-item ${activeProblemId === p.id ? 'active' : ''} ${p.user_status === 'completed' ? 'completed' : ''}`}
-                  onClick={() => navigateToProblem(p)}
+                  onClick={() => navigateToProblem(p, 'dashboard')}
                 >
                   <div className="problem-title">
                     {p.isRevision && <span className="revision-tag">↺</span>}
@@ -384,7 +473,27 @@ const App = () => {
                 <div
                   key={p.id}
                   className={`problem-item ${activeProblemId === p.id ? 'active' : ''} ${p.user_status === 'completed' ? 'completed' : ''}`}
-                  onClick={() => navigateToProblem(p)}
+                  onClick={() => navigateToProblem(p, 'browse')}
+                >
+                  <div className="problem-title">{p.title}</div>
+                  <span className={`difficulty-badge ${p.difficulty.toLowerCase()}`}>
+                    {p.difficulty[0]}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeView === 'system-design' && (
+          <div className="problem-list-container">
+            <div className="problem-count-label">{sdProblems.length} breakdowns</div>
+            <div className="problem-list">
+              {sdProblems.map(p => (
+                <div
+                  key={p.id}
+                  className={`problem-item ${activeSdId === p.id ? 'active' : ''} ${p.status === 'completed' ? 'completed' : ''}`}
+                  onClick={() => navigateToSystemDesign(p.id)}
                 >
                   <div className="problem-title">{p.title}</div>
                   <span className={`difficulty-badge ${p.difficulty.toLowerCase()}`}>
@@ -425,7 +534,7 @@ const App = () => {
                     <span className="day-label">{formatDateShort(day)}</span>
                   </div>
                     <div className="day-progress-dots">
-                      {getProblemsForDay(day).map(p => (
+                      {getProblemsForDay(day).filter(p => !p.isRevision).map(p => (
                         <div key={p.id} className={`p-dot ${p.user_status === 'completed' ? 'filled' : ''}`}></div>
                       ))}
                     </div>
@@ -434,10 +543,15 @@ const App = () => {
               })}
             </div>
           </div>
+        ) : activeView === 'system-design' ? (
+          <SystemDesignDetail 
+            problem={sdProblems.find(p => p.id === activeSdId) || sdToday} 
+            onToggleComplete={toggleSdComplete}
+          />
         ) : activeProblem ? (
           <div className="problem-view fade-in">
 
-            {activeView === 'dashboard' && (
+            {navigationContext === 'dashboard' && (
               <div className="day-picker">
                 <div className="day-picker-header">
                   <button
@@ -498,7 +612,7 @@ const App = () => {
                       <span className="nav-tile-title">
                         {prevProblem ? (
                           <>
-                            {activeView === 'dashboard' && prevProblem.day !== selectedDay && (
+                            {navigationContext === 'dashboard' && prevProblem.day !== selectedDay && (
                               <span className="nav-day-tag">{formatDateShort(prevProblem.day)}</span>
                             )}
                             {prevProblem.title}
@@ -518,7 +632,7 @@ const App = () => {
                       <span className="nav-tile-title">
                         {nextProblem ? (
                           <>
-                            {activeView === 'dashboard' && nextProblem.day !== selectedDay && (
+                            {navigationContext === 'dashboard' && nextProblem.day !== selectedDay && (
                               <span className="nav-day-tag">{formatDateShort(nextProblem.day)}</span>
                             )}
                             {nextProblem.title}
@@ -549,6 +663,25 @@ const App = () => {
                 />
               </div>
             </div>
+
+            {activeView === 'dashboard' && sdToday && (
+              <div className="sd-today-card glass fade-in" onClick={() => navigateToSystemDesign(sdToday.id)}>
+                <div className="sd-card-header">
+                  <div className="sd-card-tag">SYSTEM DESIGN OF THE DAY</div>
+                  <div className="sd-card-status">
+                    {sdToday.status === 'completed' ? <CheckCircle size={16} className="completed" /> : <Clock size={16} />}
+                  </div>
+                </div>
+                <div className="sd-card-body">
+                  <h3>{sdToday.title}</h3>
+                  <p>Learn how to design {sdToday.title.toLowerCase()} from scratch.</p>
+                </div>
+                <div className="sd-card-footer">
+                  <span className={`difficulty-tag ${sdToday.difficulty.toLowerCase()}`}>{sdToday.difficulty}</span>
+                  <span className="learn-more">Read Breakdown <ChevronRight size={14} /></span>
+                </div>
+              </div>
+            )}
 
             <div className="solution-media-grid">
               {activeProblem.youtube_url && (
@@ -647,6 +780,200 @@ const App = () => {
           </div>
         )}
       </main>
+    </div>
+  );
+};
+
+// Helper: Parse System Design Markdown into logical sections
+const parseSystemDesignContent = (markdown) => {
+  if (!markdown) return {};
+  
+  // Aggressive Noise Stripping: Truncate at common Hello Interview footer markers
+  let cleanMarkdown = markdown;
+  const footerMarkers = [
+    "What is Expected at Each Level",
+    "Unlock this article",
+    "Schedule a mock interview",
+    "Buy Premium",
+    "Meet with a FAANG senior+",
+    "Learn System Design Learn DSA"
+  ];
+  
+  for (const marker of footerMarkers) {
+    const index = cleanMarkdown.indexOf(marker);
+    if (index !== -1) {
+      // Find the start of the current paragraph/section or just truncate here
+      cleanMarkdown = cleanMarkdown.substring(0, index).trim();
+    }
+  }
+
+  const sections = {
+    overview: [],
+    functional: [],
+    nonFunctional: [],
+    entities: [],
+    api: [],
+    hld: [],
+    deepDives: [],
+  };
+
+  const lines = cleanMarkdown.split('\n');
+  let currentKey = 'overview';
+  
+  const matchers = [
+    { pattern: /Functional Requirements/i, key: 'functional' },
+    { pattern: /Non-Functional Requirements/i, key: 'nonFunctional' },
+    { pattern: /Core Entities/i, key: 'entities' },
+    { pattern: /API or System Interface/i, key: 'api' },
+    { pattern: /High-Level Design/i, key: 'hld' },
+    { pattern: /Potential Deep Dives/i, key: 'deepDives' }
+  ];
+
+  for (const line of lines) {
+    let matched = false;
+    const trimmedLine = line.trim();
+    
+    // Check if line is a header (### or [Link Header]) or contains a key pattern
+    if (trimmedLine.startsWith('###') || trimmedLine.startsWith('[') || trimmedLine.match(/Requirements/i)) {
+      for (const matcher of matchers) {
+        if (trimmedLine.match(matcher.pattern)) {
+          currentKey = matcher.key;
+          matched = true;
+          break;
+        }
+      }
+    }
+    
+    if (!matched) {
+      sections[currentKey].push(line);
+    }
+  }
+
+  Object.keys(sections).forEach(key => {
+    sections[key] = sections[key].join('\n').trim();
+  });
+
+  return sections;
+};
+
+// Sub-component: Requirement Card (Styled for Theme Parity)
+const RequirementCard = ({ title, content, type }) => (
+  <div className={`req-card ${type}`}>
+    <div className="req-card-header">
+      {type === 'functional' ? <Zap size={16} /> : <Info size={16} />}
+      <h3>{title}</h3>
+    </div>
+    <div className="req-card-body">
+      <ReactMarkdown>{content}</ReactMarkdown>
+    </div>
+  </div>
+);
+
+// Sub-component: Section Header (Aligned with ProblemView content-section h3)
+const SectionHeader = ({ icon: Icon, title, id }) => (
+  <div className="section-divider-clean" id={id}>
+    <Icon size={18} />
+    <h3>{title}</h3>
+  </div>
+);
+
+const SystemDesignDetail = ({ problem, onToggleComplete }) => {
+  if (!problem) return (
+    <div className="loading-container">
+      <div className="loader"></div>
+      <p>Loading breakdown...</p>
+    </div>
+  );
+
+  const parsed = parseSystemDesignContent(problem.content);
+
+  return (
+    <div className="problem-view sd-view-harmonized fade-in">
+      <div className="problem-header">
+        <div className="problem-meta">
+          <div className="breadcrumb">
+            <span>System Design</span>
+            <ChevronRight size={14} />
+            <span className={`difficulty-tag ${problem.difficulty.toLowerCase()}`}>{problem.difficulty}</span>
+          </div>
+          <h1>{problem.title}</h1>
+          <div className="external-link">Hello Interview Breakdown</div>
+        </div>
+        <div className="action-bar-wrapper">
+          <button
+            className={`btn status-btn ${problem.status === 'completed' ? 'btn-secondary' : 'btn-primary'}`}
+            onClick={onToggleComplete}
+          >
+            {problem.status === 'completed' ? <CheckCircle size={18} /> : <Circle size={18} />}
+            {problem.status === 'completed' ? 'Completed' : 'Mark as Started'}
+          </button>
+        </div>
+      </div>
+
+      <div className="problem-content-enriched glass">
+        {/* Overview (No Header) */}
+        {parsed.overview && (
+          <div className="content-section no-border-top">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{parsed.overview}</ReactMarkdown>
+          </div>
+        )}
+
+        {/* Requirements */}
+        {(parsed.functional || parsed.nonFunctional) && (
+          <div className="content-section">
+            <SectionHeader icon={ListChecks} title="Requirements" id="reqs" />
+            <div className="req-grid-harmonized">
+              {parsed.functional && (
+                <RequirementCard title="Functional" content={parsed.functional} type="functional" />
+              )}
+              {parsed.nonFunctional && (
+                <RequirementCard title="Non-Functional" content={parsed.nonFunctional} type="non-functional" />
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Technical Specs */}
+        {(parsed.entities || parsed.api) && (
+          <div className="content-section">
+            <SectionHeader icon={Database} title="Entities & API" id="tech" />
+            <div className="tech-specs-flex">
+              {parsed.entities && (
+                <div className="tech-block">
+                  <span className="tech-label">Core Entities</span>
+                  <ReactMarkdown>{parsed.entities}</ReactMarkdown>
+                </div>
+              )}
+              {parsed.api && (
+                <div className="tech-block">
+                  <span className="tech-label">Interface</span>
+                  <ReactMarkdown>{parsed.api}</ReactMarkdown>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* High-Level Design */}
+        {parsed.hld && (
+          <div className="content-section">
+            <SectionHeader icon={Cpu} title="High-Level Design" id="hld" />
+            <div className="markdown-content">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{parsed.hld}</ReactMarkdown>
+            </div>
+          </div>
+        )}
+
+        {/* Deep Dives */}
+        {parsed.deepDives && (
+          <div className="content-section">
+            <SectionHeader icon={Search} title="Expert Deep Dives" id="deep-dives" />
+            <div className="markdown-content">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{parsed.deepDives}</ReactMarkdown>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
