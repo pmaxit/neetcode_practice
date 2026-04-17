@@ -790,6 +790,11 @@ body {
   align-items: stretch;
   margin-top: 2rem;
   margin-bottom: 4rem;
+  min-width: 0; /* Prevent grid expansion */
+}
+
+.problem-view-master-grid > div {
+  min-width: 0; /* Critical: allow items to shrink smaller than their content */
 }
 
 @media (max-width: 1200px) {
@@ -820,6 +825,14 @@ body {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1.5rem;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .glass {
+    padding: 1rem;
+  }
 }
 
 .glass h3 {
@@ -2229,12 +2242,13 @@ textarea:focus { outline: none; border-color: var(--accent); }
   background: rgba(30, 41, 59, 0.4);
   width: 100%;
   box-sizing: border-box;
-  overflow-x: hidden; /* Prevent horizontal scroll, force wrapping */
+  overflow-x: auto; /* Allow code blocks to scroll horizontally if needed */
+  min-width: 0;
 }
 
 @media (max-width: 640px) {
   .feedback-content {
-    padding: 1rem;
+    padding: 0.75rem; /* Drastically reduce padding on very small screens */
   }
 }
 
@@ -2288,6 +2302,7 @@ textarea:focus { outline: none; border-color: var(--accent); }
   margin: 1rem 0;
   max-width: 100%;
   white-space: pre;
+  min-width: 0; /* Allow shrinking within flex/grid */
 }
 
 .markdown-body pre code {
