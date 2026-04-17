@@ -94,6 +94,15 @@ fi
 
 # 4. Starting Backend
 echo "📡 Starting Express backend (Port 3001)..."
+
+# Ensure port 3001 is free
+EXISTING_BACKEND_PID=$(lsof -t -i:3001 || true)
+if [ ! -z "$EXISTING_BACKEND_PID" ]; then
+    echo "🔄 Killing existing backend process on port 3001 (PID $EXISTING_BACKEND_PID)..."
+    kill -9 $EXISTING_BACKEND_PID 2>/dev/null || true
+    sleep 1
+fi
+
 # Start backend in background
 node server.js &
 
