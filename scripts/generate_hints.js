@@ -52,7 +52,7 @@ if (!apiKey || apiKey === 'your_gemini_api_key_here') {
     process.exit(1);
 }
 const genAI = new GoogleGenerativeAI(apiKey);
-const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
 // ─── Hint generation prompt ──────────────────────────────────────────────────
 function buildPrompt(problem) {

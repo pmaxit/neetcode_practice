@@ -325,7 +325,10 @@ app.post('/api/progress', async (req, res) => {
 // Agent-driven framework: constructs a system prompt, sends to Gemini, returns
 // structured markdown. Tool calls / feedback loops can be added here later.
 app.post('/api/agent/review', async (req, res) => {
-    const { problemTitle, statement, userCode, hints, difficulty, category } = req.body;
+    const { problemTitle, statement, description, userCode, hints, difficulty, category } = req.body;
+    
+    // Support both keys for the problem text
+    const problemText = statement || description || '';
 
     if (!userCode || userCode.trim().length < 10) {
         return res.status(400).json({ error: 'Please write some code before asking for a review.' });
@@ -339,7 +342,7 @@ app.post('/api/agent/review', async (req, res) => {
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({
-            model: 'gemini-flash-latest',
+            model: 'gemini-2.5-flash',
             systemInstruction: [
                 'You are an expert coding interview coach specializing in LeetCode-style problems.',
                 'Your role is to review Python solutions written by an engineer practicing for interviews.',
@@ -354,7 +357,7 @@ app.post('/api/agent/review', async (req, res) => {
         });
 
         // Strip HTML from statement for the prompt
-        const cleanStatement = (statement || '')
+        const cleanStatement = (problemText)
             .replace(/<[^>]+>/g, ' ')
             .replace(/\s+/g, ' ')
             .trim()
@@ -380,7 +383,7 @@ app.post('/api/agent/review', async (req, res) => {
         const result = await model.generateContent(userMessage);
         const responseText = result.response.text();
 
-        res.json({ review: responseText });
+        res.json({ feedback: responseText });
     } catch (err) {
         console.error('[Agent Review] Error:', err);
         res.status(500).json({ error: 'Gemini API call failed: ' + err.message });
@@ -399,7 +402,7 @@ app.post('/api/admin/generate-hints', async (req, res) => {
 
     try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
         const whereClause = overwrite ? {} : { guided_hints: null };
         const problems = await Problem.findAll({ where: whereClause, limit });

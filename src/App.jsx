@@ -28,7 +28,8 @@ import {
   Code,
   Tv,
   Brain,
-  ShieldCheck
+  ShieldCheck,
+  Check
 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -295,7 +296,7 @@ const App = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           problemTitle: activeProblem.title,
-          description: activeProblem.description,
+          statement: activeProblem.statement,
           userCode: currentCode,
           hints: activeProblem.guided_hints,
           difficulty: activeProblem.difficulty,
@@ -336,12 +337,18 @@ const App = () => {
   const navigateToProblem = useCallback((problem, context = null) => {
     if (!problem) return;
     setActiveProblemId(problem.id);
+    
+    // Auto-update selectedDay if navigating to a problem from a different day
+    if (problem.day && problem.day !== selectedDay) {
+      setSelectedDay(problem.day);
+    }
+
     if (context) setNavigationContext(context);
     else if (activeView === 'dashboard' || activeView === 'browse') {
       setNavigationContext(activeView);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [activeView]);
+  }, [selectedDay, activeView]);
 
   const resetCode = () => {
     if (window.confirm('Reset your progress to the initial scaffold? This will overwrite your current draft.')) {
@@ -886,6 +893,7 @@ const App = () => {
           <div className="divider"></div>
         </nav>
 
+        <div className="sidebar-body">
         <div className="stats-mini">
           <div className="stat-row">
             <span>Overall Progress</span>
@@ -1027,6 +1035,7 @@ const App = () => {
             </div>
           </div>
         )}
+      </div>
       </aside>
 
       {/* Main Content */}
