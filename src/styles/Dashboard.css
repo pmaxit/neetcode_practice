@@ -3564,3 +3564,131 @@ input[type=range]::-webkit-slider-thumb {
 .timer-value.urgent .timer-icon {
   color: #ff4d4d;
 }
+/* Mock Simulation Active Header */
+.mock-timer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: rgba(16, 185, 129, 0.1);
+  border-bottom: 2px solid var(--accent);
+  margin: -1.5rem -1.5rem 1.5rem -1.5rem;
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.m-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.m-timer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--bg-deep);
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.m-timer.pulse-danger {
+  color: #ef4444;
+  border-color: #ef4444;
+  animation: timer-pulse 1s infinite alternate;
+}
+
+@keyframes timer-pulse {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0.7; transform: scale(1.02); }
+}
+
+.m-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.m-btn-secondary, .m-btn-danger {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+}
+
+.m-btn-secondary {
+  background: rgba(255,255,255,0.05);
+  color: var(--text-main);
+  border-color: var(--border);
+}
+
+.m-btn-secondary:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: var(--text-muted);
+}
+
+.m-btn-secondary:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-text-small:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.m-btn-danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.m-btn-danger:hover {
+  background: #ef4444;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Sidebar Quit Session Button */
+.sidebar-quit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sidebar-quit-btn:hover {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  transform: translateY(-1px);
+}

@@ -523,20 +523,39 @@ const App = () => {
     
     // Switch to first problem in mock context
     setActiveProblemId(selected[0].id);
-    setNavigationContext('mock');
-    setActiveView('algorithm');
+    setNavigationContext('mock-interview');
+    setActiveView('mock-interview');
     setInterfaceMode('practice');
     setCodeTab('practice');
   };
 
   const endMockInterview = () => {
-    if (window.confirm("Are you sure you want to end this mock interview? Progress on individual problems will be saved.")) {
-      setMockSession({ isActive: false, problemIds: [], startTime: null });
-      localStorage.removeItem('mockSession');
-      setNavigationContext('dashboard');
-      setActiveView('mock');
+    setMockSession({ isActive: false, problemIds: [], startTime: null });
+    localStorage.removeItem('mockSession');
+    setNavigationContext('dashboard');
+    setActiveView('dashboard');
+    setActiveProblemId(null);
+    setTimeRemaining(0);
+  };
+
+  const switchMockProblem = () => {
+    if (!mockSession.isActive) return;
+    const mockProblems = problems.filter(p => mockSession.problemIds.includes(p.id));
+    // Find unsolved problems that are not the current one
+    const unsolved = mockProblems.filter(p => p.user_status !== 'completed' && p.id !== activeProblemId);
+    if (unsolved.length > 0) {
+      setActiveProblemId(unsolved[0].id);
+      setActiveView('mock-interview');
+      setNavigationContext('mock-interview');
     }
   };
+
+  const canSwitchMockProblem = useMemo(() => {
+    if (!mockSession.isActive) return false;
+    const mockProblems = problems.filter(p => mockSession.problemIds.includes(p.id));
+    const unsolved = mockProblems.filter(p => p.user_status !== 'completed' && p.id !== activeProblemId);
+    return unsolved.length > 0;
+  }, [mockSession, problems, activeProblemId]);
 
   useEffect(() => {
     let timer;
@@ -549,7 +568,7 @@ const App = () => {
       setMockSession({ isActive: false, problemIds: [], startTime: null });
       localStorage.removeItem('mockSession');
       setNavigationContext('dashboard');
-      setActiveView('mock');
+      setActiveView('dashboard');
     }
     return () => clearInterval(timer);
   }, [mockSession.isActive, timeRemaining]);
@@ -648,6 +667,11 @@ const App = () => {
     else if (activeView === 'dashboard' || activeView === 'browse') {
       setNavigationContext(activeView);
     }
+    
+    // Clear other active states to avoid overlaps
+    setActiveSdId(null);
+    setActiveMlNoteId(null);
+    
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [selectedDay, navigationContext, activeView]);
 
@@ -1009,7 +1033,7 @@ const App = () => {
               <div 
                 key={p.id} 
                 className={`mock-problem-card glass highlight-hover ${activeProblemId === p.id ? 'active' : ''}`}
-                onClick={() => navigateToProblem(p, 'mock')}
+                onClick={() => navigateToProblem(p, 'mock-interview')}
               >
                 <div className="mock-problem-meta">
                   <span className="question-number">Question {idx + 1}</span>
@@ -1081,7 +1105,7 @@ const App = () => {
       </div>
     );
 
-    const isMock = navigationContext === 'mock';
+    const isMock = navigationContext === 'mock-interview';
 
     return (
       <div className="problem-view fade-in">
@@ -1096,7 +1120,20 @@ const App = () => {
               <span>{formatTime(timeRemaining)}</span>
             </div>
             <div className="m-actions">
-              <button onClick={() => setActiveProblemId(null)}>Switch Problem</button>
+              <button 
+                className="m-btn-secondary" 
+                onClick={switchMockProblem}
+                disabled={!canSwitchMockProblem}
+                title={canSwitchMockProblem ? 'Switch to next unsolved problem' : 'No other unsolved problems'}
+              >
+                Switch Problem
+              </button>
+              <button 
+                className="m-btn-danger" 
+                onClick={endMockInterview}
+              >
+                Quit Session
+              </button>
             </div>
           </div>
         )}
@@ -1496,7 +1533,7 @@ const App = () => {
           <button className={`nav-item ${activeView === 'mock-interview' ? 'active' : ''}`} onClick={() => handleNavClick('mock-interview')}>
             <Zap size={18} /> Mock Interview
           </button>
-          <button className={`nav-item ${activeView === 'sd' ? 'active' : ''}`} onClick={() => handleNavClick('sd')}>
+          <button className={`nav-item ${activeView === 'system-design' ? 'active' : ''}`} onClick={() => handleNavClick('system-design')}>
             <BrainCircuit size={18} /> System Design
           </button>
           <button className={`nav-item ${activeView === 'profile' ? 'active' : ''}`} onClick={() => handleNavClick('profile')}>
@@ -1514,7 +1551,10 @@ const App = () => {
                 <Zap size={14} className="timer-icon" />
                 {formatTime(timeRemaining)}
               </div>
-              <button className="btn-text-small" onClick={() => setActiveView('mock')}>Switch Problem</button>
+              <button className="btn-text-small" onClick={switchMockProblem} disabled={!canSwitchMockProblem}>Switch Problem</button>
+              <button className="sidebar-quit-btn" onClick={endMockInterview}>
+                <X size={14} /> Quit Session
+              </button>
             </div>
           )}
         </nav>
@@ -1689,15 +1729,19 @@ const App = () => {
           <Menu size={20} />
         </button>
 
-      {activeView === 'browse' && renderBrowseView()}
-      {activeView === 'library' && (activeProblemId && navigationContext === 'library' ? renderAlgorithmView() : renderLibraryView())}
-      {activeView === 'mock-interview' && renderMockInterviewView()}
-      {activeView === 'calendar' && renderCalendarView()}
-      {activeView === 'profile' && renderProfileView()}
-      {activeView === 'sd' && renderSdView()}
-      {activeView === 'ml' && renderMlView()}
-
-        {activeView === 'profile' && (
+        {activeView === 'browse' ? (
+          activeProblemId ? renderAlgorithmView() : (
+            <div className="empty-state">
+              <Search size={64} style={{ color: 'var(--accent)', opacity: 0.5 }} />
+              <h3>Explore Problems</h3>
+              <p>Select a topic and problem from the sidebar to begin practicing.</p>
+            </div>
+          )
+        ) : activeView === 'library' ? (
+          activeProblemId ? renderAlgorithmView() : renderLibraryView()
+        ) : activeView === 'mock-interview' ? (
+          renderMockInterviewView()
+        ) : activeView === 'profile' ? (
           <div className="profile-dashboard fade-in">
             <div className="day-picker-header" style={{ marginBottom: '2rem' }}>
               <div className="logo"><BarChart3 size={24} /> User Insight & Statistics</div>
@@ -1742,9 +1786,7 @@ const App = () => {
               </table>
             </div>
           </div>
-        )}
-
-        {activeView === 'calendar' ? (
+        ) : activeView === 'calendar' ? (
           <div className="calendar-view fade-in">
             <div className="view-header">
               <h1>Practice Calendar</h1>
