@@ -1880,22 +1880,28 @@ const App = () => {
                       <h3>{sdToday.title}</h3>
                       <div className="sd-category-pill">{sdToday.difficulty}</div>
                       
-                      {/* Pulling some content from the markdown if possible */}
                       <div className="sd-preview-content">
                         {(() => {
-                          const parsed = parseSystemDesignContent(sdToday.description);
+                          const parsed = parseSystemDesignContent(sdToday.content);
                           return (
-                            <div className="sd-brief-grid">
-                              {parsed.functional && (
+                            <div className="sd-brief-stack">
+                              {parsed.overview && parsed.overview.length > 0 && (
                                 <div className="sd-brief-item">
-                                  <div className="brief-label">Core Functions</div>
-                                  <div className="brief-text truncate-lines">{parsed.functional.split('\n')[0]}</div>
+                                  <div className="brief-label">PROBLEM STATEMENT</div>
+                                  <div className="brief-text truncate-lines-2">
+                                    {parsed.overview.join(' ')}
+                                  </div>
                                 </div>
                               )}
-                              {parsed.hld && (
+                              {parsed.functional && parsed.functional.length > 0 && (
                                 <div className="sd-brief-item">
-                                  <div className="brief-label">Architectural Pivot</div>
-                                  <div className="brief-text">Click to read full breakdown...</div>
+                                  <div className="brief-label">FUNCTIONAL REQUIREMENTS</div>
+                                  <ul className="brief-list-compact">
+                                    {parsed.functional.slice(0, 3).map((item, i) => (
+                                      <li key={i}>{item.replace(/^[-*•]\s*/, '')}</li>
+                                    ))}
+                                    {parsed.functional.length > 3 && <li className="more-items">+{parsed.functional.length - 3} more...</li>}
+                                  </ul>
                                 </div>
                               )}
                             </div>

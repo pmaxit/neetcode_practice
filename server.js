@@ -161,26 +161,18 @@ app.get('/api/system-design', async (req, res) => {
 
 app.get('/api/system-design/today', async (req, res) => {
     try {
-        const todayStr = new Date().toISOString().split('T')[0];
-        let todayProblem = await SystemDesignProblem.findOne({
-            where: { scheduled_date: todayStr }
+        const count = await SystemDesignProblem.count();
+        if (count === 0) return res.status(404).json({ error: 'No problems found' });
+        
+        // Use a stable index based on days since epoch
+        const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
+        const index = dayIndex % count;
+        
+        const todayProblem = await SystemDesignProblem.findOne({
+            order: [['id', 'ASC']],
+            offset: index,
+            limit: 1
         });
-
-        if (!todayProblem) {
-            // Improved randomization: pick unscheduled first, then the oldest scheduled
-            const unscheduled = await SystemDesignProblem.findOne({
-                where: { scheduled_date: null },
-                order: sequelize.random()
-            }) || await SystemDesignProblem.findOne({ 
-                order: [['scheduled_date', 'ASC']] 
-            });
-
-            if (unscheduled) {
-                unscheduled.scheduled_date = todayStr;
-                await unscheduled.save();
-                todayProblem = unscheduled;
-            }
-        }
 
         if (!todayProblem) return res.status(404).json({ error: 'No problems found' });
 
@@ -197,26 +189,18 @@ app.get('/api/system-design/today', async (req, res) => {
 
 app.get('/api/ml-design/today', async (req, res) => {
     try {
-        const todayStr = new Date().toISOString().split('T')[0];
-        let todayNote = await MLSystemDesignNote.findOne({
-            where: { scheduled_date: todayStr }
+        const count = await MLSystemDesignNote.count();
+        if (count === 0) return res.status(404).json({ error: 'No notes found' });
+
+        // Use a stable index based on days since epoch
+        const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
+        const index = dayIndex % count;
+
+        const todayNote = await MLSystemDesignNote.findOne({
+            order: [['id', 'ASC']],
+            offset: index,
+            limit: 1
         });
-
-        if (!todayNote) {
-            const unscheduled = await MLSystemDesignNote.findOne({
-                where: { scheduled_date: null },
-                order: sequelize.random()
-            }) || await MLSystemDesignNote.findOne({ 
-                order: [['scheduled_date', 'ASC']] 
-            });
-
-            if (unscheduled) {
-                unscheduled.scheduled_date = todayStr;
-                await unscheduled.save();
-                todayNote = unscheduled;
-            }
-        }
-
         if (!todayNote) return res.status(404).json({ error: 'No ML notes found' });
         res.json(todayNote);
     } catch (err) {
