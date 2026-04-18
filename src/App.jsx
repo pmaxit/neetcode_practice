@@ -262,7 +262,7 @@ function apiFetch(url, options = {}, token, sessionId) {
 
 // ── Login / Register View ──────────────────────────────────────────────────────
 
-const LoginView = ({ onSuccess, error: externalError }) => {
+const LoginView = ({ onSuccess, onRetry, error: externalError, hasStoredSession }) => {
   const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -305,8 +305,17 @@ const LoginView = ({ onSuccess, error: externalError }) => {
           {mode === 'login' ? 'Sign In' : 'Create Account'}
         </h2>
         {displayError && (
-          <div style={{ color: 'var(--hard)', marginBottom: '1rem', textAlign: 'center', fontSize: '0.85rem', padding: '0.5rem', background: 'rgba(239,68,68,0.1)', borderRadius: '8px' }}>
-            {displayError}
+          <div style={{ marginBottom: '1rem', textAlign: 'center', fontSize: '0.85rem', padding: '0.6rem 0.8rem', background: 'rgba(239,68,68,0.1)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.3)' }}>
+            <div style={{ color: 'var(--hard)', marginBottom: hasStoredSession && onRetry ? '0.5rem' : 0 }}>{displayError}</div>
+            {hasStoredSession && onRetry && (
+              <button
+                type="button"
+                onClick={onRetry}
+                style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid var(--accent)', color: 'var(--accent)', borderRadius: '6px', padding: '0.3rem 0.8rem', cursor: 'pointer', fontSize: '0.8rem' }}
+              >
+                Retry Connection
+              </button>
+            )}
           </div>
         )}
         <form onSubmit={handleSubmit}>
@@ -1068,9 +1077,28 @@ const App = () => {
     (async () => {
       try {
         const res = await apiFetch('/api/auth/me', {}, authToken, null);
-        if (!res.ok) throw new Error('Token invalid');
+
+        if (res.status === 401 || res.status === 403) {
+          // Token is genuinely expired/invalid — clear and force login
+          localStorage.removeItem('jwt');
+          localStorage.removeItem('activeSession');
+          setAuthToken(null);
+          setActiveSession(null);
+          setAuthPhase('login');
+          return;
+        }
+
+        if (!res.ok) {
+          // Server error or temporary unavailability — preserve credentials, show login
+          // so user can retry without losing their session
+          setAuthError('Server unavailable. Please try again.');
+          setAuthPhase('login');
+          return;
+        }
+
         const user = await res.json();
         setAuthUser(user);
+        setAuthError(null);
 
         // Fetch sessions list
         const sRes = await apiFetch('/api/sessions', {}, authToken, null);
@@ -1089,10 +1117,8 @@ const App = () => {
           setAuthPhase('session-select');
         }
       } catch {
-        localStorage.removeItem('jwt');
-        localStorage.removeItem('activeSession');
-        setAuthToken(null);
-        setActiveSession(null);
+        // Network error — preserve credentials so next visit auto-restores
+        setAuthError('Connection failed. Please check your network and retry.');
         setAuthPhase('login');
       }
     })();
@@ -1733,6 +1759,38 @@ const App = () => {
     return (
       <LoginView
         error={authError}
+        hasStoredSession={!!authToken}
+        onRetry={() => {
+          setAuthError(null);
+          setAuthPhase('loading');
+          // Re-trigger bootstrap by temporarily setting phase to loading
+          // The bootstrap effect only runs once, so we kick it manually
+          (async () => {
+            try {
+              const res = await apiFetch('/api/auth/me', {}, authToken, null);
+              if (res.status === 401 || res.status === 403) {
+                localStorage.removeItem('jwt'); localStorage.removeItem('activeSession');
+                setAuthToken(null); setActiveSession(null); setAuthPhase('login');
+                return;
+              }
+              if (!res.ok) { setAuthError('Still unavailable. Try again shortly.'); setAuthPhase('login'); return; }
+              const user = await res.json();
+              setAuthUser(user); setAuthError(null);
+              const sRes = await apiFetch('/api/sessions', {}, authToken, null);
+              if (sRes.ok) setSessions(await sRes.json());
+              if (activeSession) {
+                const vRes = await apiFetch(`/api/sessions/${activeSession.id}`, {}, authToken, null);
+                setAuthPhase(vRes.ok ? 'app' : 'session-select');
+                if (!vRes.ok) { localStorage.removeItem('activeSession'); setActiveSession(null); }
+              } else {
+                setAuthPhase('session-select');
+              }
+            } catch {
+              setAuthError('Connection failed. Please check your network and retry.');
+              setAuthPhase('login');
+            }
+          })();
+        }}
         onSuccess={async (token, user, isRegister) => {
           setAuthError(null);
           setAuthToken(token);
