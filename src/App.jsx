@@ -825,21 +825,6 @@ const App = () => {
     }
   };
 
-  // --- Effects ---
-  useEffect(() => {
-    const initData = async () => {
-      setLoading(true);
-      await Promise.all([
-        fetchProblems(),
-        fetchSdProblems(),
-        fetchMlNotes(),
-        fetchSettings(),
-        fetchStats()
-      ]);
-      setLoading(false);
-    };
-    initData();
-  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -850,6 +835,12 @@ const App = () => {
           fetch('/api/system-design/today'),
           fetch('/api/ml-design/today'),
           fetch('/api/ml-design')
+        ]);
+        
+        // Also fetch settings and stats
+        await Promise.all([
+          fetchSettings(),
+          fetchStats()
         ]);
         
         const pData = await pRes.json();
@@ -2087,10 +2078,7 @@ const parseSystemDesignContent = (markdown) => {
     }
   }
 
-  Object.keys(sections).forEach(key => {
-    sections[key] = sections[key].join('\n').trim();
-  });
-
+  // We keep them as arrays for flexible usage (e.g. lists in dash, strings in detail)
   return sections;
 };
 
@@ -2198,7 +2186,7 @@ const SystemDesignDetail = ({ problem, onToggleComplete }) => {
         {/* Overview (No Header) */}
         {parsed.overview && (
           <div className="content-section no-border-top">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{parsed.overview}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{parsed.overview.join('\n')}</ReactMarkdown>
           </div>
         )}
 
@@ -2207,11 +2195,11 @@ const SystemDesignDetail = ({ problem, onToggleComplete }) => {
           <div className="content-section">
             <SectionHeader icon={ListChecks} title="Requirements" id="reqs" />
             <div className="req-grid-harmonized">
-              {parsed.functional && (
-                <RequirementCard title="Functional" content={parsed.functional} type="functional" />
+              {parsed.functional && parsed.functional.length > 0 && (
+                <RequirementCard title="Functional" content={parsed.functional.join('\n')} type="functional" />
               )}
-              {parsed.nonFunctional && (
-                <RequirementCard title="Non-Functional" content={parsed.nonFunctional} type="non-functional" />
+              {parsed.nonFunctional && parsed.nonFunctional.length > 0 && (
+                <RequirementCard title="Non-Functional" content={parsed.nonFunctional.join('\n')} type="non-functional" />
               )}
             </div>
           </div>
@@ -2222,16 +2210,16 @@ const SystemDesignDetail = ({ problem, onToggleComplete }) => {
           <div className="content-section">
             <SectionHeader icon={Database} title="Entities & API" id="tech" />
             <div className="tech-specs-flex">
-              {parsed.entities && (
+              {parsed.entities && parsed.entities.length > 0 && (
                 <div className="tech-block">
                   <span className="tech-label">Core Entities</span>
-                  <ReactMarkdown>{parsed.entities}</ReactMarkdown>
+                  <ReactMarkdown>{parsed.entities.join('\n')}</ReactMarkdown>
                 </div>
               )}
-              {parsed.api && (
+              {parsed.api && parsed.api.length > 0 && (
                 <div className="tech-block">
                   <span className="tech-label">Interface</span>
-                  <ReactMarkdown>{parsed.api}</ReactMarkdown>
+                  <ReactMarkdown>{parsed.api.join('\n')}</ReactMarkdown>
                 </div>
               )}
             </div>
@@ -2239,21 +2227,21 @@ const SystemDesignDetail = ({ problem, onToggleComplete }) => {
         )}
 
         {/* High-Level Design */}
-        {parsed.hld && (
+        {parsed.hld && parsed.hld.length > 0 && (
           <div className="content-section">
             <SectionHeader icon={Cpu} title="High-Level Design" id="hld" />
             <div className="markdown-content">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{parsed.hld}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{parsed.hld.join('\n')}</ReactMarkdown>
             </div>
           </div>
         )}
 
         {/* Deep Dives */}
-        {parsed.deepDives && (
+        {parsed.deepDives && parsed.deepDives.length > 0 && (
           <div className="content-section">
             <SectionHeader icon={Search} title="Expert Deep Dives" id="deep-dives" />
             <div className="markdown-content">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{parsed.deepDives}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{parsed.deepDives.join('\n')}</ReactMarkdown>
             </div>
           </div>
         )}
