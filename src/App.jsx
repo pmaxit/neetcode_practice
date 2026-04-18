@@ -33,7 +33,10 @@ import {
   Brain,
   ShieldCheck,
   Trash2,
-  Star
+  Star,
+  LogOut,
+  FolderOpen,
+  Plus
 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -248,7 +251,221 @@ const StudySettings = ({ settings, onUpdate }) => {
   );
 };
 
+// ── Auth Utilities ─────────────────────────────────────────────────────────────
+
+function apiFetch(url, options = {}, token, sessionId) {
+  const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (sessionId) headers['X-Session-Id'] = String(sessionId);
+  return fetch(url, { ...options, headers });
+}
+
+// ── Login / Register View ──────────────────────────────────────────────────────
+
+const LoginView = ({ onSuccess, error: externalError }) => {
+  const [mode, setMode] = useState('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [localError, setLocalError] = useState(null);
+
+  const displayError = localError || externalError;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setLocalError(null);
+    try {
+      const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        onSuccess(data.token, data.user, mode === 'register');
+      } else {
+        setLocalError(data.error || 'Something went wrong');
+      }
+    } catch {
+      setLocalError('Connection error. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="loading-container">
+      <div className="glass" style={{ padding: '2.5rem', minWidth: '360px', maxWidth: '420px', width: '100%', borderRadius: '16px' }}>
+        <div className="logo" style={{ justifyContent: 'center', marginBottom: '1.8rem', fontSize: '1.2rem' }}>
+          <Sparkles size={26} /> NeetPractice
+        </div>
+        <h2 style={{ margin: '0 0 1.5rem', textAlign: 'center', fontSize: '1.1rem', fontWeight: 600 }}>
+          {mode === 'login' ? 'Sign In' : 'Create Account'}
+        </h2>
+        {displayError && (
+          <div style={{ color: 'var(--hard)', marginBottom: '1rem', textAlign: 'center', fontSize: '0.85rem', padding: '0.5rem', background: 'rgba(239,68,68,0.1)', borderRadius: '8px' }}>
+            {displayError}
+          </div>
+        )}
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--text-muted)', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+              EMAIL
+            </label>
+            <input
+              type="email" required value={email} autoComplete="email"
+              onChange={e => setEmail(e.target.value)}
+              style={{ width: '100%', background: 'var(--surface, rgba(30,41,59,0.8))', border: '1px solid var(--border)', color: 'var(--text)', padding: '0.65rem 0.9rem', borderRadius: '8px', fontSize: '0.9rem', boxSizing: 'border-box' }}
+            />
+          </div>
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--text-muted)', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+              PASSWORD {mode === 'register' && <span style={{ color: 'var(--text-muted)' }}>(min 8 chars)</span>}
+            </label>
+            <input
+              type="password" required minLength={8} value={password} autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              onChange={e => setPassword(e.target.value)}
+              style={{ width: '100%', background: 'var(--surface, rgba(30,41,59,0.8))', border: '1px solid var(--border)', color: 'var(--text)', padding: '0.65rem 0.9rem', borderRadius: '8px', fontSize: '0.9rem', boxSizing: 'border-box' }}
+            />
+          </div>
+          <button className="btn btn-primary" style={{ width: '100%', padding: '0.7rem' }} disabled={submitting}>
+            {submitting ? 'Please wait…' : (mode === 'login' ? 'Sign In' : 'Create Account')}
+          </button>
+        </form>
+        <div style={{ textAlign: 'center', marginTop: '1.2rem' }}>
+          <button
+            onClick={() => { setMode(m => m === 'login' ? 'register' : 'login'); setLocalError(null); }}
+            style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '0.85rem' }}
+          >
+            {mode === 'login' ? "Don't have an account? Register" : 'Already registered? Sign in'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── Session Selector View ──────────────────────────────────────────────────────
+
+const SessionSelectView = ({ user, sessions, onSelectSession, onCreateSession, onLogout }) => {
+  const [newName, setNewName] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    if (!newName.trim()) return;
+    setCreating(true);
+    setError(null);
+    try {
+      await onCreateSession(newName.trim());
+      setNewName('');
+    } catch (err) {
+      setError('Failed to create session');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  return (
+    <div className="loading-container">
+      <div className="glass" style={{ padding: '2rem', minWidth: '440px', maxWidth: '560px', width: '100%', borderRadius: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+          <div className="logo" style={{ fontSize: '1rem' }}><Sparkles size={20} /> NeetPractice</div>
+          <button
+            onClick={onLogout}
+            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem' }}
+          >
+            <LogOut size={14} /> Sign out
+          </button>
+        </div>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.82rem' }}>
+          Signed in as <strong style={{ color: 'var(--text)' }}>{user?.email}</strong>. Choose a study session to continue.
+        </p>
+
+        <h3 style={{ margin: '0 0 0.8rem', fontSize: '0.9rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Your Sessions</h3>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem', maxHeight: '280px', overflowY: 'auto' }}>
+          {sessions.length === 0 && (
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '1rem' }}>No sessions yet. Create one below.</p>
+          )}
+          {sessions.map(s => (
+            <button
+              key={s.id}
+              onClick={() => onSelectSession(s)}
+              style={{
+                textAlign: 'left', padding: '0.9rem 1rem', borderRadius: '10px',
+                border: '1px solid var(--border)', cursor: 'pointer',
+                background: 'rgba(255,255,255,0.03)', color: 'var(--text)',
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                transition: 'all 0.15s'
+              }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent)'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+            >
+              <div>
+                <div style={{ fontWeight: 600, marginBottom: '0.2rem' }}>
+                  <FolderOpen size={14} style={{ marginRight: '0.4rem', opacity: 0.6 }} />
+                  {s.name}
+                </div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                  Created {new Date(s.createdAt).toLocaleDateString()}
+                  {s.is_default ? ' · Default' : ''}
+                </div>
+              </div>
+              <ChevronRight size={16} style={{ opacity: 0.4 }} />
+            </button>
+          ))}
+        </div>
+
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1.2rem' }}>
+          <h3 style={{ margin: '0 0 0.8rem', fontSize: '0.9rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>New Session</h3>
+          {error && <div style={{ color: 'var(--hard)', marginBottom: '0.6rem', fontSize: '0.8rem' }}>{error}</div>}
+          <form onSubmit={handleCreate} style={{ display: 'flex', gap: '0.5rem' }}>
+            <input
+              type="text"
+              placeholder="e.g. Google Prep 2024"
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              maxLength={100}
+              style={{
+                flex: 1, background: 'var(--surface, rgba(30,41,59,0.8))', border: '1px solid var(--border)',
+                color: 'var(--text)', padding: '0.6rem 0.8rem', borderRadius: '8px', fontSize: '0.85rem'
+              }}
+            />
+            <button className="btn btn-primary" type="submit" disabled={creating || !newName.trim()} style={{ whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              <Plus size={14} /> {creating ? '…' : 'Create'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── Main App ───────────────────────────────────────────────────────────────────
+
 const App = () => {
+  // ── Auth State ──────────────────────────────────────────────────────────────
+  const [authPhase, setAuthPhase] = useState(() =>
+    localStorage.getItem('jwt') ? 'loading' : 'login'
+  ); // 'loading' | 'login' | 'session-select' | 'app'
+  const [authUser, setAuthUser] = useState(null);
+  const [authToken, setAuthToken] = useState(() => localStorage.getItem('jwt') || null);
+  const [sessions, setSessions] = useState([]);
+  const [activeSession, setActiveSession] = useState(() => {
+    const s = localStorage.getItem('activeSession');
+    return s ? JSON.parse(s) : null;
+  });
+  const [authError, setAuthError] = useState(null);
+
+  const api = useCallback((url, opts = {}) =>
+    apiFetch(url, opts, authToken, activeSession?.id),
+  [authToken, activeSession]);
+
+  // ── App State ───────────────────────────────────────────────────────────────
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -575,9 +792,8 @@ const App = () => {
 
   const updateBackend = useCallback(async (problemId, status, code, practiceCode, notes) => {
     try {
-      await fetch('/api/progress', {
+      await api('/api/progress', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ problemId, status, code, practiceCode, notes }),
       });
       setProblems(prev => prev.map(p => 
@@ -588,7 +804,7 @@ const App = () => {
     } catch (err) {
       console.error('Failed to update backend:', err);
     }
-  }, []);
+  }, [api]);
 
   const handleAgentReview = async () => {
     if (!activeProblem) return;
@@ -604,9 +820,8 @@ const App = () => {
       setAgentError(null);
       setAgentResponse(null);
 
-      const res = await fetch('/api/agent/review', {
+      const res = await api('/api/agent/review', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           problemTitle: activeProblem.title,
           statement: activeProblem.statement,
@@ -687,7 +902,7 @@ const App = () => {
   const handleGlobalReset = async () => {
     if (window.confirm('CRITICAL: This will permanently delete ALL your progress, code edits, and notes across the entire application. Are you absolutely sure?')) {
       try {
-        const res = await fetch('/api/settings/reset', { method: 'POST' });
+        const res = await api('/api/settings/reset', { method: 'POST' });
         const data = await res.json();
         if (data.success) {
           alert('All progress has been reset. The application will now reload.');
@@ -749,9 +964,8 @@ const App = () => {
       p.id === activeProblemId ? { ...p, is_favorite: newFav } : p
     ));
     try {
-      await fetch(`http://localhost:3001/api/problems/${activeProblemId}/favorite`, {
+      await api(`/api/problems/${activeProblemId}/favorite`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_favorite: newFav })
       });
     } catch (err) {
@@ -765,9 +979,8 @@ const App = () => {
     
     const newStatus = currentProblem.status === 'completed' ? 'not_started' : 'completed';
     try {
-      await fetch('/api/system-design/progress', {
+      await api('/api/system-design/progress', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ problem_id: currentProblem.id, status: newStatus })
       });
       setSdProblems(sdProblems.map(p => p.id === currentProblem.id ? { ...p, status: newStatus } : p));
@@ -816,7 +1029,7 @@ const App = () => {
 
   const fetchStats = async () => {
     try {
-      const res = await fetch('/api/stats');
+      const res = await api('/api/stats');
       const data = await res.json();
       setStats(data);
     } catch (err) {
@@ -826,7 +1039,7 @@ const App = () => {
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch('/api/settings');
+      const res = await api('/api/settings');
       const data = await res.json();
       setSettings(data);
     } catch (err) {
@@ -836,9 +1049,8 @@ const App = () => {
 
   const updateSettings = async (newSettings) => {
     try {
-      const res = await fetch('/api/settings', {
+      const res = await api('/api/settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newSettings)
       });
       const data = await res.json();
@@ -850,23 +1062,59 @@ const App = () => {
   };
 
 
+  // Bootstrap: validate persisted JWT and session
   useEffect(() => {
+    if (!authToken) { setAuthPhase('login'); return; }
+    (async () => {
+      try {
+        const res = await apiFetch('/api/auth/me', {}, authToken, null);
+        if (!res.ok) throw new Error('Token invalid');
+        const user = await res.json();
+        setAuthUser(user);
+
+        // Fetch sessions list
+        const sRes = await apiFetch('/api/sessions', {}, authToken, null);
+        if (sRes.ok) setSessions(await sRes.json());
+
+        if (activeSession) {
+          const vRes = await apiFetch(`/api/sessions/${activeSession.id}`, {}, authToken, null);
+          if (vRes.ok) {
+            setAuthPhase('app');
+          } else {
+            localStorage.removeItem('activeSession');
+            setActiveSession(null);
+            setAuthPhase('session-select');
+          }
+        } else {
+          setAuthPhase('session-select');
+        }
+      } catch {
+        localStorage.removeItem('jwt');
+        localStorage.removeItem('activeSession');
+        setAuthToken(null);
+        setActiveSession(null);
+        setAuthPhase('login');
+      }
+    })();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (authPhase !== 'app') return;
     const fetchData = async () => {
       try {
         setLoading(true);
         const [pRes, sdRes, mlRes, allMlRes] = await Promise.all([
-          fetch('/api/problems'),
-          fetch('/api/system-design/today'),
-          fetch('/api/ml-design/today'),
-          fetch('/api/ml-design')
+          api('/api/problems'),
+          api('/api/system-design/today'),
+          api('/api/ml-design/today'),
+          api('/api/ml-design')
         ]);
-        
-        // Also fetch settings and stats
+
         await Promise.all([
           fetchSettings(),
           fetchStats()
         ]);
-        
+
         const pData = await pRes.json();
         setProblems(pData);
         if (pData.length > 0 && !activeProblemId) {
@@ -880,7 +1128,7 @@ const App = () => {
           if (!activeMlNoteId) setActiveMlNoteId(mlData.id);
         }
         if (allMlRes.ok) setMlNotes(await allMlRes.json());
-        
+
         setError(null);
       } catch (err) {
         setError('Connection error: Make sure the local database is connected.');
@@ -889,7 +1137,7 @@ const App = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [authPhase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!activeProblem) return;
@@ -1470,11 +1718,86 @@ const App = () => {
     if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
   }, [activeProblemId, activeView]);
 
+  // ── Auth Phase Gates ─────────────────────────────────────────────────────────
+
+  if (authPhase === 'loading') {
+    return (
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Verifying session…</p>
+      </div>
+    );
+  }
+
+  if (authPhase === 'login') {
+    return (
+      <LoginView
+        error={authError}
+        onSuccess={async (token, user, isRegister) => {
+          setAuthError(null);
+          setAuthToken(token);
+          setAuthUser(user);
+          localStorage.setItem('jwt', token);
+
+          const sRes = await apiFetch('/api/sessions', {}, token, null);
+          const sess = sRes.ok ? await sRes.json() : [];
+          setSessions(sess);
+
+          if (isRegister && sess.length > 0) {
+            // Auto-select the default session created on register
+            const defaultSess = sess.find(s => s.is_default) || sess[0];
+            setActiveSession(defaultSess);
+            localStorage.setItem('activeSession', JSON.stringify(defaultSess));
+            setAuthPhase('app');
+          } else {
+            setAuthPhase('session-select');
+          }
+        }}
+      />
+    );
+  }
+
+  if (authPhase === 'session-select') {
+    return (
+      <SessionSelectView
+        user={authUser}
+        sessions={sessions}
+        onSelectSession={(session) => {
+          setActiveSession(session);
+          localStorage.setItem('activeSession', JSON.stringify(session));
+          setProblems([]);
+          setLoading(true);
+          setAuthPhase('app');
+        }}
+        onCreateSession={async (name) => {
+          const res = await apiFetch('/api/sessions', {
+            method: 'POST',
+            body: JSON.stringify({ name })
+          }, authToken, null);
+          if (!res.ok) throw new Error('Failed to create');
+          const newSession = await res.json();
+          setSessions(prev => [newSession, ...prev]);
+        }}
+        onLogout={() => {
+          localStorage.removeItem('jwt');
+          localStorage.removeItem('activeSession');
+          setAuthToken(null);
+          setAuthUser(null);
+          setActiveSession(null);
+          setSessions([]);
+          setAuthPhase('login');
+        }}
+      />
+    );
+  }
+
+  // ── App Phase ─────────────────────────────────────────────────────────────
+
   if (loading) {
     return (
       <div className="loading-container">
         <div className="spinner"></div>
-        <p>Initializing practice session...</p>
+        <p>Initializing practice session…</p>
       </div>
     );
   }
@@ -1515,6 +1838,16 @@ const App = () => {
           <button className="sidebar-close-btn" onClick={closeSidebar}>
             <X size={20} />
           </button>
+          {authUser && activeSession && (
+            <div style={{ marginTop: '0.5rem', padding: '0.4rem 0.6rem', background: 'rgba(16,185,129,0.08)', borderRadius: '8px', fontSize: '0.7rem' }}>
+              <div style={{ color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {authUser.email}
+              </div>
+              <div style={{ color: 'var(--accent)', fontWeight: 600, marginTop: '0.15rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <FolderOpen size={11} /> {activeSession.name}
+              </div>
+            </div>
+          )}
         </div>
 
         <nav className="sidebar-nav">
@@ -1542,6 +1875,38 @@ const App = () => {
           <div className="divider"></div>
           <button className="nav-item settings-nav-item" onClick={() => setShowSettings(true)}>
             <SettingsIcon size={18} /> Settings
+          </button>
+          <button
+            className="nav-item"
+            style={{ color: 'var(--text-muted)' }}
+            onClick={() => {
+              setAuthPhase('session-select');
+              setActiveSession(null);
+              localStorage.removeItem('activeSession');
+              setProblems([]);
+              setStats(null);
+              closeSidebar();
+            }}
+          >
+            <FolderOpen size={18} /> Switch Session
+          </button>
+          <button
+            className="nav-item"
+            style={{ color: 'var(--hard)' }}
+            onClick={() => {
+              localStorage.removeItem('jwt');
+              localStorage.removeItem('activeSession');
+              setAuthToken(null);
+              setAuthUser(null);
+              setActiveSession(null);
+              setSessions([]);
+              setProblems([]);
+              setStats(null);
+              setAuthPhase('login');
+              closeSidebar();
+            }}
+          >
+            <LogOut size={18} /> Sign Out
           </button>
           <div className="divider"></div>
           {mockSession.isActive && (
@@ -2000,9 +2365,10 @@ const App = () => {
             </div>
           </div>
         ) : activeView === 'sd-detail' && activeSdId ? (
-          <SystemDesignView 
-            problemId={activeSdId} 
-            onBack={() => setActiveView('system-design')} 
+          <SystemDesignView
+            problemId={activeSdId}
+            onBack={() => setActiveView('system-design')}
+            apiFetch={api}
           />
         ) : activeProblem ? (
           renderAlgorithmView()
@@ -2145,14 +2511,14 @@ const SectionHeader = ({ icon: Icon, title, id }) => (
   </div>
 );
 
-const SystemDesignView = ({ problemId, onBack }) => {
+const SystemDesignView = ({ problemId, onBack, apiFetch: apiFetchProp }) => {
   const [problem, setProblem] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchDetail = async () => {
       try {
-        const res = await fetch(`/api/system-design`);
+        const res = await apiFetchProp('/api/system-design');
         const all = await res.json();
         const found = all.find(p => p.id === problemId);
         setProblem(found);
@@ -2163,16 +2529,15 @@ const SystemDesignView = ({ problemId, onBack }) => {
       }
     };
     fetchDetail();
-  }, [problemId]);
+  }, [problemId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) return <div className="loading-container glass"><div className="loader"></div></div>;
 
   const toggleComplete = async () => {
     try {
       const newStatus = problem.status === 'completed' ? 'started' : 'completed';
-      await fetch('/api/system-design/progress', {
+      await apiFetchProp('/api/system-design/progress', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ problem_id: problemId, status: newStatus })
       });
       setProblem(prev => ({ ...prev, status: newStatus }));

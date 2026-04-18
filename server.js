@@ -6,6 +6,8 @@ import { Sequelize, DataTypes } from 'sequelize';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 dotenv.config();
 
@@ -18,16 +20,13 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Database Setup — configure via .env (see .env.example)
+// ── Database Setup ─────────────────────────────────────────────────────────────
 const DB_HOST = process.env.DB_HOST;
 const DB_USER = process.env.DB_USER;
 const DB_PASS = process.env.DB_PASS;
 const DB_NAME = process.env.DB_NAME;
 const DB_PORT = process.env.DB_PORT || 3306;
 
-// Database connection logic
-// In Cloud Run, K_SERVICE is set. Use Unix socket there.
-// Locally, use TCP (usually 127.0.0.1) via Cloud SQL Auth Proxy.
 const useSocket = process.env.INSTANCE_CONNECTION_NAME && process.env.K_SERVICE;
 
 const sequelize = useSocket
@@ -42,17 +41,27 @@ const sequelize = useSocket
         port: DB_PORT,
         dialect: 'mysql',
         logging: false,
-        pool: {
-            max: 5,
-            min: 0,
-            acquire: 30000,
-            idle: 10000
-        },
-        retry: {
-            match: [/Connection lost/i, /SequelizeConnectionError/i],
-            max: 3
-        }
+        pool: { max: 5, min: 0, acquire: 30000, idle: 10000 },
+        retry: { match: [/Connection lost/i, /SequelizeConnectionError/i], max: 3 }
     });
+
+// ── Models ─────────────────────────────────────────────────────────────────────
+
+const User = sequelize.define('User', {
+    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    email: { type: DataTypes.STRING(255), allowNull: false, unique: true },
+    password_hash: { type: DataTypes.STRING(255), allowNull: false },
+}, { timestamps: true, tableName: 'users' });
+
+const StudySession = sequelize.define('StudySession', {
+    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    user_id: { type: DataTypes.INTEGER, allowNull: false },
+    name: { type: DataTypes.STRING(255), allowNull: false },
+    is_default: { type: DataTypes.BOOLEAN, defaultValue: false },
+}, { timestamps: true, tableName: 'study_sessions' });
+
+User.hasMany(StudySession, { foreignKey: 'user_id' });
+StudySession.belongsTo(User, { foreignKey: 'user_id' });
 
 const Problem = sequelize.define('Problem', {
     id: { type: DataTypes.INTEGER, primaryKey: true },
@@ -70,13 +79,20 @@ const Problem = sequelize.define('Problem', {
 }, { timestamps: false, tableName: 'problems' });
 
 const UserProgress = sequelize.define('UserProgress', {
-    problem_id: { type: DataTypes.INTEGER, primaryKey: true },
+    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    user_id: { type: DataTypes.INTEGER, allowNull: true },
+    session_id: { type: DataTypes.INTEGER, allowNull: true },
+    problem_id: { type: DataTypes.INTEGER, allowNull: false },
     status: { type: DataTypes.STRING, defaultValue: 'not-started' },
     user_code: DataTypes.TEXT,
     practice_code: DataTypes.TEXT,
     user_notes: DataTypes.TEXT,
     is_favorite: { type: DataTypes.BOOLEAN, defaultValue: false }
-}, { timestamps: true, tableName: 'user_progress' });
+}, {
+    timestamps: true,
+    tableName: 'user_progress',
+    indexes: [{ unique: true, fields: ['user_id', 'session_id', 'problem_id'] }]
+});
 
 const SystemDesignProblem = sequelize.define('SystemDesignProblem', {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
@@ -89,10 +105,17 @@ const SystemDesignProblem = sequelize.define('SystemDesignProblem', {
 }, { timestamps: false, tableName: 'system_design_problems' });
 
 const SystemDesignProgress = sequelize.define('SystemDesignProgress', {
-    problem_id: { type: DataTypes.INTEGER, primaryKey: true },
+    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    user_id: { type: DataTypes.INTEGER, allowNull: true },
+    session_id: { type: DataTypes.INTEGER, allowNull: true },
+    problem_id: { type: DataTypes.INTEGER, allowNull: false },
     status: { type: DataTypes.STRING, defaultValue: 'not-started' },
     notes: DataTypes.TEXT
-}, { timestamps: true, tableName: 'system_design_progress' });
+}, {
+    timestamps: true,
+    tableName: 'system_design_progress',
+    indexes: [{ unique: true, fields: ['user_id', 'session_id', 'problem_id'] }]
+});
 
 const MLSystemDesignNote = sequelize.define('MLSystemDesignNote', {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
@@ -106,42 +129,184 @@ const MLSystemDesignNote = sequelize.define('MLSystemDesignNote', {
 }, { timestamps: false, tableName: 'ml_system_design_notes' });
 
 const UserSettings = sequelize.define('UserSettings', {
-    id: { type: DataTypes.INTEGER, primaryKey: true, defaultValue: 1 },
+    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    user_id: { type: DataTypes.INTEGER, allowNull: true },
     planned_days: { type: DataTypes.INTEGER, defaultValue: 25 },
     revisions_per_day: { type: DataTypes.INTEGER, defaultValue: 3 }
 }, { timestamps: true, tableName: 'user_settings' });
 
 const ProgressLog = sequelize.define('ProgressLog', {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    user_id: { type: DataTypes.INTEGER, allowNull: true },
+    session_id: { type: DataTypes.INTEGER, allowNull: true },
     problem_id: { type: DataTypes.INTEGER },
-    status: { type: DataTypes.STRING }, // 'attempt' | 'completed'
+    status: { type: DataTypes.STRING },
 }, { timestamps: true, tableName: 'progress_logs' });
 
+// ── JWT & Auth Middleware ───────────────────────────────────────────────────────
 
-// Health check endpoint
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+
+function signToken(userId) {
+    return jwt.sign({ sub: userId }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+}
+
+async function requireAuth(req, res, next) {
+    const header = req.headers['authorization'];
+    if (!header?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'No token provided' });
+    }
+    try {
+        const payload = jwt.verify(header.slice(7), JWT_SECRET);
+        req.userId = payload.sub;
+        next();
+    } catch {
+        res.status(401).json({ error: 'Invalid or expired token' });
+    }
+}
+
+async function requireSession(req, res, next) {
+    const sessionId = parseInt(req.headers['x-session-id'], 10);
+    if (!sessionId) return res.status(400).json({ error: 'X-Session-Id header required' });
+    const session = await StudySession.findOne({ where: { id: sessionId, user_id: req.userId } });
+    if (!session) return res.status(403).json({ error: 'Session not found or not yours' });
+    req.sessionId = sessionId;
+    next();
+}
+
+// ── Health Check ───────────────────────────────────────────────────────────────
+
 app.get('/api/health', async (req, res) => {
     try {
         await sequelize.authenticate();
-        res.json({ 
-            status: 'healthy',
-            database: 'connected',
-            timestamp: new Date().toISOString()
-        });
+        res.json({ status: 'healthy', database: 'connected', timestamp: new Date().toISOString() });
     } catch (error) {
         console.error('[Health Check] FAILED:', error);
-        res.status(503).json({ 
-            status: 'unhealthy',
-            database: 'disconnected',
-            error: error.message 
-        });
+        res.status(503).json({ status: 'unhealthy', database: 'disconnected', error: error.message });
     }
 });
 
-// System Design Endpoints
-app.get('/api/system-design', async (req, res) => {
+// ── Auth Endpoints ─────────────────────────────────────────────────────────────
+
+app.post('/api/auth/register', async (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+    if (password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return res.status(400).json({ error: 'Invalid email address' });
+
+    try {
+        const existing = await User.findOne({ where: { email: email.toLowerCase() } });
+        if (existing) return res.status(409).json({ error: 'Email already registered' });
+
+        const password_hash = await bcrypt.hash(password, 12);
+        const user = await User.create({ email: email.toLowerCase(), password_hash });
+
+        // Auto-create default session
+        await StudySession.create({ user_id: user.id, name: 'Default Session', is_default: true });
+
+        const token = signToken(user.id);
+        res.status(201).json({ token, user: { id: user.id, email: user.email } });
+    } catch (err) {
+        console.error('[Auth Register]', err);
+        res.status(500).json({ error: 'Registration failed' });
+    }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+
+    try {
+        const user = await User.findOne({ where: { email: email.toLowerCase() } });
+        if (!user) return res.status(401).json({ error: 'Invalid email or password' });
+
+        const valid = await bcrypt.compare(password, user.password_hash);
+        if (!valid) return res.status(401).json({ error: 'Invalid email or password' });
+
+        const token = signToken(user.id);
+        res.json({ token, user: { id: user.id, email: user.email } });
+    } catch (err) {
+        console.error('[Auth Login]', err);
+        res.status(500).json({ error: 'Login failed' });
+    }
+});
+
+app.get('/api/auth/me', requireAuth, async (req, res) => {
+    try {
+        const user = await User.findByPk(req.userId, { attributes: ['id', 'email'] });
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/auth/logout', (req, res) => {
+    res.json({ success: true });
+});
+
+// ── Study Session Endpoints ────────────────────────────────────────────────────
+
+app.get('/api/sessions', requireAuth, async (req, res) => {
+    try {
+        const sessions = await StudySession.findAll({
+            where: { user_id: req.userId },
+            order: [['createdAt', 'DESC']]
+        });
+        res.json(sessions);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/sessions', requireAuth, async (req, res) => {
+    const { name } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ error: 'Session name required' });
+    if (name.trim().length > 100) return res.status(400).json({ error: 'Session name too long (max 100 chars)' });
+    try {
+        const session = await StudySession.create({ user_id: req.userId, name: name.trim() });
+        res.status(201).json(session);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/sessions/:id', requireAuth, async (req, res) => {
+    try {
+        const session = await StudySession.findOne({
+            where: { id: req.params.id, user_id: req.userId }
+        });
+        if (!session) return res.status(404).json({ error: 'Session not found' });
+        res.json(session);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/sessions/:id', requireAuth, async (req, res) => {
+    try {
+        const session = await StudySession.findOne({
+            where: { id: req.params.id, user_id: req.userId }
+        });
+        if (!session) return res.status(404).json({ error: 'Session not found' });
+        if (session.is_default) return res.status(400).json({ error: 'Cannot delete the default session' });
+        await session.destroy();
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ── System Design Endpoints ────────────────────────────────────────────────────
+
+app.get('/api/system-design', requireAuth, requireSession, async (req, res) => {
     try {
         const problems = await SystemDesignProblem.findAll();
-        const progress = await SystemDesignProgress.findAll();
+        const progress = await SystemDesignProgress.findAll({
+            where: { user_id: req.userId, session_id: req.sessionId }
+        });
         const progressMap = progress.reduce((acc, p) => {
             acc[p.problem_id] = p;
             return acc;
@@ -163,11 +328,10 @@ app.get('/api/system-design/today', async (req, res) => {
     try {
         const count = await SystemDesignProblem.count();
         if (count === 0) return res.status(404).json({ error: 'No problems found' });
-        
-        // Use a stable index based on days since epoch
+
         const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
         const index = dayIndex % count;
-        
+
         const todayProblem = await SystemDesignProblem.findOne({
             order: [['id', 'ASC']],
             offset: index,
@@ -175,13 +339,7 @@ app.get('/api/system-design/today', async (req, res) => {
         });
 
         if (!todayProblem) return res.status(404).json({ error: 'No problems found' });
-
-        const progress = await SystemDesignProgress.findByPk(todayProblem.id);
-        res.json({
-            ...todayProblem.toJSON(),
-            status: progress?.status || 'not-started',
-            notes: progress?.notes || ''
-        });
+        res.json({ ...todayProblem.toJSON(), status: 'not-started', notes: '' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -192,7 +350,6 @@ app.get('/api/ml-design/today', async (req, res) => {
         const count = await MLSystemDesignNote.count();
         if (count === 0) return res.status(404).json({ error: 'No notes found' });
 
-        // Use a stable index based on days since epoch
         const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
         const index = dayIndex % count;
 
@@ -210,40 +367,42 @@ app.get('/api/ml-design/today', async (req, res) => {
 
 app.get('/api/ml-design', async (req, res) => {
     try {
-        const notes = await MLSystemDesignNote.findAll({
-            order: [['title', 'ASC']]
-        });
+        const notes = await MLSystemDesignNote.findAll({ order: [['title', 'ASC']] });
         res.json(notes);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-app.post('/api/system-design/progress', async (req, res) => {
+app.post('/api/system-design/progress', requireAuth, requireSession, async (req, res) => {
     const { problem_id, status, notes } = req.body;
     try {
-        const [progress, created] = await SystemDesignProgress.findOrCreate({
-            where: { problem_id },
-            defaults: { status, notes }
+        let progress = await SystemDesignProgress.findOne({
+            where: { user_id: req.userId, session_id: req.sessionId, problem_id }
         });
-
-        if (!created) {
-            if (status) progress.status = status;
+        if (progress) {
+            if (status !== undefined) progress.status = status;
             if (notes !== undefined) progress.notes = notes;
             await progress.save();
+        } else {
+            progress = await SystemDesignProgress.create({
+                user_id: req.userId, session_id: req.sessionId, problem_id, status, notes
+            });
         }
-
         res.json(progress);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// Daily Problem
-app.get('/api/daily', async (req, res) => {
+// ── Daily Problem ──────────────────────────────────────────────────────────────
+
+app.get('/api/daily', requireAuth, requireSession, async (req, res) => {
     try {
         const problems = await Problem.findAll({ order: [['id', 'ASC']] });
-        const progress = await UserProgress.findAll();
+        const progress = await UserProgress.findAll({
+            where: { user_id: req.userId, session_id: req.sessionId }
+        });
 
         const merged = problems.map((p) => {
             const prog = progress.find(u => u.problem_id === p.id);
@@ -266,18 +425,22 @@ app.get('/api/daily', async (req, res) => {
     }
 });
 
-// Toggle favorite status
-app.post('/api/problems/:id/favorite', async (req, res) => {
+// ── Toggle Favorite ────────────────────────────────────────────────────────────
+
+app.post('/api/problems/:id/favorite', requireAuth, requireSession, async (req, res) => {
     const { id } = req.params;
     const { is_favorite } = req.body;
     try {
-        const [progress, created] = await UserProgress.findOrCreate({
-            where: { problem_id: id },
-            defaults: { is_favorite }
+        let progress = await UserProgress.findOne({
+            where: { user_id: req.userId, session_id: req.sessionId, problem_id: id }
         });
-        if (!created) {
+        if (progress) {
             progress.is_favorite = is_favorite;
             await progress.save();
+        } else {
+            progress = await UserProgress.create({
+                user_id: req.userId, session_id: req.sessionId, problem_id: id, is_favorite
+            });
         }
         res.json({ success: true, is_favorite: progress.is_favorite });
     } catch (error) {
@@ -285,10 +448,14 @@ app.post('/api/problems/:id/favorite', async (req, res) => {
     }
 });
 
-app.get('/api/problems', async (req, res) => {
+// ── Problems List ──────────────────────────────────────────────────────────────
+
+app.get('/api/problems', requireAuth, requireSession, async (req, res) => {
     try {
         const problems = await Problem.findAll({ order: [['id', 'ASC']] });
-        const progress = await UserProgress.findAll();
+        const progress = await UserProgress.findAll({
+            where: { user_id: req.userId, session_id: req.sessionId }
+        });
 
         const merged = problems.map((p) => {
             const prog = progress.find(u => u.problem_id === p.id);
@@ -311,9 +478,13 @@ app.get('/api/problems', async (req, res) => {
     }
 });
 
-app.get('/api/progress', async (req, res) => {
+// ── Progress ───────────────────────────────────────────────────────────────────
+
+app.get('/api/progress', requireAuth, requireSession, async (req, res) => {
     try {
-        const progress = await UserProgress.findAll();
+        const progress = await UserProgress.findAll({
+            where: { user_id: req.userId, session_id: req.sessionId }
+        });
         const progressMap = {};
         progress.forEach(p => {
             progressMap[p.problem_id] = {
@@ -328,20 +499,28 @@ app.get('/api/progress', async (req, res) => {
     }
 });
 
-app.post('/api/progress', async (req, res) => {
+app.post('/api/progress', requireAuth, requireSession, async (req, res) => {
     const { problemId, status, code, practiceCode, notes } = req.body;
     try {
-        await UserProgress.upsert({
-            problem_id: problemId,
-            status,
-            user_code: code,
-            practice_code: practiceCode,
-            user_notes: notes
-            // is_favorite is handled by its own endpoint to avoid overwriting
+        let progress = await UserProgress.findOne({
+            where: { user_id: req.userId, session_id: req.sessionId, problem_id: problemId }
         });
+        if (progress) {
+            progress.status = status;
+            progress.user_code = code;
+            progress.practice_code = practiceCode;
+            progress.user_notes = notes;
+            await progress.save();
+        } else {
+            progress = await UserProgress.create({
+                user_id: req.userId, session_id: req.sessionId, problem_id: problemId,
+                status, user_code: code, practice_code: practiceCode, user_notes: notes
+            });
+        }
 
-        // Log the activity
         await ProgressLog.create({
+            user_id: req.userId,
+            session_id: req.sessionId,
             problem_id: problemId,
             status: status === 'completed' ? 'completed' : 'attempt'
         });
@@ -352,12 +531,13 @@ app.post('/api/progress', async (req, res) => {
     }
 });
 
-// Settings Endpoints
-app.get('/api/settings', async (req, res) => {
+// ── Settings ───────────────────────────────────────────────────────────────────
+
+app.get('/api/settings', requireAuth, async (req, res) => {
     try {
-        let settings = await UserSettings.findByPk(1);
+        let settings = await UserSettings.findOne({ where: { user_id: req.userId } });
         if (!settings) {
-            settings = await UserSettings.create({ id: 1 });
+            settings = await UserSettings.create({ user_id: req.userId });
         }
         res.json(settings);
     } catch (error) {
@@ -365,12 +545,12 @@ app.get('/api/settings', async (req, res) => {
     }
 });
 
-app.post('/api/settings', async (req, res) => {
+app.post('/api/settings', requireAuth, async (req, res) => {
     try {
         const { planned_days, revisions_per_day } = req.body;
-        let settings = await UserSettings.findByPk(1);
+        let settings = await UserSettings.findOne({ where: { user_id: req.userId } });
         if (!settings) {
-            settings = await UserSettings.create({ id: 1, planned_days, revisions_per_day });
+            settings = await UserSettings.create({ user_id: req.userId, planned_days, revisions_per_day });
         } else {
             await settings.update({ planned_days, revisions_per_day });
         }
@@ -380,29 +560,26 @@ app.post('/api/settings', async (req, res) => {
     }
 });
 
-// Stats Endpoint
-app.get('/api/stats', async (req, res) => {
+// ── Stats ──────────────────────────────────────────────────────────────────────
+
+app.get('/api/stats', requireAuth, requireSession, async (req, res) => {
     try {
         const logs = await ProgressLog.findAll({
+            where: { user_id: req.userId, session_id: req.sessionId },
             order: [['createdAt', 'ASC']]
         });
-        
-        // Group by day
+
         const statsByDay = {};
         logs.forEach(log => {
             const date = log.createdAt.toISOString().split('T')[0];
-            if (!statsByDay[date]) {
-                statsByDay[date] = { attempts: 0, completed: 0 };
-            }
-            if (log.status === 'completed') {
-                statsByDay[date].completed++;
-            } else {
-                statsByDay[date].attempts++;
-            }
+            if (!statsByDay[date]) statsByDay[date] = { attempts: 0, completed: 0 };
+            if (log.status === 'completed') statsByDay[date].completed++;
+            else statsByDay[date].attempts++;
         });
 
-        // Also get total summary
-        const totalSolved = await UserProgress.count({ where: { status: 'completed' } });
+        const totalSolved = await UserProgress.count({
+            where: { user_id: req.userId, session_id: req.sessionId, status: 'completed' }
+        });
         const totalProblems = await Problem.count();
 
         res.json({
@@ -418,24 +595,26 @@ app.get('/api/stats', async (req, res) => {
     }
 });
 
-app.post('/api/settings/reset', async (req, res) => {
+// ── Reset Progress ─────────────────────────────────────────────────────────────
+
+app.post('/api/settings/reset', requireAuth, requireSession, async (req, res) => {
     try {
-        await UserProgress.destroy({ where: {}, truncate: false }); // truncate: true might fail due to FK if any
-        await SystemDesignProgress.destroy({ where: {}, truncate: false });
-        // Add other progress tables if needed
+        await UserProgress.destroy({
+            where: { user_id: req.userId, session_id: req.sessionId }
+        });
+        await SystemDesignProgress.destroy({
+            where: { user_id: req.userId, session_id: req.sessionId }
+        });
         res.json({ success: true, message: 'All progress has been reset.' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// ─── Gemini Agent: Code Review ────────────────────────────────────────────────
-// Agent-driven framework: constructs a system prompt, sends to Gemini, returns
-// structured markdown. Tool calls / feedback loops can be added here later.
-app.post('/api/agent/review', async (req, res) => {
+// ── Gemini Agent: Code Review ──────────────────────────────────────────────────
+
+app.post('/api/agent/review', requireAuth, async (req, res) => {
     const { problemTitle, statement, description, userCode, hints, difficulty, category } = req.body;
-    
-    // Support both keys for the problem text
     const problemText = statement || description || '';
 
     if (!userCode || userCode.trim().length < 10) {
@@ -464,7 +643,6 @@ app.post('/api/agent/review', async (req, res) => {
             ].join('\n')
         });
 
-        // Strip HTML from statement for the prompt
         const cleanStatement = (problemText)
             .replace(/<[^>]+>/g, ' ')
             .replace(/\s+/g, ' ')
@@ -490,7 +668,6 @@ app.post('/api/agent/review', async (req, res) => {
 
         const result = await model.generateContent(userMessage);
         const responseText = result.response.text();
-
         res.json({ feedback: responseText });
     } catch (err) {
         console.error('[Agent Review] Error:', err);
@@ -498,8 +675,8 @@ app.post('/api/agent/review', async (req, res) => {
     }
 });
 
-// ─── Admin: Batch Hint Generation ─────────────────────────────────────────────
-// One-time seeding: generates tailored step-by-step hints for all problems.
+// ── Admin: Batch Hint Generation ───────────────────────────────────────────────
+
 app.post('/api/admin/generate-hints', async (req, res) => {
     const { limit = 10, overwrite = false } = req.body;
 
@@ -569,8 +746,6 @@ app.post('/api/admin/generate-hints', async (req, res) => {
                 results.push({ id: problem.id, title: problem.title, status: 'error', error: err.message });
                 console.warn(`[Hints] Failed for ${problem.title}:`, err.message);
             }
-
-            // Rate limit buffer
             await new Promise(r => setTimeout(r, 400));
         }
 
@@ -580,15 +755,16 @@ app.post('/api/admin/generate-hints', async (req, res) => {
     }
 });
 
-// Serve frontend
+// ── Static Assets ──────────────────────────────────────────────────────────────
+
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// Admin: Extract and store YouTube video links from NeetCode bundle
+// ── Admin: Extract YouTube Video Links ────────────────────────────────────────
+
 app.post('/api/admin/extract-videos', async (req, res) => {
     try {
         console.log('--- YouTube Video Extraction Triggered ---');
 
-        // 1. Fetch the NeetCode Angular bundle
         const homeRes = await fetch('https://neetcode.io');
         const homeHtml = await homeRes.text();
         const bundleMatch = homeHtml.match(/src="(main\.[^"]+\.js)"/);
@@ -599,7 +775,6 @@ app.post('/api/admin/extract-videos', async (req, res) => {
         const bundleRes = await fetch(bundleUrl);
         const bundleJs = await bundleRes.text();
 
-        // 2. Extract problem entries: {problem:"...", video:"...", link:"..."}
         const entries = [...bundleJs.matchAll(/\{problem:"([^"]+)",pattern:"([^"]+)",link:"([^"]+)",video:"([\w-]*)"/g)];
         const titleToVideo = {};
         for (const [, problem, , , video] of entries) {
@@ -610,7 +785,6 @@ app.post('/api/admin/extract-videos', async (req, res) => {
         }
         console.log(`Extracted ${Object.keys(titleToVideo).length} video mappings`);
 
-        // 3. Update DB problems that have matching titles
         const problems = await Problem.findAll();
         let updated = 0;
         for (const p of problems) {
@@ -630,7 +804,8 @@ app.post('/api/admin/extract-videos', async (req, res) => {
     }
 });
 
-// Admin Enrichment Pipeline
+// ── Admin: Enrichment Pipeline ─────────────────────────────────────────────────
+
 app.post('/api/admin/enrich', async (req, res) => {
     const LIST_URL = 'https://raw.githubusercontent.com/krmanik/Anki-NeetCode/main/neetcode-150-list.json';
     const DESC_BASE_URL = 'https://raw.githubusercontent.com/krmanik/Anki-NeetCode/main/data/leetcode-json-data/';
@@ -638,12 +813,10 @@ app.post('/api/admin/enrich', async (req, res) => {
 
     try {
         console.log('--- Database Enrichment Triggered ---');
-        
-        // 1. Fetch mapping
+
         const response = await fetch(LIST_URL);
         const mapping = await response.json();
 
-        // 2. Fetch solution filenames
         const solRepoResponse = await fetch('https://api.github.com/repos/neetcode-gh/leetcode/contents/python');
         const solFiles = await solRepoResponse.json();
         const solMap = {};
@@ -664,8 +837,7 @@ app.post('/api/admin/enrich', async (req, res) => {
             try {
                 const slug = p.url.split('/problems/')[1].replace('/', '');
                 console.log(`Enriching [${p.title}] with slug: ${slug}`);
-                
-                // Fetch Description
+
                 const descResp = await fetch(`${DESC_BASE_URL}${slug}.json`);
                 let statement = '';
                 if (descResp.ok) {
@@ -675,16 +847,12 @@ app.post('/api/admin/enrich', async (req, res) => {
                     console.warn(`  - Description fetch failed for ${slug} (${descResp.status})`);
                 }
 
-                // Fetch Solution
                 let python_code = '';
                 const solFilename = solMap[slug] || solMap[slug.replace(/-/g, '_')] || Object.keys(solMap).find(k => k.includes(slug));
                 if (solFilename) {
                     const solResp = await fetch(`${SOLUTION_BASE_URL}${solFilename}`);
-                    if (solResp.ok) {
-                        python_code = await solResp.text();
-                    } else {
-                        console.warn(`  - Solution fetch failed for ${solFilename}`);
-                    }
+                    if (solResp.ok) python_code = await solResp.text();
+                    else console.warn(`  - Solution fetch failed for ${solFilename}`);
                 }
 
                 const record = await Problem.findOne({ where: { title: p.title } });
@@ -709,11 +877,14 @@ app.post('/api/admin/enrich', async (req, res) => {
     }
 });
 
+// ── SPA Fallback ───────────────────────────────────────────────────────────────
+
 app.get('/*splat', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-// Seeding Logic
+// ── Seeding Logic ──────────────────────────────────────────────────────────────
+
 async function seedDatabase() {
     const count = await Problem.count();
     if (count === 0) {
@@ -721,7 +892,7 @@ async function seedDatabase() {
         try {
             const rawData = fs.readFileSync(path.join(__dirname, 'src', 'data', 'problems.json'), 'utf8');
             const problems = JSON.parse(rawData);
-            
+
             const patterns = {
                 "Arrays & Hashing": "Use HashMaps for O(1) lookup. Sort if order doesn't matter.",
                 "Two Pointers": "Pointers at ends for target sum, or adjacent for partition.",
@@ -740,13 +911,8 @@ async function seedDatabase() {
             const enrichedProblems = problems.map(p => ({
                 ...p,
                 statement: `Practice this ${p.category} problem. Implement an optimal solution to achieve O(n) or better if possible.`,
-                examples: [
-                    { input: "nums = [1, 2, 3]", output: "true" }
-                ],
-                python_code: `class Solution:
-    def solve(self, nums):
-        # Your solution here
-        pass`,
+                examples: [{ input: "nums = [1, 2, 3]", output: "true" }],
+                python_code: `class Solution:\n    def solve(self, nums):\n        # Your solution here\n        pass`,
                 mnemonic: patterns[p.category] || "Standard pattern solution."
             }));
 
@@ -758,39 +924,45 @@ async function seedDatabase() {
     } else {
         console.log('Database already has data. Skipping seed.');
     }
+}
 
-    // Seed/Sync ProgressLog with existing completed problems if log is empty
-    const logCount = await ProgressLog.count();
-    if (logCount === 0) {
-        console.log('ProgressLog empty. Migrating existing completion data...');
-        const completed = await UserProgress.findAll({ where: { status: 'completed' } });
-        if (completed.length > 0) {
-            const logs = completed.map(p => ({
-                problem_id: p.problem_id,
-                status: 'completed',
-                createdAt: p.updatedAt // Use the last update time as approximate completion time
-            }));
-            await ProgressLog.bulkCreate(logs);
-            console.log(`Migrated ${logs.length} entries to ProgressLog.`);
+// ── Start Server ───────────────────────────────────────────────────────────────
+
+async function ensureTableStructure() {
+    // These tables originally had problem_id as PK. If the migration hasn't run yet
+    // (or server restarted before migration), handle the PK swap here so sync({ alter })
+    // doesn't fail with ER_MULTIPLE_PRI_KEY.
+    for (const table of ['user_progress', 'system_design_progress']) {
+        try {
+            const [cols] = await sequelize.query(`SHOW COLUMNS FROM \`${table}\` LIKE 'user_id'`);
+            if (cols.length === 0) {
+                // user_id not yet added — do the PK restructure
+                await sequelize.query(
+                    `ALTER TABLE \`${table}\` DROP PRIMARY KEY, ADD COLUMN id INT NOT NULL AUTO_INCREMENT FIRST, ADD PRIMARY KEY (id)`
+                );
+                await sequelize.query(
+                    `ALTER TABLE \`${table}\` ADD COLUMN user_id INT NULL, ADD COLUMN session_id INT NULL`
+                );
+                console.log(`Restructured ${table} (added surrogate PK + tenant columns)`);
+            }
+        } catch (e) {
+            // Table may not exist yet on a fresh deploy — sync({ alter }) will create it
+            if (!e.message?.includes("doesn't exist")) {
+                console.warn(`ensureTableStructure warning for ${table}:`, e.message);
+            }
         }
     }
 }
 
-// Start Server
 app.listen(PORT, async () => {
     console.log(`Server running on port ${PORT}`);
-    
     try {
         await sequelize.authenticate();
         console.log('Database connected.');
-        
-        // Sync models
+        await ensureTableStructure();
         await sequelize.sync({ alter: true });
-        
-        // Auto-seed if needed
         await seedDatabase();
     } catch (err) {
         console.error('Database initialization failed:', err);
     }
 });
-
