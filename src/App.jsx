@@ -331,10 +331,10 @@ const LoginView = ({ onSuccess, onRetry, error: externalError, hasStoredSession 
           </div>
           <div style={{ marginBottom: '1.5rem' }}>
             <label style={{ display: 'block', marginBottom: '0.4rem', color: 'var(--text-muted)', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
-              PASSWORD {mode === 'register' && <span style={{ color: 'var(--text-muted)' }}>(min 8 chars)</span>}
+              PASSWORD
             </label>
             <input
-              type="password" required minLength={8} value={password} autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              type="password" required value={password} autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               onChange={e => setPassword(e.target.value)}
               style={{ width: '100%', background: 'var(--surface, rgba(30,41,59,0.8))', border: '1px solid var(--border)', color: 'var(--text)', padding: '0.65rem 0.9rem', borderRadius: '8px', fontSize: '0.9rem', boxSizing: 'border-box' }}
             />
