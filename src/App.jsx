@@ -32,7 +32,8 @@ import {
   Tv,
   Brain,
   ShieldCheck,
-  Trash2
+  Trash2,
+  Star
 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -59,7 +60,7 @@ const PythonEditor = ({ code, onChange, placeholder, className = "" }) => {
         style={{
           fontFamily: '"JetBrains Mono", "Fira Code", monospace',
           fontSize: 14,
-          minHeight: '400px',
+          minHeight: '800px',
         }}
       />
     </div>
@@ -258,6 +259,7 @@ const App = () => {
   const [filterDifficulty, setFilterDifficulty] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [navigationContext, setNavigationContext] = useState('dashboard'); // 'dashboard' | 'browse'
+  const [librarySelectedTopic, setLibrarySelectedTopic] = useState(null);
 
   // Code panel tab state
   const [codeTab, setCodeTab] = useState('edit'); // 'reference' | 'practice' | 'edit'
@@ -281,6 +283,19 @@ const App = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [settings, setSettings] = useState({ planned_days: 25, revisions_per_day: 3 });
   const [stats, setStats] = useState(null);
+  const [mockSession, setMockSession] = useState(() => {
+    const saved = localStorage.getItem('mockSession');
+    return saved ? JSON.parse(saved) : { isActive: false, problemIds: [], startTime: null };
+  });
+  const [timeRemaining, setTimeRemaining] = useState(() => {
+    const saved = localStorage.getItem('mockSession');
+    if (saved) {
+      const session = JSON.parse(saved);
+      const elapsed = Math.floor((Date.now() - session.startTime) / 1000);
+      return Math.max(5400 - elapsed, 0);
+    }
+    return 5400;
+  });
 
   // --- Refs ---
   const dayPickerRef = useRef(null);
@@ -396,23 +411,48 @@ const App = () => {
   const dailyProblems = useMemo(() => getProblemsForDay(selectedDay), [selectedDay, getProblemsForDay]);
 
   const { prevProblem, nextProblem } = useMemo(() => {
-    const list = navigationContext === 'browse' ? browsedProblems : dailyProblems;
+    let list = [];
+    if (navigationContext === 'browse') list = browsedProblems;
+    else if (navigationContext === 'library') {
+      const topic = activeProblem?.category || librarySelectedTopic;
+      list = problems.filter(p => p.category === topic);
+    } else {
+      list = dailyProblems;
+    }
+
     const idx = list.findIndex(p => p.id === activeProblemId);
     
     let prev = idx > 0 ? list[idx - 1] : null;
     let next = idx >= 0 && idx < list.length - 1 ? list[idx + 1] : null;
 
-    if (activeView === 'dashboard' && !prev && selectedDay > 1) {
-      const prevDayPool = getProblemsForDay(selectedDay - 1);
-      prev = prevDayPool[prevDayPool.length - 1];
-    }
-    if (activeView === 'dashboard' && !next && selectedDay < maxDay) {
-      const nextDayPool = getProblemsForDay(selectedDay + 1);
-      next = nextDayPool[0];
+    // Boundary Logic
+    if (navigationContext === 'dashboard') {
+      if (!prev && selectedDay > 1) {
+        const prevDayPool = getProblemsForDay(selectedDay - 1);
+        prev = prevDayPool[prevDayPool.length - 1];
+      }
+      if (!next && selectedDay < maxDay) {
+        const nextDayPool = getProblemsForDay(selectedDay + 1);
+        next = nextDayPool[0];
+      }
+    } else if (navigationContext === 'library') {
+      const currentTopic = activeProblem?.category || librarySelectedTopic;
+      const topicIdx = categories.indexOf(currentTopic);
+      
+      if (!prev && topicIdx > 0) {
+        const prevTopic = categories[topicIdx - 1];
+        const prevPool = problems.filter(p => p.category === prevTopic);
+        prev = prevPool[prevPool.length - 1];
+      }
+      if (!next && topicIdx < categories.length - 1 && topicIdx !== -1) {
+        const nextTopic = categories[topicIdx + 1];
+        const nextPool = problems.filter(p => p.category === nextTopic);
+        next = nextPool[0];
+      }
     }
 
     return { prevProblem: prev, nextProblem: next };
-  }, [activeProblemId, dailyProblems, browsedProblems, navigationContext, activeView, selectedDay, maxDay, getProblemsForDay]);
+  }, [activeProblemId, dailyProblems, browsedProblems, navigationContext, activeView, selectedDay, maxDay, getProblemsForDay, activeProblem, librarySelectedTopic, categories, problems]);
 
   const analytics = useMemo(() => {
     const stats = { Easy: 0, Medium: 0, Hard: 0, TotalDone: 0, Categories: {} };
@@ -425,6 +465,12 @@ const App = () => {
     });
     return stats;
   }, [problems]);
+
+  const libraryProblems = useMemo(() => {
+    const topic = activeProblem?.category || librarySelectedTopic;
+    if (!topic) return [];
+    return problems.filter(p => p.category === topic);
+  }, [problems, activeProblem, librarySelectedTopic]);
 
   const formatDateShort = (dayIndex) => {
     const date = getDateForDay(dayIndex);
@@ -440,7 +486,73 @@ const App = () => {
 
   const totalDays = maxDay;
 
+  // --- Static Helpers ---
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   // --- Action Handlers ---
+
+  const startMockInterview = () => {
+    const easy = problems.filter(p => p.difficulty === 'Easy');
+    const medium = problems.filter(p => p.difficulty === 'Medium');
+    const hard = problems.filter(p => p.difficulty === 'Hard');
+
+    if (easy.length === 0 || medium.length === 0 || hard.length === 0) {
+      alert("Loading problems... please wait a moment.");
+      return;
+    }
+
+    const selected = [
+      easy[Math.floor(Math.random() * easy.length)],
+      medium[Math.floor(Math.random() * medium.length)],
+      hard[Math.floor(Math.random() * hard.length)]
+    ];
+
+    const session = { 
+      isActive: true, 
+      problemIds: selected.map(p => p.id), 
+      startTime: Date.now() 
+    };
+    
+    setMockSession(session);
+    setTimeRemaining(5400);
+    localStorage.setItem('mockSession', JSON.stringify(session));
+    
+    // Switch to first problem in mock context
+    setActiveProblemId(selected[0].id);
+    setNavigationContext('mock');
+    setActiveView('algorithm');
+    setInterfaceMode('practice');
+    setCodeTab('practice');
+  };
+
+  const endMockInterview = () => {
+    if (window.confirm("Are you sure you want to end this mock interview? Progress on individual problems will be saved.")) {
+      setMockSession({ isActive: false, problemIds: [], startTime: null });
+      localStorage.removeItem('mockSession');
+      setNavigationContext('dashboard');
+      setActiveView('mock');
+    }
+  };
+
+  useEffect(() => {
+    let timer;
+    if (mockSession.isActive && timeRemaining > 0) {
+      timer = setInterval(() => {
+        setTimeRemaining(prev => Math.max(prev - 1, 0));
+      }, 1000);
+    } else if (timeRemaining === 0 && mockSession.isActive) {
+      alert("Time is up! The mock session has ended.");
+      setMockSession({ isActive: false, problemIds: [], startTime: null });
+      localStorage.removeItem('mockSession');
+      setNavigationContext('dashboard');
+      setActiveView('mock');
+    }
+    return () => clearInterval(timer);
+  }, [mockSession.isActive, timeRemaining]);
 
   const updateBackend = useCallback(async (problemId, status, code, practiceCode, notes) => {
     try {
@@ -461,7 +573,7 @@ const App = () => {
 
   const handleAgentReview = async () => {
     if (!activeProblem) return;
-    const currentCode = interfaceMode === 'practice' ? practiceCode : userCode;
+    const currentCode = interfaceMode === 'practice' ? practiceCode : localUserCode;
     
     if (!currentCode || currentCode.length < 10) {
       setAgentError('Please write some code before asking for a review.');
@@ -479,7 +591,7 @@ const App = () => {
         body: JSON.stringify({
           problemTitle: activeProblem.title,
           statement: activeProblem.statement,
-          userCode: currentCode,
+          localUserCode: currentCode,
           hints: activeProblem.guided_hints,
           difficulty: activeProblem.difficulty,
           category: activeProblem.category
@@ -507,7 +619,7 @@ const App = () => {
         if (interfaceMode === 'practice') {
           setPracticeCode(codeMatch[1].trim());
         } else {
-          setUserCode(codeMatch[1].trim());
+          setLocalUserCode(codeMatch[1].trim());
         }
         setAgentResponse(null);
       }
@@ -542,7 +654,7 @@ const App = () => {
   const resetCode = () => {
     if (window.confirm('Reset this problem to its original state? This will clear your current code and hints.')) {
       const scaffold = generatePracticeScaffold(activeProblem.python_code, activeProblem.guided_hints);
-      setUserCode('');
+      setLocalUserCode('');
       setPracticeCode(scaffold);
       updateBackend(activeProblem.id, 'not-started', '', scaffold, localNotes);
     }
@@ -565,7 +677,7 @@ const App = () => {
 
   const handleCopyToDraft = () => {
     if (window.confirm('Copy this scaffold to your drafting area? This will overwrite your current draft.')) {
-      setUserCode(practiceCode);
+      setLocalUserCode(practiceCode);
       setInterfaceMode('edit');
     }
   };
@@ -597,26 +709,29 @@ const App = () => {
 
   const toggleComplete = async () => {
     if (!activeProblem) return;
-    const newStatus = activeProblem.user_status === 'completed' ? 'not_started' : 'completed';
+    const newStatus = activeProblem.user_status === 'completed' ? 'not-started' : 'completed';
+    setProblems(prev => prev.map(p => 
+      p.id === activeProblemId 
+        ? { ...p, user_status: newStatus, user_code: localUserCode, practice_code: practiceCode, user_notes: localNotes } 
+        : p
+    ));
+    await updateBackend(activeProblemId, newStatus, localUserCode, practiceCode, localNotes);
+  };
+
+  const toggleFavorite = async () => {
+    if (!activeProblem) return;
+    const newFav = !activeProblem.is_favorite;
+    setProblems(prev => prev.map(p => 
+      p.id === activeProblemId ? { ...p, is_favorite: newFav } : p
+    ));
     try {
-      await fetch('/api/progress', {
+      await fetch(`http://localhost:3001/api/problems/${activeProblemId}/favorite`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          problemId: activeProblem.id,
-          status: newStatus,
-          code: userCode,
-          practiceCode: practiceCode,
-          notes: localNotes
-        })
+        body: JSON.stringify({ is_favorite: newFav })
       });
-      setProblems(problems.map(p => 
-        p.id === activeProblem.id 
-          ? { ...p, user_status: newStatus, user_code: userCode, practice_code: practiceCode, user_notes: localNotes } 
-          : p
-      ));
     } catch (err) {
-      console.error('Error updating progress:', err);
+      console.error('Failed to toggle favorite:', err);
     }
   };
 
@@ -654,7 +769,7 @@ const App = () => {
     if (window.confirm('Reset your notes for this problem?')) {
       try {
         setLocalNotes('');
-        await updateBackend(activeProblemId, activeProblem.user_status, userCode, '');
+        await updateBackend(activeProblemId, activeProblem.user_status, localUserCode, '');
       } catch (err) {
         console.error('Failed to reset notes:', err);
       }
@@ -665,10 +780,14 @@ const App = () => {
 
   const handleNavClick = (view) => {
     setActiveView(view);
-    if (view === 'dashboard' || view === 'browse') {
-      setNavigationContext(view);
+    if (view === 'library') {
+      setActiveProblemId(null);
+      setLibrarySelectedTopic(null);
     }
     closeSidebar();
+    if (view === 'dashboard' || view === 'browse' || view === 'library') {
+      setNavigationContext(view);
+    }
   };
 
   const fetchStats = async () => {
@@ -760,7 +879,7 @@ const App = () => {
   useEffect(() => {
     if (!activeProblem) return;
     if (activeProblemId) {
-      setUserCode(activeProblem.user_code || '');
+      setLocalUserCode(activeProblem.user_code || '');
       // Use saved practice_code if available, otherwise generate from scaffold
       setPracticeCode(activeProblem.practice_code || generatePracticeScaffold(activeProblem.python_code, activeProblem.guided_hints));
       setInterfaceMode('practice');
@@ -773,16 +892,16 @@ const App = () => {
   useEffect(() => {
     if (!activeProblem) return;
     const timer = setTimeout(async () => {
-      const hasUserCodeChanged = userCode !== activeProblem.user_code;
+      const hasUserCodeChanged = localUserCode !== activeProblem.user_code;
       const hasPracticeCodeChanged = practiceCode !== activeProblem.practice_code;
       const hasNotesChanged = localNotes !== activeProblem.user_notes;
 
       if (hasUserCodeChanged || hasPracticeCodeChanged || hasNotesChanged) {
-        updateBackend(activeProblem.id, activeProblem.user_status, userCode, practiceCode, localNotes);
+        updateBackend(activeProblem.id, activeProblem.user_status, localUserCode, practiceCode, localNotes);
       }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [userCode, practiceCode, activeProblemId, activeProblem, updateBackend, localNotes]);
+  }, [localUserCode, practiceCode, activeProblemId, activeProblem, updateBackend, localNotes]);
 
   useEffect(() => {
     if (dayPickerRef.current) {
@@ -790,6 +909,177 @@ const App = () => {
       if (selected) selected.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     }
   }, [selectedDay]);
+
+  // --- Specialized View Renderers ---
+
+  const renderLibraryView = () => {
+    const categories = {};
+    problems.forEach(p => {
+      if (!categories[p.category]) categories[p.category] = [];
+      categories[p.category].push(p);
+    });
+
+    const starredProblems = problems.filter(p => p.is_favorite);
+
+    return (
+      <div className="library-view-container fade-in">
+        <div className="library-header-section">
+          <h1>Mastery Library</h1>
+          <p>Differentiate your practice by topic and master each category.</p>
+        </div>
+
+        {starredProblems.length > 0 && (
+          <div className="library-section starred">
+            <h2><Star size={22} fill="var(--accent)" color="var(--accent)" /> Starred Problems</h2>
+            <div className="library-grid">
+              {starredProblems.map(p => (
+                <div key={p.id} className="library-tile glass highlight-hover" onClick={() => navigateToProblem(p, 'library')}>
+                  <div className="tile-header">
+                    <span className={`difficulty-tag ${p.difficulty.toLowerCase()}`}>{p.difficulty}</span>
+                    <span className={`status-dot ${p.user_status}`}></span>
+                  </div>
+                  <h3>{p.title}</h3>
+                  <span className="tile-category">{p.category}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="library-topics-list">
+          {Object.entries(categories).sort((a,b) => a[0].localeCompare(b[0])).map(([name, items]) => {
+            const completedCount = items.filter(i => i.user_status === 'completed').length;
+            const progress = (completedCount / items.length) * 100;
+            return (
+              <div 
+                key={name} 
+                className={`topic-group glass highlight-hover ${librarySelectedTopic === name ? 'active' : ''}`}
+                onClick={() => {
+                  setLibrarySelectedTopic(name);
+                  if (items.length > 0) {
+                    navigateToProblem(items[0], 'library');
+                  }
+                }}
+              >
+                <div className="topic-info">
+                  <div className="topic-text">
+                    <h3>{name}</h3>
+                    <span>{completedCount} / {items.length} Mastered</span>
+                  </div>
+                  <div className="progress-bar-container">
+                    <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
+                  </div>
+                </div>
+                <div className="topic-problems-inline">
+                  {items.map(p => (
+                    <button 
+                      key={p.id} 
+                      className={`topic-problem-dot ${p.user_status} ${activeProblemId === p.id ? 'active' : ''}`}
+                      onClick={() => navigateToProblem(p, 'library')}
+                      title={p.title}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderMockInterviewView = () => {
+    if (mockSession.isActive) {
+      if (activeProblemId && mockSession.problemIds.includes(activeProblemId)) {
+        return renderAlgorithmView();
+      }
+
+      const selectedProblems = problems.filter(p => mockSession.problemIds.includes(p.id));
+      
+      return (
+        <div className="active-mock-view fade-in">
+          <div className="mock-session-header glass">
+            <div className="session-info">
+              <Zap size={24} className="mock-accent-icon" />
+              <div>
+                <h2>Active Mock Simulation</h2>
+                <p>Complete all three problems before the timer expires.</p>
+              </div>
+            </div>
+            <div className={`mock-timer ${timeRemaining < 300 ? 'pulse-danger' : ''}`}>
+              <Clock size={20} />
+              <span>{formatTime(timeRemaining)}</span>
+            </div>
+            <button className="btn btn-danger" onClick={endMockInterview}>Quit Session</button>
+          </div>
+
+          <div className="mock-problem-progress-grid">
+            {selectedProblems.map((p, idx) => (
+              <div 
+                key={p.id} 
+                className={`mock-problem-card glass highlight-hover ${activeProblemId === p.id ? 'active' : ''}`}
+                onClick={() => navigateToProblem(p, 'mock')}
+              >
+                <div className="mock-problem-meta">
+                  <span className="question-number">Question {idx + 1}</span>
+                  <span className={`difficulty-tag ${p.difficulty.toLowerCase()}`}>{p.difficulty}</span>
+                </div>
+                <h3>{p.title}</h3>
+                <div className="problem-outcome">
+                  {p.user_status === 'completed' ? (
+                    <span className="status-badge completed"><CheckCircle size={14} /> Solved</span>
+                  ) : (
+                    <span className="status-badge pending">In Progress</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mock-instructions glass">
+            <h4><Info size={18} /> Mock Environment Rules</h4>
+            <ul>
+              <li>Solutions and hints are disabled.</li>
+              <li>You may switch between problems at any time.</li>
+              <li>Progress is saved automatically as you complete problems.</li>
+            </ul>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="mock-setup fade-in">
+        <div className="hero-content">
+          <Zap size={48} className="mock-icon" />
+          <h1>Professional Mock Simulator</h1>
+          <p>Select a challenge set to simulate a real-world coding interview.</p>
+          <div className="mock-details-grid">
+            <div className="mock-card glass">
+              <h3>The Neet Set</h3>
+              <div className="difficulty-pills">
+                <span className="pill easy">E</span>
+                <span className="pill medium">M</span>
+                <span className="pill hard">H</span>
+              </div>
+              <ul>
+                <li>90 Minute Time Limit</li>
+                <li>Randomized Categories</li>
+                <li>No Hints / No Reference</li>
+              </ul>
+              <button className="btn btn-primary full-width" onClick={startMockInterview}>
+                Attempt Mock Interview
+              </button>
+            </div>
+            <div className="mock-card glass disabled">
+              <h3>System Design Loop</h3>
+              <p>Complete 5 System Design problems to unlock.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const renderAlgorithmView = () => {
     if (!activeProblem) return (
@@ -800,9 +1090,27 @@ const App = () => {
       </div>
     );
 
+    const isMock = navigationContext === 'mock';
+
     return (
       <div className="problem-view fade-in">
-        {navigationContext === 'dashboard' && (
+        {isMock && (
+          <div className="mock-timer-row">
+            <div className="m-status">
+              <Zap size={16} />
+              <span>Mock Simulation Active</span>
+            </div>
+            <div className={`m-timer ${timeRemaining < 300 ? 'pulse-danger' : ''}`}>
+              <Clock size={16} />
+              <span>{formatTime(timeRemaining)}</span>
+            </div>
+            <div className="m-actions">
+              <button onClick={() => setActiveProblemId(null)}>Switch Problem</button>
+            </div>
+          </div>
+        )}
+
+        {!isMock && navigationContext === 'dashboard' && (
           <div className="day-picker">
             <div className="day-picker-header">
               <button 
@@ -914,21 +1222,22 @@ const App = () => {
                 <div className="nav-tile-icon"><ChevronRight size={20} /></div>
               </button>
             </div>
-            
-            <SolutionToggle mode={interfaceMode} onModeChange={setInterfaceMode} />
 
-            <button className="btn btn-secondary reset-btn" onClick={resetCode} title="Reset solution to original scaffold">
-              <RotateCcw size={18} />
-              <span>Reset</span>
-            </button>
+            <div className="quick-actions-bar">
+              <button 
+                className={`btn btn-secondary ${activeProblem.is_favorite ? 'starred' : ''}`} 
+                onClick={toggleFavorite}
+                title={activeProblem.is_favorite ? "Remove from Library" : "Add to Library"}
+              >
+                <Star size={16} fill={activeProblem.is_favorite ? "var(--accent)" : "none"} color={activeProblem.is_favorite ? "var(--accent)" : "currentColor"} />
+                <span>Star</span>
+              </button>
 
-            <button
-              className={`btn status-btn ${activeProblem.user_status === 'completed' ? 'btn-secondary' : 'btn-primary'}`}
-              onClick={toggleComplete}
-            >
-              {activeProblem.user_status === 'completed' ? <CheckCircle size={18} /> : <Circle size={18} />}
-              {activeProblem.user_status === 'completed' ? 'Completed' : 'Mark as Done'}
-            </button>
+              <button className="btn btn-secondary" onClick={resetCode} title="Reset solution to original scaffold">
+                <RotateCcw size={16} />
+                <span>Reset Problem</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -946,10 +1255,13 @@ const App = () => {
           <div className="problem-interface-enriched glass fade-in">
             <div className="content-section">
               <div className="interface-header">
-                <h3>
-                  {interfaceMode === 'edit' ? 'Draft Your Solution' : 
-                   interfaceMode === 'practice' ? 'Practice' : 'Reference Solution'}
-                </h3>
+                <div className="interface-header-left">
+                  <h3>
+                    {interfaceMode === 'edit' ? 'Draft Your Solution' : 
+                     interfaceMode === 'practice' ? 'Practice' : 'Reference Solution'}
+                  </h3>
+                  {!isMock && <SolutionToggle mode={interfaceMode} onModeChange={setInterfaceMode} />}
+                </div>
                 <div className="interface-actions">
                   {(interfaceMode === 'practice' || interfaceMode === 'edit') && (
                     <button 
@@ -1000,8 +1312,8 @@ const App = () => {
               ) : (
                 <div className="code-editor-container">
                   <PythonEditor
-                    code={userCode}
-                    onChange={setUserCode}
+                    code={localUserCode}
+                    onChange={setLocalUserCode}
                     placeholder="# Start typing your solution here..."
                   />
                 </div>
@@ -1048,11 +1360,21 @@ const App = () => {
                   </div>
                 </div>
               )}
+
+              <div className="interface-footer">
+                <button
+                  className={`btn status-btn ${activeProblem.user_status === 'completed' ? 'btn-secondary' : 'btn-primary'}`}
+                  onClick={toggleComplete}
+                >
+                  {activeProblem.user_status === 'completed' ? <CheckCircle size={18} /> : <Circle size={18} />}
+                  <span>{activeProblem.user_status === 'completed' ? 'Completed' : 'Mark as Done'}</span>
+                </button>
+              </div>
             </div>
           </div>
 
           <div className="video-mnemonic-row">
-            {activeProblem.youtube_url && (
+            {!isMock && activeProblem.youtube_url && (
               <div className="video-section glass fade-in">
                 <h3><span className="yt-icon">▶</span> Solution Walkthrough</h3>
                 <div className="video-wrapper shadow-lg">
@@ -1075,26 +1397,28 @@ const App = () => {
               </div>
             )}
 
-            <div className="card glass mnemonic-card fade-in">
-              <div className="card-header-with-actions">
-                <h3><BrainCircuit size={16} /> Mnemonics & Notes</h3>
-                <button className="btn-text-small" onClick={handleResetNotes}>
-                  Reset
-                </button>
-              </div>
-              <p className="instruction-text">Core pattern and your personal practice notes.</p>
-              
-              <div className="mnemonic-display">
-                {activeProblem.mnemonic || 'No mnemonic pattern available.'}
-              </div>
+            {!isMock && (
+              <div className="card glass mnemonic-card fade-in">
+                <div className="card-header-with-actions">
+                  <h3><BrainCircuit size={16} /> Mnemonics & Notes</h3>
+                  <button className="btn-text-small" onClick={handleResetNotes}>
+                    Reset
+                  </button>
+                </div>
+                <p className="instruction-text">Core pattern and your personal practice notes.</p>
+                
+                <div className="mnemonic-display">
+                  {activeProblem.mnemonic || 'No mnemonic pattern available.'}
+                </div>
 
-              <textarea
-                className="mnemonic-notes"
-                placeholder="Notes on corner cases, time complexity, or personal tips..."
-                value={localNotes}
-                onChange={(e) => handleNotesChange(e.target.value)}
-              />
-            </div>
+                <textarea
+                  className="mnemonic-notes"
+                  placeholder="Notes on corner cases, time complexity, or personal tips..."
+                  value={localNotes}
+                  onChange={(e) => handleNotesChange(e.target.value)}
+                />
+              </div>
+            )}
           </div>
 
           <div className="analytics-section">
@@ -1173,22 +1497,35 @@ const App = () => {
             <CalendarIcon size={18} /> Calendar View
           </button>
           <button className={`nav-item ${activeView === 'browse' ? 'active' : ''}`} onClick={() => handleNavClick('browse')}>
-            <Filter size={18} /> Browse Problems
+            <Search size={18} /> Browse Problems
           </button>
-          <button className={`nav-item ${activeView === 'system-design' ? 'active' : ''}`} onClick={() => handleNavClick('system-design')}>
+          <button className={`nav-item ${activeView === 'library' ? 'active' : ''}`} onClick={() => handleNavClick('library')}>
+            <Star size={18} /> Library
+          </button>
+          <button className={`nav-item ${activeView === 'mock-interview' ? 'active' : ''}`} onClick={() => handleNavClick('mock-interview')}>
+            <Zap size={18} /> Mock Interview
+          </button>
+          <button className={`nav-item ${activeView === 'sd' ? 'active' : ''}`} onClick={() => handleNavClick('sd')}>
             <BrainCircuit size={18} /> System Design
           </button>
-          <button className={`nav-item ${activeView === 'browse' ? 'active' : ''}`} onClick={() => handleNavClick('browse')}>
-            <Search size={20} /> Library
-          </button>
           <button className={`nav-item ${activeView === 'profile' ? 'active' : ''}`} onClick={() => handleNavClick('profile')}>
-            <BarChart3 size={20} /> Profile
+            <BarChart3 size={18} /> Stats
           </button>
           <div className="divider"></div>
           <button className="nav-item settings-nav-item" onClick={() => setShowSettings(true)}>
             <SettingsIcon size={18} /> Settings
           </button>
           <div className="divider"></div>
+          {mockSession.isActive && (
+            <div className="sidebar-mock-timer glass">
+              <div className="timer-label">Mock Time Remaining</div>
+              <div className={`timer-value ${timeRemaining < 300 ? 'urgent' : ''}`}>
+                <Zap size={14} className="timer-icon" />
+                {formatTime(timeRemaining)}
+              </div>
+              <button className="btn-text-small" onClick={() => setActiveView('mock')}>Switch Problem</button>
+            </div>
+          )}
         </nav>
 
         <div className="sidebar-body">
@@ -1333,6 +1670,25 @@ const App = () => {
             </div>
           </div>
         )}
+        {activeView === 'library' && (activeProblemId || librarySelectedTopic) && (
+          <div className="problem-list-container">
+            <h1 className="day-title">{activeProblem?.category || librarySelectedTopic}</h1>
+            <div className="problem-list">
+              {libraryProblems.map(p => (
+                <div
+                  key={p.id}
+                  className={`problem-item ${activeProblemId === p.id ? 'active' : ''} ${p.user_status === 'completed' ? 'completed' : ''}`}
+                  onClick={() => navigateToProblem(p, 'library')}
+                >
+                  <div className="problem-title">{p.title}</div>
+                  <span className={`difficulty-badge ${p.difficulty.toLowerCase()}`}>
+                    {p.difficulty[0]}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       </aside>
 
@@ -1341,6 +1697,14 @@ const App = () => {
         <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
           <Menu size={20} />
         </button>
+
+      {activeView === 'browse' && renderBrowseView()}
+      {activeView === 'library' && (activeProblemId && navigationContext === 'library' ? renderAlgorithmView() : renderLibraryView())}
+      {activeView === 'mock-interview' && renderMockInterviewView()}
+      {activeView === 'calendar' && renderCalendarView()}
+      {activeView === 'profile' && renderProfileView()}
+      {activeView === 'sd' && renderSdView()}
+      {activeView === 'ml' && renderMlView()}
 
         {activeView === 'profile' && (
           <div className="profile-dashboard fade-in">

@@ -74,7 +74,8 @@ const UserProgress = sequelize.define('UserProgress', {
     status: { type: DataTypes.STRING, defaultValue: 'not-started' },
     user_code: DataTypes.TEXT,
     practice_code: DataTypes.TEXT,
-    user_notes: DataTypes.TEXT
+    user_notes: DataTypes.TEXT,
+    is_favorite: { type: DataTypes.BOOLEAN, defaultValue: false }
 }, { timestamps: true, tableName: 'user_progress' });
 
 const SystemDesignProblem = sequelize.define('SystemDesignProblem', {
@@ -269,13 +270,33 @@ app.get('/api/daily', async (req, res) => {
                 user_code: prog ? prog.user_code : '',
                 practice_code: prog ? prog.practice_code : '',
                 user_notes: prog ? prog.user_notes : '',
+                is_favorite: prog ? prog.is_favorite : false,
                 guided_hints: p.guided_hints || null
             };
         });
 
         res.json(merged);
     } catch (error) {
-        console.error('[API /api/problems] ERROR:', error);
+        console.error('[API /api/daily] ERROR:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Toggle favorite status
+app.post('/api/problems/:id/favorite', async (req, res) => {
+    const { id } = req.params;
+    const { is_favorite } = req.body;
+    try {
+        const [progress, created] = await UserProgress.findOrCreate({
+            where: { problem_id: id },
+            defaults: { is_favorite }
+        });
+        if (!created) {
+            progress.is_favorite = is_favorite;
+            await progress.save();
+        }
+        res.json({ success: true, is_favorite: progress.is_favorite });
+    } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
@@ -294,6 +315,7 @@ app.get('/api/problems', async (req, res) => {
                 user_code: prog ? prog.user_code : '',
                 practice_code: prog ? prog.practice_code : '',
                 user_notes: prog ? prog.user_notes : '',
+                is_favorite: prog ? prog.is_favorite : false,
                 guided_hints: p.guided_hints || null
             };
         });
@@ -312,7 +334,8 @@ app.get('/api/progress', async (req, res) => {
         progress.forEach(p => {
             progressMap[p.problem_id] = {
                 status: p.status,
-                completed: p.status === 'completed'
+                completed: p.status === 'completed',
+                is_favorite: p.is_favorite
             };
         });
         res.json(progressMap);
@@ -330,6 +353,7 @@ app.post('/api/progress', async (req, res) => {
             user_code: code,
             practice_code: practiceCode,
             user_notes: notes
+            // is_favorite is handled by its own endpoint to avoid overwriting
         });
 
         // Log the activity
