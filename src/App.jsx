@@ -22,16 +22,16 @@ import {
   ListChecks,
   Zap,
   Database,
+  Search,
+  Settings as SettingsIcon,
+  Check,
+  RotateCcw,
   Cpu,
   Layers,
-  Search,
   Code,
   Tv,
   Brain,
   ShieldCheck,
-  Check,
-  RotateCcw,
-  Settings as SettingsIcon,
   Trash2
 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -89,6 +89,164 @@ const SolutionToggle = ({ mode, onModeChange }) => (
   </div>
 );
 
+// --- Profile Components ---
+
+const StatsSummary = ({ summary }) => {
+  if (!summary) return null;
+  return (
+    <div className="stats-grid fade-in">
+      <div className="stat-tile glass">
+        <div className="stat-icon"><Trophy size={24} /></div>
+        <div className="stat-info">
+          <span className="stat-value text-glow">{summary.totalSolved}</span>
+          <span className="stat-label">Problems Solved</span>
+        </div>
+      </div>
+      <div className="stat-tile glass">
+        <div className="stat-icon"><CheckCircle size={24} /></div>
+        <div className="stat-info">
+          <span className="stat-value text-glow">{summary.percentage}%</span>
+          <span className="stat-label">Success Rate</span>
+        </div>
+      </div>
+      <div className="stat-tile glass">
+        <div className="stat-icon"><Zap size={24} /></div>
+        <div className="stat-info">
+          <span className="stat-value text-glow">{summary.totalProblems}</span>
+          <span className="stat-label">Total in Plan</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const SVGProgressChart = ({ dailyData }) => {
+  if (!dailyData) return <div className="loading-container glass"><div className="loader"></div></div>;
+
+  const entries = Object.entries(dailyData);
+  if (entries.length === 0) return <div className="glass" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No activity tracked yet. Start solving to see your progress!</div>;
+
+  const last14 = entries.slice(-14);
+  const maxVal = Math.max(...last14.map(([_, d]) => d.attempts + d.completed), 5);
+  
+  const width = 800;
+  const height = 300;
+  const padding = 40;
+  const barWidth = (width - padding * 2) / last14.length - 10;
+
+  return (
+    <div className="chart-card glass fade-in">
+      <div className="chart-header">
+        <h3>Activity (Last 14 Days)</h3>
+        <div className="difficulty-dots">
+          <div className="dot-group"><div className="dot" style={{ background: 'var(--medium)', opacity: 0.6 }}></div> Attempts</div>
+          <div className="dot-group"><div className="dot" style={{ background: 'var(--easy)' }}></div> Solved</div>
+        </div>
+      </div>
+      <div className="chart-container">
+        <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+          {[0, 0.25, 0.5, 0.75, 1].map(p => (
+            <line 
+              key={p}
+              x1={padding} y1={height - padding - (height - padding * 2) * p}
+              x2={width - padding} y2={height - padding - (height - padding * 2) * p}
+              stroke="var(--border)" strokeWidth="1" strokeDasharray="4"
+            />
+          ))}
+
+          {last14.map(([date, data], i) => {
+            const x = padding + i * (barWidth + 10);
+            const totalH = ((data.attempts + data.completed) / maxVal) * (height - padding * 2);
+            const successH = (data.completed / maxVal) * (height - padding * 2);
+            const attemptH = (data.attempts / maxVal) * (height - padding * 2);
+            
+            return (
+              <g key={date} className="chart-bar-group">
+                <rect 
+                  x={x} y={height - padding - totalH}
+                  width={barWidth} height={attemptH}
+                  fill="var(--medium)" opacity="0.3" rx="4"
+                />
+                <rect 
+                  x={x} y={height - padding - successH}
+                  width={barWidth} height={successH}
+                  fill="var(--easy)" rx="4"
+                />
+                <text x={x + barWidth/2} y={height - padding + 20} fontSize="10" fill="var(--text-muted)" textAnchor="middle">
+                  {date.split('-').slice(1).join('/')}
+                </text>
+                <title>{`${date}: ${data.completed} Solved, ${data.attempts} Attempts`}</title>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+    </div>
+  );
+};
+
+const StudySettings = ({ settings, onUpdate }) => {
+  const [localDays, setLocalDays] = useState(settings.planned_days);
+  const [localRev, setLocalRev] = useState(settings.revisions_per_day);
+
+  useEffect(() => {
+    setLocalDays(settings.planned_days);
+    setLocalRev(settings.revisions_per_day);
+  }, [settings]);
+
+  const handleApply = () => {
+    onUpdate({ planned_days: localDays, revisions_per_day: localRev });
+  };
+
+  return (
+    <div className="settings-panel glass fade-in">
+      <div className="chart-header">
+        <h3>Study Configuration</h3>
+        <SettingsIcon size={18} className="text-muted" />
+      </div>
+      
+      <div className="settings-group">
+        <div className="range-input-wrapper">
+          <div className="range-header">
+            <span>Duration Scope</span>
+            <span className="range-value">{localDays} Days</span>
+          </div>
+          <input 
+            type="range" min="10" max="150" step="1"
+            value={localDays}
+            onChange={(e) => setLocalDays(parseInt(e.target.value))}
+          />
+          <p className="settings-hint">Spread 150 problems over {localDays} days ({Math.ceil(150/localDays)} per day).</p>
+        </div>
+      </div>
+
+      <div className="settings-group">
+        <div className="range-input-wrapper">
+          <div className="range-header">
+            <span>Daily Revisions</span>
+            <span className="range-value">{localRev} Questions</span>
+          </div>
+          <input 
+            type="range" min="0" max="10" step="1"
+            value={localRev}
+            onChange={(e) => setLocalRev(parseInt(e.target.value))}
+          />
+          <p className="settings-hint">Previous problems to revisit daily for spaced repetition.</p>
+        </div>
+      </div>
+
+      <button 
+        className="btn btn-primary" 
+        style={{ width: '100%', marginTop: '1rem' }}
+        onClick={handleApply}
+        disabled={localDays === settings.planned_days && localRev === settings.revisions_per_day}
+      >
+        Update Schedule
+      </button>
+    </div>
+  );
+};
+
 const App = () => {
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -119,9 +277,10 @@ const App = () => {
   const [activeMlNoteId, setActiveMlNoteId] = useState(null);
   const [sdLoading, setSdLoading] = useState(false);
   const [interfaceMode, setInterfaceMode] = useState('practice'); // 'reference' | 'practice' | 'edit'
-  const [userCode, setUserCode] = useState('');
   const [practiceCode, setPracticeCode] = useState('');
   const [showSettings, setShowSettings] = useState(false);
+  const [settings, setSettings] = useState({ planned_days: 25, revisions_per_day: 3 });
+  const [stats, setStats] = useState(null);
 
   // --- Refs ---
   const dayPickerRef = useRef(null);
@@ -185,7 +344,7 @@ const App = () => {
     return problems.find(p => p.id === activeProblemId) || problems[0];
   }, [activeProblemId, problems]);
 
-  const maxDay = useMemo(() => problems.reduce((max, p) => Math.max(max, p.day || 0), 0), [problems]);
+  const maxDay = useMemo(() => settings.planned_days || 25, [settings]);
 
   const categories = useMemo(() => [...new Set(problems.map(p => p.category))].sort(), [problems]);
 
@@ -195,18 +354,34 @@ const App = () => {
     return true;
   }), [problems, filterCategory, filterDifficulty]);
 
+  const getDayForProblem = useCallback((problemId) => {
+    const idx = problems.findIndex(p => p.id === problemId);
+    if (idx === -1) return 1;
+    const problemsPerDay = Math.ceil(problems.length / maxDay);
+    return Math.floor(idx / problemsPerDay) + 1;
+  }, [problems, maxDay]);
+
   const getProblemsForDay = useCallback((day) => {
-    const newProbs = problems.filter(p => p.day === day).map(p => ({ ...p, isRevision: false }));
+    const problemsPerDay = Math.ceil(problems.length / maxDay);
+    const startIdx = (day - 1) * problemsPerDay;
+    const endIdx = startIdx + problemsPerDay;
+    
+    const newProbs = problems.slice(startIdx, endIdx).map(p => ({ 
+      ...p, 
+      day: day, // Override status with dynamic day
+      isRevision: false 
+    }));
+
     let revProbs = [];
     if (day > 1) {
-      const prevProbs = problems.filter(p => p.day < day);
+      const prevProbs = problems.slice(0, startIdx);
       const revSource = prevProbs.filter(p => p.difficulty !== 'Easy');
       
       if (revSource.length > 0) {
         const selectedIndices = new Set();
-        const primes = [31, 37, 41];
-        for (let i = 0; i < 3 && selectedIndices.size < revSource.length; i++) {
-          let idx = (day * primes[i]) % revSource.length;
+        const primes = [31, 37, 41, 43, 47]; // More primes for more variety
+        for (let i = 0; i < settings.revisions_per_day && selectedIndices.size < revSource.length; i++) {
+          let idx = (day * primes[i % primes.length]) % revSource.length;
           while (selectedIndices.has(idx)) {
             idx = (idx + 1) % revSource.length;
           }
@@ -216,7 +391,7 @@ const App = () => {
       }
     }
     return [...newProbs, ...revProbs];
-  }, [problems]);
+  }, [problems, maxDay, settings.revisions_per_day]);
 
   const dailyProblems = useMemo(() => getProblemsForDay(selectedDay), [selectedDay, getProblemsForDay]);
 
@@ -263,8 +438,7 @@ const App = () => {
     return new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(date);
   };
 
-  const newCountPerDay = 6;
-  const totalDays = Math.ceil(problems.length / newCountPerDay);
+  const totalDays = maxDay;
 
   // --- Action Handlers ---
 
@@ -351,7 +525,8 @@ const App = () => {
     // 1. A targetDay is explicitly provided (forced boundary transition)
     // 2. OR we're in dashboard context AND it's not a revision (prevents jumping on revision clicks)
     const effectiveContext = context || navigationContext;
-    const effectiveDay = targetDay || (problem.isRevision ? null : problem.day);
+    const pDay = getDayForProblem(problem.id);
+    const effectiveDay = targetDay || (problem.isRevision ? null : pDay);
     
     if (effectiveDay && effectiveDay !== selectedDay && effectiveContext === 'dashboard') {
       setSelectedDay(effectiveDay);
@@ -496,7 +671,56 @@ const App = () => {
     closeSidebar();
   };
 
+  const fetchStats = async () => {
+    try {
+      const res = await fetch('/api/stats');
+      const data = await res.json();
+      setStats(data);
+    } catch (err) {
+      console.error('Failed to fetch stats:', err);
+    }
+  };
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch('/api/settings');
+      const data = await res.json();
+      setSettings(data);
+    } catch (err) {
+      console.error('Failed to fetch settings:', err);
+    }
+  };
+
+  const updateSettings = async (newSettings) => {
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newSettings)
+      });
+      const data = await res.json();
+      setSettings(data);
+      // Wait a bit for DB to catch up if needed, though redistribution is local
+    } catch (err) {
+      console.error('Failed to update settings:', err);
+    }
+  };
+
   // --- Effects ---
+  useEffect(() => {
+    const initData = async () => {
+      setLoading(true);
+      await Promise.all([
+        fetchProblems(),
+        fetchSdProblems(),
+        fetchMlNotes(),
+        fetchSettings(),
+        fetchStats()
+      ]);
+      setLoading(false);
+    };
+    initData();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -954,8 +1178,11 @@ const App = () => {
           <button className={`nav-item ${activeView === 'system-design' ? 'active' : ''}`} onClick={() => handleNavClick('system-design')}>
             <BrainCircuit size={18} /> System Design
           </button>
-          <button className={`nav-item ${activeView === 'machine-learning' ? 'active' : ''}`} onClick={() => handleNavClick('machine-learning')}>
-            <Cpu size={18} /> ML Library
+          <button className={`nav-item ${activeView === 'browse' ? 'active' : ''}`} onClick={() => handleNavClick('browse')}>
+            <Search size={20} /> Library
+          </button>
+          <button className={`nav-item ${activeView === 'profile' ? 'active' : ''}`} onClick={() => handleNavClick('profile')}>
+            <BarChart3 size={20} /> Profile
           </button>
           <div className="divider"></div>
           <button className="nav-item settings-nav-item" onClick={() => setShowSettings(true)}>
@@ -1114,6 +1341,53 @@ const App = () => {
         <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
           <Menu size={20} />
         </button>
+
+        {activeView === 'profile' && (
+          <div className="profile-dashboard fade-in">
+            <div className="day-picker-header" style={{ marginBottom: '2rem' }}>
+              <div className="logo"><BarChart3 size={24} /> User Insight & Statistics</div>
+            </div>
+            
+            <StatsSummary summary={stats?.summary} />
+            
+            <div className="analytics-row">
+              <SVGProgressChart dailyData={stats?.daily} />
+              <StudySettings settings={settings} onUpdate={updateSettings} />
+            </div>
+
+            <div className="activity-table-wrapper glass">
+              <table className="activity-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Engagement Summary</th>
+                    <th>Activity Level</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats?.daily ? Object.entries(stats.daily).reverse().map(([date, data]) => (
+                    <tr key={date}>
+                      <td><span className="day-badge">{new Date(date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span></td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                          <span className="count-badge success"><Check size={14} /> {data.completed} Solved</span>
+                          <span className="count-badge attempt"><RotateCcw size={14} /> {data.attempts} Attempts</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="progress-bar" style={{ width: '100px', marginBottom: 0 }}>
+                          <div className="progress-fill" style={{ width: `${Math.min(100, (data.completed + data.attempts) * 10)}%` }}></div>
+                        </div>
+                      </td>
+                    </tr>
+                  )) : (
+                    <tr><td colSpan="3" style={{ textAlign: 'center', padding: '2rem' }}>No historical activity found.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         {activeView === 'calendar' ? (
           <div className="calendar-view fade-in">

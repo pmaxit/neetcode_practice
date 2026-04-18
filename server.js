@@ -104,6 +104,18 @@ const MLSystemDesignNote = sequelize.define('MLSystemDesignNote', {
     scheduled_date: DataTypes.DATEONLY
 }, { timestamps: false, tableName: 'ml_system_design_notes' });
 
+const UserSettings = sequelize.define('UserSettings', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, defaultValue: 1 },
+    planned_days: { type: DataTypes.INTEGER, defaultValue: 25 },
+    revisions_per_day: { type: DataTypes.INTEGER, defaultValue: 3 }
+}, { timestamps: true, tableName: 'user_settings' });
+
+const ProgressLog = sequelize.define('ProgressLog', {
+    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    problem_id: { type: DataTypes.INTEGER },
+    status: { type: DataTypes.STRING }, // 'attempt' | 'completed'
+}, { timestamps: true, tableName: 'progress_logs' });
+
 
 // Health check endpoint
 app.get('/api/health', async (req, res) => {
@@ -319,7 +331,80 @@ app.post('/api/progress', async (req, res) => {
             practice_code: practiceCode,
             user_notes: notes
         });
+
+        // Log the activity
+        await ProgressLog.create({
+            problem_id: problemId,
+            status: status === 'completed' ? 'completed' : 'attempt'
+        });
+
         res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Settings Endpoints
+app.get('/api/settings', async (req, res) => {
+    try {
+        let settings = await UserSettings.findByPk(1);
+        if (!settings) {
+            settings = await UserSettings.create({ id: 1 });
+        }
+        res.json(settings);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/settings', async (req, res) => {
+    try {
+        const { planned_days, revisions_per_day } = req.body;
+        let settings = await UserSettings.findByPk(1);
+        if (!settings) {
+            settings = await UserSettings.create({ id: 1, planned_days, revisions_per_day });
+        } else {
+            await settings.update({ planned_days, revisions_per_day });
+        }
+        res.json(settings);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Stats Endpoint
+app.get('/api/stats', async (req, res) => {
+    try {
+        const logs = await ProgressLog.findAll({
+            order: [['createdAt', 'ASC']]
+        });
+        
+        // Group by day
+        const statsByDay = {};
+        logs.forEach(log => {
+            const date = log.createdAt.toISOString().split('T')[0];
+            if (!statsByDay[date]) {
+                statsByDay[date] = { attempts: 0, completed: 0 };
+            }
+            if (log.status === 'completed') {
+                statsByDay[date].completed++;
+            } else {
+                statsByDay[date].attempts++;
+            }
+        });
+
+        // Also get total summary
+        const totalSolved = await UserProgress.count({ where: { status: 'completed' } });
+        const totalProblems = await Problem.count();
+
+        res.json({
+            daily: statsByDay,
+            summary: {
+                totalSolved,
+                totalProblems,
+                percentage: Math.round((totalSolved / totalProblems) * 100) || 0
+            }
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -664,6 +749,22 @@ async function seedDatabase() {
         }
     } else {
         console.log('Database already has data. Skipping seed.');
+    }
+
+    // Seed/Sync ProgressLog with existing completed problems if log is empty
+    const logCount = await ProgressLog.count();
+    if (logCount === 0) {
+        console.log('ProgressLog empty. Migrating existing completion data...');
+        const completed = await UserProgress.findAll({ where: { status: 'completed' } });
+        if (completed.length > 0) {
+            const logs = completed.map(p => ({
+                problem_id: p.problem_id,
+                status: 'completed',
+                createdAt: p.updatedAt // Use the last update time as approximate completion time
+            }));
+            await ProgressLog.bulkCreate(logs);
+            console.log(`Migrated ${logs.length} entries to ProgressLog.`);
+        }
     }
 }
 
