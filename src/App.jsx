@@ -29,7 +29,10 @@ import {
   Tv,
   Brain,
   ShieldCheck,
-  Check
+  Check,
+  RotateCcw,
+  Settings as SettingsIcon,
+  Trash2
 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -118,6 +121,7 @@ const App = () => {
   const [interfaceMode, setInterfaceMode] = useState('practice'); // 'reference' | 'practice' | 'edit'
   const [userCode, setUserCode] = useState('');
   const [practiceCode, setPracticeCode] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
 
   // --- Refs ---
   const dayPickerRef = useRef(null);
@@ -264,14 +268,18 @@ const App = () => {
 
   // --- Action Handlers ---
 
-  const updateBackend = useCallback(async (problemId, status, code, notes) => {
+  const updateBackend = useCallback(async (problemId, status, code, practiceCode, notes) => {
     try {
       await fetch('/api/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ problemId, status, code, notes }),
+        body: JSON.stringify({ problemId, status, code, practiceCode, notes }),
       });
-      setProblems(prev => prev.map(p => p.id === problemId ? { ...p, user_status: status, user_code: code, user_notes: notes } : p));
+      setProblems(prev => prev.map(p => 
+        p.id === problemId 
+          ? { ...p, user_status: status, user_code: code, practice_code: practiceCode, user_notes: notes } 
+          : p
+      ));
     } catch (err) {
       console.error('Failed to update backend:', err);
     }
@@ -334,13 +342,19 @@ const App = () => {
     }
   };
 
-  const navigateToProblem = useCallback((problem, context = null) => {
+  const navigateToProblem = useCallback((problem, context = null, targetDay = null) => {
     if (!problem) return;
     setActiveProblemId(problem.id);
     
-    // Auto-update selectedDay if navigating to a problem from a different day
-    if (problem.day && problem.day !== selectedDay) {
-      setSelectedDay(problem.day);
+    // Smart Context Sync: 
+    // Synchronize selectedDay if:
+    // 1. A targetDay is explicitly provided (forced boundary transition)
+    // 2. OR we're in dashboard context AND it's not a revision (prevents jumping on revision clicks)
+    const effectiveContext = context || navigationContext;
+    const effectiveDay = targetDay || (problem.isRevision ? null : problem.day);
+    
+    if (effectiveDay && effectiveDay !== selectedDay && effectiveContext === 'dashboard') {
+      setSelectedDay(effectiveDay);
     }
 
     if (context) setNavigationContext(context);
@@ -348,11 +362,29 @@ const App = () => {
       setNavigationContext(activeView);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [selectedDay, activeView]);
+  }, [selectedDay, navigationContext, activeView]);
 
   const resetCode = () => {
-    if (window.confirm('Reset your progress to the initial scaffold? This will overwrite your current draft.')) {
-      setUserCode(practiceCode || '');
+    if (window.confirm('Reset this problem to its original state? This will clear your current code and hints.')) {
+      const scaffold = generatePracticeScaffold(activeProblem.python_code, activeProblem.guided_hints);
+      setUserCode('');
+      setPracticeCode(scaffold);
+      updateBackend(activeProblem.id, 'not-started', '', scaffold, localNotes);
+    }
+  };
+
+  const handleGlobalReset = async () => {
+    if (window.confirm('CRITICAL: This will permanently delete ALL your progress, code edits, and notes across the entire application. Are you absolutely sure?')) {
+      try {
+        const res = await fetch('/api/settings/reset', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          alert('All progress has been reset. The application will now reload.');
+          window.location.reload();
+        }
+      } catch (err) {
+        alert('Failed to reset progress: ' + err.message);
+      }
     }
   };
 
@@ -398,11 +430,16 @@ const App = () => {
         body: JSON.stringify({
           problemId: activeProblem.id,
           status: newStatus,
-          code: activeProblem.user_code,
-          notes: activeProblem.user_notes
+          code: userCode,
+          practiceCode: practiceCode,
+          notes: localNotes
         })
       });
-      setProblems(problems.map(p => p.id === activeProblem.id ? { ...p, user_status: newStatus } : p));
+      setProblems(problems.map(p => 
+        p.id === activeProblem.id 
+          ? { ...p, user_status: newStatus, user_code: userCode, practice_code: practiceCode, user_notes: localNotes } 
+          : p
+      ));
     } catch (err) {
       console.error('Error updating progress:', err);
     }
@@ -500,7 +537,8 @@ const App = () => {
     if (!activeProblem) return;
     if (activeProblemId) {
       setUserCode(activeProblem.user_code || '');
-      setPracticeCode(generatePracticeScaffold(activeProblem.python_code, activeProblem.guided_hints));
+      // Use saved practice_code if available, otherwise generate from scaffold
+      setPracticeCode(activeProblem.practice_code || generatePracticeScaffold(activeProblem.python_code, activeProblem.guided_hints));
       setInterfaceMode('practice');
       setAgentResponse(null);
       setAgentError(null);
@@ -511,12 +549,16 @@ const App = () => {
   useEffect(() => {
     if (!activeProblem) return;
     const timer = setTimeout(async () => {
-      if (userCode !== activeProblem.user_code) {
-        updateBackend(activeProblem.id, activeProblem.user_status, userCode, localNotes);
+      const hasUserCodeChanged = userCode !== activeProblem.user_code;
+      const hasPracticeCodeChanged = practiceCode !== activeProblem.practice_code;
+      const hasNotesChanged = localNotes !== activeProblem.user_notes;
+
+      if (hasUserCodeChanged || hasPracticeCodeChanged || hasNotesChanged) {
+        updateBackend(activeProblem.id, activeProblem.user_status, userCode, practiceCode, localNotes);
       }
     }, 1000);
     return () => clearTimeout(timer);
-  }, [userCode, activeProblemId, activeProblem, updateBackend, localNotes]);
+  }, [userCode, practiceCode, activeProblemId, activeProblem, updateBackend, localNotes]);
 
   useEffect(() => {
     if (dayPickerRef.current) {
@@ -539,17 +581,27 @@ const App = () => {
         {navigationContext === 'dashboard' && (
           <div className="day-picker">
             <div className="day-picker-header">
-              <button
-                className="day-nav-btn"
-                onClick={() => setSelectedDay(d => Math.max(1, d - 1))}
+              <button 
+                className="day-nav-btn" 
+                onClick={() => {
+                  const newDay = Math.max(1, selectedDay - 1);
+                  setSelectedDay(newDay);
+                  const dayProbs = getProblemsForDay(newDay);
+                  if (dayProbs.length > 0) setActiveProblemId(dayProbs[0].id);
+                }}
                 disabled={selectedDay === 1}
               >
                 <ChevronLeft size={16} />
               </button>
               <span className="day-picker-label">{formatDateShort(selectedDay)} <span className="day-picker-total">({selectedDay} of {maxDay})</span></span>
-              <button
-                className="day-nav-btn"
-                onClick={() => setSelectedDay(d => Math.min(maxDay, d + 1))}
+              <button 
+                className="day-nav-btn" 
+                onClick={() => {
+                  const newDay = Math.min(maxDay, selectedDay + 1);
+                  setSelectedDay(newDay);
+                  const dayProbs = getProblemsForDay(newDay);
+                  if (dayProbs.length > 0) setActiveProblemId(dayProbs[0].id);
+                }}
                 disabled={selectedDay === maxDay}
               >
                 <ChevronRight size={16} />
@@ -562,7 +614,11 @@ const App = () => {
                   <button
                     key={day}
                     className={`day-tile ${status} ${selectedDay === day ? 'selected' : ''}`}
-                    onClick={() => setSelectedDay(day)}
+                    onClick={() => {
+                      setSelectedDay(day);
+                      const dayProbs = getProblemsForDay(day);
+                      if (dayProbs.length > 0) setActiveProblemId(dayProbs[0].id);
+                    }}
                   >
                     {formatDateShort(day)}
                   </button>
@@ -589,7 +645,10 @@ const App = () => {
               <button
                 className="nav-link-tile prev"
                 disabled={!prevProblem}
-                onClick={() => navigateToProblem(prevProblem)}
+                onClick={() => {
+                  const dayJump = (activeView === 'dashboard' && !dailyProblems.find(p => p.id === prevProblem.id)) ? selectedDay - 1 : null;
+                  navigateToProblem(prevProblem, 'dashboard', dayJump);
+                }}
               >
                 <div className="nav-tile-icon"><ChevronLeft size={20} /></div>
                 <div className="nav-tile-content">
@@ -610,7 +669,10 @@ const App = () => {
               <button
                 className="nav-link-tile next"
                 disabled={!nextProblem}
-                onClick={() => navigateToProblem(nextProblem)}
+                onClick={() => {
+                  const dayJump = (activeView === 'dashboard' && !dailyProblems.find(p => p.id === nextProblem.id)) ? selectedDay + 1 : null;
+                  navigateToProblem(nextProblem, 'dashboard', dayJump);
+                }}
               >
                 <div className="nav-tile-content">
                   <span className="nav-tile-label">Next Up</span>
@@ -630,6 +692,11 @@ const App = () => {
             </div>
             
             <SolutionToggle mode={interfaceMode} onModeChange={setInterfaceMode} />
+
+            <button className="btn btn-secondary reset-btn" onClick={resetCode} title="Reset solution to original scaffold">
+              <RotateCcw size={18} />
+              <span>Reset</span>
+            </button>
 
             <button
               className={`btn status-btn ${activeProblem.user_status === 'completed' ? 'btn-secondary' : 'btn-primary'}`}
@@ -891,6 +958,10 @@ const App = () => {
             <Cpu size={18} /> ML Library
           </button>
           <div className="divider"></div>
+          <button className="nav-item settings-nav-item" onClick={() => setShowSettings(true)}>
+            <SettingsIcon size={18} /> Settings
+          </button>
+          <div className="divider"></div>
         </nav>
 
         <div className="sidebar-body">
@@ -1060,6 +1131,8 @@ const App = () => {
                     onClick={() => {
                       setSelectedDay(day);
                       setActiveView('dashboard');
+                      const dayProbs = getProblemsForDay(day);
+                      if (dayProbs.length > 0) setActiveProblemId(dayProbs[0].id);
                     }}
                   >
                   <div className="day-tile-content">
@@ -1249,6 +1322,11 @@ const App = () => {
               </div>
             </div>
           </div>
+        ) : activeView === 'sd-detail' && activeSdId ? (
+          <SystemDesignView 
+            problemId={activeSdId} 
+            onBack={() => setActiveView('system-design')} 
+          />
         ) : activeProblem ? (
           renderAlgorithmView()
         ) : (
@@ -1257,6 +1335,42 @@ const App = () => {
             <h2>Ready to level up?</h2>
             <p>Select a day from the calendar to view your daily challenges.</p>
             <button className="btn btn-primary" onClick={() => setActiveView('calendar')}>View Calendar</button>
+          </div>
+        )}
+
+        {/* Global Settings Modal */}
+        {showSettings && (
+          <div className="modal-overlay fade-in" onClick={() => setShowSettings(false)}>
+            <div className="modal-content glass settings-modal" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Application Settings</h2>
+                <button className="close-modal-btn" onClick={() => setShowSettings(false)}>
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="settings-body">
+                <section className="settings-section">
+                  <h3>Data & Persistence</h3>
+                  <p className="settings-description">Manage your stored progress and custom code edits.</p>
+                  
+                  <div className="settings-card destructive">
+                    <div className="card-info">
+                      <h4>Global Reset</h4>
+                      <p>Wipe all progress, code changes, and notes across all problems.</p>
+                    </div>
+                    <button className="btn btn-danger" onClick={handleGlobalReset}>
+                      <Trash2 size={16} /> Reset Everything
+                    </button>
+                  </div>
+                </section>
+
+                <section className="settings-section">
+                  <h3>About</h3>
+                  <p className="settings-description">NeetCode Practice - v1.2</p>
+                  <p className="settings-hint">All edits are automatically saved to your local database as you type.</p>
+                </section>
+              </div>
+            </div>
           </div>
         )}
       </main>
@@ -1356,6 +1470,52 @@ const SectionHeader = ({ icon: Icon, title, id }) => (
     <h3>{title}</h3>
   </div>
 );
+
+const SystemDesignView = ({ problemId, onBack }) => {
+  const [problem, setProblem] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDetail = async () => {
+      try {
+        const res = await fetch(`/api/system-design`);
+        const all = await res.json();
+        const found = all.find(p => p.id === problemId);
+        setProblem(found);
+      } catch (err) {
+        console.error('SD Detail Fetch Err:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDetail();
+  }, [problemId]);
+
+  if (loading) return <div className="loading-container glass"><div className="loader"></div></div>;
+
+  const toggleComplete = async () => {
+    try {
+      const newStatus = problem.status === 'completed' ? 'started' : 'completed';
+      await fetch('/api/system-design/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ problem_id: problemId, status: newStatus })
+      });
+      setProblem(prev => ({ ...prev, status: newStatus }));
+    } catch (err) {
+      console.error('SD Progress Toggle Err:', err);
+    }
+  };
+
+  return (
+    <div className="sd-detail-wrapper">
+      <button className="btn btn-secondary back-btn" onClick={onBack}>
+        <ChevronLeft size={16} /> Back to Library
+      </button>
+      <SystemDesignDetail problem={problem} onToggleComplete={toggleComplete} />
+    </div>
+  );
+};
 
 const SystemDesignDetail = ({ problem, onToggleComplete }) => {
   if (!problem) return (

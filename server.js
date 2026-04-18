@@ -73,6 +73,7 @@ const UserProgress = sequelize.define('UserProgress', {
     problem_id: { type: DataTypes.INTEGER, primaryKey: true },
     status: { type: DataTypes.STRING, defaultValue: 'not-started' },
     user_code: DataTypes.TEXT,
+    practice_code: DataTypes.TEXT,
     user_notes: DataTypes.TEXT
 }, { timestamps: true, tableName: 'user_progress' });
 
@@ -254,6 +255,7 @@ app.get('/api/daily', async (req, res) => {
                 day: Math.floor((p.id - 1) / 6) + 1,
                 user_status: prog ? prog.status : 'not-started',
                 user_code: prog ? prog.user_code : '',
+                practice_code: prog ? prog.practice_code : '',
                 user_notes: prog ? prog.user_notes : '',
                 guided_hints: p.guided_hints || null
             };
@@ -278,6 +280,7 @@ app.get('/api/problems', async (req, res) => {
                 day: Math.floor((p.id - 1) / 6) + 1,
                 user_status: prog ? prog.status : 'not-started',
                 user_code: prog ? prog.user_code : '',
+                practice_code: prog ? prog.practice_code : '',
                 user_notes: prog ? prog.user_notes : '',
                 guided_hints: p.guided_hints || null
             };
@@ -307,15 +310,27 @@ app.get('/api/progress', async (req, res) => {
 });
 
 app.post('/api/progress', async (req, res) => {
-    const { problemId, status, code, notes } = req.body;
+    const { problemId, status, code, practiceCode, notes } = req.body;
     try {
         await UserProgress.upsert({
             problem_id: problemId,
             status,
             user_code: code,
+            practice_code: practiceCode,
             user_notes: notes
         });
         res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/settings/reset', async (req, res) => {
+    try {
+        await UserProgress.destroy({ where: {}, truncate: false }); // truncate: true might fail due to FK if any
+        await SystemDesignProgress.destroy({ where: {}, truncate: false });
+        // Add other progress tables if needed
+        res.json({ success: true, message: 'All progress has been reset.' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
