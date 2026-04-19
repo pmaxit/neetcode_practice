@@ -43,8 +43,11 @@ jobs:
             INSTANCE_CONNECTION_NAME=adveralabs:us-central1:adveralabs-mysql
             DB_NAME=neetcode_db
             DB_USER=test
+            JWT_EXPIRES_IN=7d
           secrets: |
             DB_PASS=neetcode-db-password:latest
+            JWT_SECRET=neetcode-jwt-secret:latest
+            GEMINI_API_KEY=neetcode-gemini-key:latest
           flags: '--add-cloudsql-instances=adveralabs:us-central1:adveralabs-mysql --allow-unauthenticated --memory=512Mi --min-instances=0 --max-instances=3 --port=8080'
 
       - name: 'Final Status'
