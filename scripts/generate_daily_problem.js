@@ -135,6 +135,15 @@ async function main() {
     // 4. Fetch problem details from DB
     const dayProblems = await Problem.findAll({ where: { id: { [Op.in]: allIds } } });
 
+    // Guard: skip if an AI problem already exists for this day
+    const existingAI = dayProblems.find(p => p.tag === 'ai');
+    if (existingAI && !DRY_RUN) {
+        console.log(`⚠️  Day ${targetDay} already has an AI-generated problem: "${existingAI.title}" (id=${existingAI.id})`);
+        console.log('   Delete it in the app first, or use --day to target a different day.');
+        await sequelize.close();
+        process.exit(0);
+    }
+
     if (dayProblems.length === 0) {
         console.error('✗ Could not fetch problems from DB');
         process.exit(1);
