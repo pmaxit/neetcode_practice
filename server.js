@@ -1031,7 +1031,7 @@ app.get('/api/study-plan', requireAuth, requireSession, async (req, res) => {
             order: [['createdAt', 'DESC']]
         });
         if (!sp) return res.json(null);
-        res.json(JSON.parse(sp.plan_json));
+        res.json({ ...JSON.parse(sp.plan_json), createdAt: sp.createdAt });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

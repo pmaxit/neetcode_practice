@@ -638,9 +638,10 @@ const App = () => {
 
   // --- Static Helpers ---
   const getDateForDay = (dayIndex) => {
-    const date = new Date();
-    date.setDate(date.getDate() + dayIndex); 
-    return date;
+    const base = studyPlan?.createdAt ? new Date(studyPlan.createdAt) : new Date();
+    base.setHours(0, 0, 0, 0);
+    base.setDate(base.getDate() + dayIndex);
+    return base;
   };
 
   const generatePracticeScaffold = (code, hints) => {
