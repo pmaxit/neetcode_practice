@@ -2226,7 +2226,7 @@ const App = () => {
             </div>
 
             <div className="filter-tag-toggle">
-              {[['', 'All'], ['neetcode', 'NeetCode 150'], ['leetcode', 'LeetCode']].map(([val, label]) => (
+              {[['', 'All'], ['neetcode', 'NeetCode 150'], ['leetcode', 'LeetCode'], ['ai', 'AI Generated']].map(([val, label]) => (
                 <button
                   key={val}
                   className={`filter-tag-btn ${filterTag === val ? 'active' : ''}`}
