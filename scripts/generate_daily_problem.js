@@ -188,12 +188,15 @@ Requirements for the problem:
 - The solution must include inline comments explaining the key insight
 - A one-line mnemonic capturing the core trick
 
+The "statement" field MUST be valid HTML (not Markdown). Use <p>, <ol>, <ul>, <li>, <strong>, <em>, <code> tags.
+Difficulty should be "Medium" (challenging but not overwhelming).
+
 Return ONLY valid JSON (absolutely no markdown fences, no extra text):
 {
   "title": "Problem Title Here",
-  "difficulty": "Hard",
+  "difficulty": "Medium",
   "category": "${primaryCategory}",
-  "statement": "Full problem statement.\\n\\nConstraints:\\n- 1 <= n <= 10^5\\n- ...",
+  "statement": "<p>Problem intro...</p><p><strong>Rules:</strong></p><ol><li><strong>Rule 1:</strong> ...</li></ol><p><strong>Constraints:</strong></p><ul><li><code>1 &lt;= n &lt;= 10^5</code></li></ul>",
   "examples": [
     {
       "input": "param1 = value1, param2 = value2",
