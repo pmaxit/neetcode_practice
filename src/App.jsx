@@ -1312,9 +1312,10 @@ const App = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [pRes, sdRes, mlRes, allMlRes] = await Promise.all([
+        const [pRes, sdRes, allSdRes, mlRes, allMlRes] = await Promise.all([
           api('/api/problems'),
           api('/api/system-design/today'),
+          api('/api/system-design'),
           api('/api/ml-design/today'),
           api('/api/ml-design')
         ]);
@@ -1332,6 +1333,7 @@ const App = () => {
         }
 
         if (sdRes.ok) setSdToday(await sdRes.json());
+        if (allSdRes.ok) setSdProblems(await allSdRes.json());
         if (mlRes.ok) {
           const mlData = await mlRes.json();
           setMlToday(mlData);

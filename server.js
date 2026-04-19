@@ -144,6 +144,18 @@ const StudyPlan = sequelize.define('StudyPlan', {
     plan_json: DataTypes.TEXT('long')
 }, { timestamps: true, tableName: 'study_plans' });
 
+const DailySDAssignment = sequelize.define('DailySDAssignment', {
+    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    user_id: { type: DataTypes.INTEGER, allowNull: false },
+    session_id: { type: DataTypes.INTEGER, allowNull: false },
+    date: { type: DataTypes.DATEONLY, allowNull: false },
+    problem_id: { type: DataTypes.INTEGER, allowNull: false }
+}, {
+    timestamps: false,
+    tableName: 'daily_sd_assignments',
+    indexes: [{ unique: true, fields: ['user_id', 'session_id', 'date'] }]
+});
+
 const ProgressLog = sequelize.define('ProgressLog', {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
     user_id: { type: DataTypes.INTEGER, allowNull: true },
@@ -332,22 +344,55 @@ app.get('/api/system-design', requireAuth, requireSession, async (req, res) => {
     }
 });
 
-app.get('/api/system-design/today', async (req, res) => {
+app.get('/api/system-design/today', requireAuth, requireSession, async (req, res) => {
     try {
-        const count = await SystemDesignProblem.count();
-        if (count === 0) return res.status(404).json({ error: 'No problems found' });
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
-        const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
-        const index = dayIndex % count;
-
-        const todayProblem = await SystemDesignProblem.findOne({
-            order: [['id', 'ASC']],
-            offset: index,
-            limit: 1
+        // Check if already assigned for today
+        let assignment = await DailySDAssignment.findOne({
+            where: { user_id: req.userId, session_id: req.sessionId, date: today }
         });
 
-        if (!todayProblem) return res.status(404).json({ error: 'No problems found' });
-        res.json({ ...todayProblem.toJSON(), status: 'not-started', notes: '' });
+        if (!assignment) {
+            // Pick a random problem not assigned to this user+session in the last 30 days
+            const recentCutoff = new Date();
+            recentCutoff.setDate(recentCutoff.getDate() - 30);
+            const recentCutoffStr = recentCutoff.toISOString().split('T')[0];
+
+            const recentAssignments = await DailySDAssignment.findAll({
+                where: { user_id: req.userId, session_id: req.sessionId },
+                attributes: ['problem_id']
+            });
+            const recentIds = recentAssignments.map(a => a.problem_id);
+
+            const allProblems = await SystemDesignProblem.findAll({ attributes: ['id'] });
+            if (allProblems.length === 0) return res.status(404).json({ error: 'No problems found' });
+
+            const candidates = allProblems.filter(p => !recentIds.includes(p.id));
+            const pool = candidates.length > 0 ? candidates : allProblems;
+            const picked = pool[Math.floor(Math.random() * pool.length)];
+
+            assignment = await DailySDAssignment.create({
+                user_id: req.userId,
+                session_id: req.sessionId,
+                date: today,
+                problem_id: picked.id
+            });
+        }
+
+        const problem = await SystemDesignProblem.findByPk(assignment.problem_id);
+        if (!problem) return res.status(404).json({ error: 'Assigned problem not found' });
+
+        // Merge with user progress
+        const progress = await SystemDesignProgress.findOne({
+            where: { user_id: req.userId, session_id: req.sessionId, problem_id: problem.id }
+        });
+
+        res.json({
+            ...problem.toJSON(),
+            status: progress?.status || 'not-started',
+            notes: progress?.notes || ''
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
