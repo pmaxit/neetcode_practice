@@ -2052,7 +2052,7 @@ const App = () => {
           const newSession = await res.json();
           setSessions(prev => [newSession, ...prev]);
         }}
-        onCancel={activeSession ? () => { setLoading(true); setAuthPhase('app'); } : undefined}
+        onCancel={activeSession ? () => setAuthPhase('app') : undefined}
         onLogout={() => {
           localStorage.removeItem('jwt');
           localStorage.removeItem('activeSession');
@@ -2156,8 +2156,6 @@ const App = () => {
             style={{ color: 'var(--text-muted)' }}
             onClick={() => {
               setAuthPhase('session-select');
-              setProblems([]);
-              setStats(null);
               closeSidebar();
             }}
           >
