@@ -189,9 +189,14 @@ const SVGProgressChart = ({ dailyData }) => {
   );
 };
 
-const StudyPlanSettings = ({ settings, onUpdate, studyPlan, onGenerate, onClear, generating }) => {
+const StudyPlanSettings = ({ settings, onUpdate, studyPlan, onGenerate, onClear, generating, streamText }) => {
   const [localDays, setLocalDays] = useState(settings.planned_days);
   const [localRev, setLocalRev] = useState(settings.revisions_per_day);
+  const streamRef = useRef(null);
+
+  useEffect(() => {
+    if (streamRef.current) streamRef.current.scrollTop = streamRef.current.scrollHeight;
+  }, [streamText]);
   const [aiDays, setAiDays] = useState(30);
   const [aiQpd, setAiQpd] = useState(5);
   const [aiRpd, setAiRpd] = useState(3);
@@ -277,6 +282,14 @@ const StudyPlanSettings = ({ settings, onUpdate, studyPlan, onGenerate, onClear,
                 <button className={`plan-type-btn ${aiType === 'all' ? 'active' : ''}`} onClick={() => setAiType('all')}>All LeetCode</button>
               </div>
             </div>
+            {generating && streamText && (
+              <div className="stream-panel">
+                <div className="stream-panel-header">
+                  <span className="spinner-sm" /> AI is designing your curriculum…
+                </div>
+                <pre className="stream-output" ref={streamRef}>{streamText}</pre>
+              </div>
+            )}
             <button
               className="btn btn-primary"
               style={{ width: '100%', marginTop: '0.5rem' }}
@@ -284,7 +297,7 @@ const StudyPlanSettings = ({ settings, onUpdate, studyPlan, onGenerate, onClear,
               disabled={generating}
             >
               {generating ? (
-                <><span className="spinner-sm" /> AI is designing your curriculum…</>
+                <><span className="spinner-sm" /> {streamText ? 'Building plan…' : 'Starting…'}</>
               ) : (
                 <><Sparkles size={15} /> Generate AI Study Plan</>
               )}
@@ -567,6 +580,7 @@ const App = () => {
   const [filterTag, setFilterTag] = useState('');
   const [studyPlan, setStudyPlan] = useState(null);
   const [studyPlanLoading, setStudyPlanLoading] = useState(false);
+  const [streamText, setStreamText] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [navigationContext, setNavigationContext] = useState('dashboard'); // 'dashboard' | 'browse'
   const [librarySelectedTopic, setLibrarySelectedTopic] = useState(null);
@@ -1162,19 +1176,47 @@ const App = () => {
 
   const generateStudyPlan = async (config) => {
     setStudyPlanLoading(true);
+    setStreamText('');
     try {
-      const res = await api('/api/study-plan/generate', {
+      const res = await apiFetch('/api/study-plan/generate', {
         method: 'POST',
         body: JSON.stringify(config)
-      });
+      }, authToken, activeSession?.id);
+
       if (!res.ok) {
         const err = await res.json();
         alert('Plan generation failed: ' + (err.error || 'Unknown error'));
         return;
       }
-      const data = await res.json();
-      setStudyPlan(data);
-      setSelectedDay(1);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n');
+        buffer = lines.pop(); // keep incomplete last line
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const event = JSON.parse(line.slice(6));
+            if (event.type === 'chunk') {
+              setStreamText(prev => prev + event.text);
+            } else if (event.type === 'done') {
+              setStudyPlan(event.plan);
+              setSelectedDay(1);
+              setStreamText('');
+            } else if (event.type === 'error') {
+              alert('Plan generation failed: ' + event.message);
+            }
+          } catch { /* malformed SSE line */ }
+        }
+      }
     } catch (err) {
       alert('Plan generation failed: ' + err.message);
     } finally {
@@ -2328,6 +2370,7 @@ const App = () => {
                 onGenerate={generateStudyPlan}
                 onClear={clearStudyPlan}
                 generating={studyPlanLoading}
+                streamText={streamText}
               />
             </div>
 

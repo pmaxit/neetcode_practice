@@ -3914,3 +3914,39 @@ input[type=range]::-webkit-slider-thumb {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ── AI Streaming Panel ──────────────────────────────────────────────────────── */
+
+.stream-panel {
+  background: #011627;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.stream-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background: rgba(16, 185, 129, 0.1);
+  font-size: 0.75rem;
+  color: var(--accent);
+  border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.stream-output {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.7rem;
+  color: #a8d8a8;
+  padding: 0.75rem;
+  max-height: 220px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  line-height: 1.55;
+}

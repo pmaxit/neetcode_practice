@@ -848,8 +848,23 @@ Return ONLY valid JSON (no markdown, no explanation):
 
 Generate all ${days} days. Slot counts per day must sum to exactly ${questions_per_day}.`;
 
-        const result = await model.generateContent(prompt);
-        let responseText = result.response.text().trim()
+        // SSE headers — stream Gemini output to client in real-time
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        res.flushHeaders();
+
+        const sendEvent = (obj) => res.write(`data: ${JSON.stringify(obj)}\n\n`);
+
+        const streamResult = await model.generateContentStream(prompt);
+        let fullText = '';
+        for await (const chunk of streamResult.stream) {
+            const text = chunk.text();
+            fullText += text;
+            sendEvent({ type: 'chunk', text });
+        }
+
+        let responseText = fullText.trim()
             .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/, '');
 
         let curriculum;
@@ -857,7 +872,8 @@ Generate all ${days} days. Slot counts per day must sum to exactly ${questions_p
             curriculum = JSON.parse(responseText);
         } catch (e) {
             console.error('[StudyPlan] Invalid JSON from Gemini:', responseText.substring(0, 300));
-            return res.status(500).json({ error: 'AI returned invalid format. Please try again.' });
+            sendEvent({ type: 'error', message: 'AI returned invalid format. Please try again.' });
+            return res.end();
         }
 
         // Build shuffled buckets: "Category::Difficulty" → [ids]
@@ -932,10 +948,17 @@ Generate all ${days} days. Slot counts per day must sum to exactly ${questions_p
             });
         }
 
-        res.json(fullPlan);
+        sendEvent({ type: 'done', plan: fullPlan });
+        res.end();
     } catch (err) {
         console.error('[StudyPlan Generate]', err);
-        res.status(500).json({ error: err.message });
+        // If SSE headers already sent, send error event; otherwise fall back to JSON
+        if (res.headersSent) {
+            try { res.write(`data: ${JSON.stringify({ type: 'error', message: err.message })}\n\n`); } catch {}
+            res.end();
+        } else {
+            res.status(500).json({ error: err.message });
+        }
     }
 });
 
