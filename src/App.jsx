@@ -722,7 +722,8 @@ const App = () => {
     if (studyPlan?.plan?.[String(day)]) {
       const { new: newIds = [], revision: revIds = [] } = studyPlan.plan[String(day)];
       const newProbs = newIds.map(id => { const p = problems.find(pr => pr.id === id); return p ? { ...p, day, isRevision: false } : null; }).filter(Boolean);
-      const revProbs = revIds.map(id => { const p = problems.find(pr => pr.id === id); return p ? { ...p, day, isRevision: true } : null; }).filter(Boolean);
+      const newProbIds = new Set(newIds);
+      const revProbs = revIds.filter(id => !newProbIds.has(id)).map(id => { const p = problems.find(pr => pr.id === id); return p ? { ...p, day, isRevision: true } : null; }).filter(Boolean);
       return [...newProbs, ...revProbs];
     }
 
