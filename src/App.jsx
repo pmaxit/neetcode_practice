@@ -189,9 +189,13 @@ const SVGProgressChart = ({ dailyData }) => {
   );
 };
 
-const StudySettings = ({ settings, onUpdate }) => {
+const StudyPlanSettings = ({ settings, onUpdate, studyPlan, onGenerate, onClear, generating }) => {
   const [localDays, setLocalDays] = useState(settings.planned_days);
   const [localRev, setLocalRev] = useState(settings.revisions_per_day);
+  const [aiDays, setAiDays] = useState(30);
+  const [aiQpd, setAiQpd] = useState(5);
+  const [aiRpd, setAiRpd] = useState(3);
+  const [aiType, setAiType] = useState('neetcode');
 
   useEffect(() => {
     setLocalDays(settings.planned_days);
@@ -202,51 +206,128 @@ const StudySettings = ({ settings, onUpdate }) => {
     onUpdate({ planned_days: localDays, revisions_per_day: localRev });
   };
 
+  const summary = studyPlan?.summary;
+  const config = studyPlan?.config;
+
   return (
     <div className="settings-panel glass fade-in">
       <div className="chart-header">
         <h3>Study Configuration</h3>
         <SettingsIcon size={18} className="text-muted" />
       </div>
-      
-      <div className="settings-group">
-        <div className="range-input-wrapper">
-          <div className="range-header">
-            <span>Duration Scope</span>
-            <span className="range-value">{localDays} Days</span>
-          </div>
-          <input 
-            type="range" min="10" max="150" step="1"
-            value={localDays}
-            onChange={(e) => setLocalDays(parseInt(e.target.value))}
-          />
-          <p className="settings-hint">Spread 150 problems over {localDays} days ({Math.ceil(150/localDays)} per day).</p>
+
+      {/* ── AI Study Plan Section ── */}
+      <div className="study-plan-section">
+        <div className="study-plan-section-header">
+          <Sparkles size={15} className="accent-icon" />
+          <span>AI Study Plan</span>
         </div>
+
+        {studyPlan ? (
+          <div className="plan-summary-card">
+            <div className="plan-summary-title">Active AI Plan</div>
+            <div className="plan-summary-meta">
+              {config?.days} days &middot; {config?.questions_per_day}/day &middot; {config?.type === 'neetcode' ? 'NeetCode 150' : 'All LeetCode'}
+            </div>
+            {summary && (
+              <>
+                <div className="plan-diff-row">
+                  <span className="diff-badge easy">Easy {summary.difficulty_breakdown?.Easy ?? 0}</span>
+                  <span className="diff-badge medium">Med {summary.difficulty_breakdown?.Medium ?? 0}</span>
+                  <span className="diff-badge hard">Hard {summary.difficulty_breakdown?.Hard ?? 0}</span>
+                </div>
+                <div className="plan-topics">
+                  {(summary.categories_covered || []).slice(0, 5).join(', ')}
+                  {(summary.categories_covered || []).length > 5 && ` +${summary.categories_covered.length - 5} more`}
+                </div>
+              </>
+            )}
+            <div className="plan-action-row">
+              <button
+                className="btn btn-sm btn-outline"
+                onClick={() => onGenerate({ days: config?.days || aiDays, questions_per_day: config?.questions_per_day || aiQpd, revisions_per_day: config?.revisions_per_day || aiRpd, type: config?.type || aiType })}
+                disabled={generating}
+              >
+                {generating ? <span className="spinner-sm" /> : <RotateCcw size={13} />}
+                {generating ? 'Generating…' : 'Regenerate'}
+              </button>
+              <button className="btn btn-sm btn-ghost" onClick={onClear}>
+                <Trash2 size={13} /> Clear Plan
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="study-plan-form">
+            <div className="form-row">
+              <label>Days</label>
+              <input type="number" min="1" max="365" value={aiDays} onChange={e => setAiDays(parseInt(e.target.value) || 30)} />
+            </div>
+            <div className="form-row">
+              <label>Questions / day</label>
+              <input type="number" min="1" max="20" value={aiQpd} onChange={e => setAiQpd(parseInt(e.target.value) || 5)} />
+            </div>
+            <div className="form-row">
+              <label>Revisions / day</label>
+              <input type="number" min="0" max="10" value={aiRpd} onChange={e => setAiRpd(parseInt(e.target.value) || 0)} />
+            </div>
+            <div className="form-row">
+              <label>Problem type</label>
+              <div className="plan-type-toggle">
+                <button className={`plan-type-btn ${aiType === 'neetcode' ? 'active' : ''}`} onClick={() => setAiType('neetcode')}>NeetCode 150</button>
+                <button className={`plan-type-btn ${aiType === 'all' ? 'active' : ''}`} onClick={() => setAiType('all')}>All LeetCode</button>
+              </div>
+            </div>
+            <button
+              className="btn btn-primary"
+              style={{ width: '100%', marginTop: '0.5rem' }}
+              onClick={() => onGenerate({ days: aiDays, questions_per_day: aiQpd, revisions_per_day: aiRpd, type: aiType })}
+              disabled={generating}
+            >
+              {generating ? (
+                <><span className="spinner-sm" /> AI is designing your curriculum…</>
+              ) : (
+                <><Sparkles size={15} /> Generate AI Study Plan</>
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="settings-group">
-        <div className="range-input-wrapper">
-          <div className="range-header">
-            <span>Daily Revisions</span>
-            <span className="range-value">{localRev} Questions</span>
-          </div>
-          <input 
-            type="range" min="0" max="10" step="1"
-            value={localRev}
-            onChange={(e) => setLocalRev(parseInt(e.target.value))}
-          />
-          <p className="settings-hint">Previous problems to revisit daily for spaced repetition.</p>
+      {/* ── Manual Fallback ── */}
+      <div className="study-plan-section" style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
+        <div className="study-plan-section-header">
+          <SettingsIcon size={14} className="text-muted" />
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Manual Fallback {studyPlan ? '(inactive while AI plan is on)' : ''}</span>
         </div>
+        <div className="settings-group">
+          <div className="range-input-wrapper">
+            <div className="range-header">
+              <span>Duration Scope</span>
+              <span className="range-value">{localDays} Days</span>
+            </div>
+            <input type="range" min="10" max="150" step="1" value={localDays} onChange={e => setLocalDays(parseInt(e.target.value))} disabled={!!studyPlan} />
+            <p className="settings-hint">Spread problems over {localDays} days ({Math.ceil(150/localDays)} per day).</p>
+          </div>
+        </div>
+        <div className="settings-group">
+          <div className="range-input-wrapper">
+            <div className="range-header">
+              <span>Daily Revisions</span>
+              <span className="range-value">{localRev} Questions</span>
+            </div>
+            <input type="range" min="0" max="10" step="1" value={localRev} onChange={e => setLocalRev(parseInt(e.target.value))} disabled={!!studyPlan} />
+            <p className="settings-hint">Previous problems to revisit daily for spaced repetition.</p>
+          </div>
+        </div>
+        <button
+          className="btn btn-primary"
+          style={{ width: '100%', marginTop: '1rem' }}
+          onClick={handleApply}
+          disabled={!!studyPlan || (localDays === settings.planned_days && localRev === settings.revisions_per_day)}
+        >
+          Update Schedule
+        </button>
       </div>
-
-      <button 
-        className="btn btn-primary" 
-        style={{ width: '100%', marginTop: '1rem' }}
-        onClick={handleApply}
-        disabled={localDays === settings.planned_days && localRev === settings.revisions_per_day}
-      >
-        Update Schedule
-      </button>
     </div>
   );
 };
@@ -484,6 +565,8 @@ const App = () => {
   const [filterCategory, setFilterCategory] = useState('');
   const [filterDifficulty, setFilterDifficulty] = useState('');
   const [filterTag, setFilterTag] = useState('');
+  const [studyPlan, setStudyPlan] = useState(null);
+  const [studyPlanLoading, setStudyPlanLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [navigationContext, setNavigationContext] = useState('dashboard'); // 'dashboard' | 'browse'
   const [librarySelectedTopic, setLibrarySelectedTopic] = useState(null);
@@ -586,7 +669,7 @@ const App = () => {
     return problems.find(p => p.id === activeProblemId) || problems[0];
   }, [activeProblemId, problems]);
 
-  const maxDay = useMemo(() => settings.planned_days || 25, [settings]);
+  const maxDay = useMemo(() => studyPlan ? studyPlan.days : (settings.planned_days || 25), [settings, studyPlan]);
 
   const categories = useMemo(() => [...new Set(problems.map(p => p.category))].sort(), [problems]);
 
@@ -605,24 +688,33 @@ const App = () => {
   }, [problems, maxDay]);
 
   const getProblemsForDay = useCallback((day) => {
+    // AI plan branch
+    if (studyPlan?.plan?.[String(day)]) {
+      const { new: newIds = [], revision: revIds = [] } = studyPlan.plan[String(day)];
+      const newProbs = newIds.map(id => { const p = problems.find(pr => pr.id === id); return p ? { ...p, isRevision: false } : null; }).filter(Boolean);
+      const revProbs = revIds.map(id => { const p = problems.find(pr => pr.id === id); return p ? { ...p, isRevision: true } : null; }).filter(Boolean);
+      return [...newProbs, ...revProbs];
+    }
+
+    // Manual fallback
     const problemsPerDay = Math.ceil(problems.length / maxDay);
     const startIdx = (day - 1) * problemsPerDay;
     const endIdx = startIdx + problemsPerDay;
-    
-    const newProbs = problems.slice(startIdx, endIdx).map(p => ({ 
-      ...p, 
-      day: day, // Override status with dynamic day
-      isRevision: false 
+
+    const newProbs = problems.slice(startIdx, endIdx).map(p => ({
+      ...p,
+      day: day,
+      isRevision: false
     }));
 
     let revProbs = [];
     if (day > 1) {
       const prevProbs = problems.slice(0, startIdx);
       const revSource = prevProbs.filter(p => p.difficulty !== 'Easy');
-      
+
       if (revSource.length > 0) {
         const selectedIndices = new Set();
-        const primes = [31, 37, 41, 43, 47]; // More primes for more variety
+        const primes = [31, 37, 41, 43, 47];
         for (let i = 0; i < settings.revisions_per_day && selectedIndices.size < revSource.length; i++) {
           let idx = (day * primes[i % primes.length]) % revSource.length;
           while (selectedIndices.has(idx)) {
@@ -634,7 +726,7 @@ const App = () => {
       }
     }
     return [...newProbs, ...revProbs];
-  }, [problems, maxDay, settings.revisions_per_day]);
+  }, [problems, maxDay, settings.revisions_per_day, studyPlan]);
 
   const dailyProblems = useMemo(() => getProblemsForDay(selectedDay), [selectedDay, getProblemsForDay]);
 
@@ -1058,6 +1150,47 @@ const App = () => {
     }
   };
 
+  const fetchStudyPlan = async () => {
+    try {
+      const res = await api('/api/study-plan');
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.plan) setStudyPlan(data);
+      }
+    } catch { /* no plan is fine */ }
+  };
+
+  const generateStudyPlan = async (config) => {
+    setStudyPlanLoading(true);
+    try {
+      const res = await api('/api/study-plan/generate', {
+        method: 'POST',
+        body: JSON.stringify(config)
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        alert('Plan generation failed: ' + (err.error || 'Unknown error'));
+        return;
+      }
+      const data = await res.json();
+      setStudyPlan(data);
+      setSelectedDay(1);
+    } catch (err) {
+      alert('Plan generation failed: ' + err.message);
+    } finally {
+      setStudyPlanLoading(false);
+    }
+  };
+
+  const clearStudyPlan = async () => {
+    try {
+      await api('/api/study-plan', { method: 'DELETE' });
+      setStudyPlan(null);
+    } catch (err) {
+      console.error('Failed to clear study plan:', err);
+    }
+  };
+
   const updateSettings = async (newSettings) => {
     try {
       const res = await api('/api/settings', {
@@ -1140,7 +1273,8 @@ const App = () => {
 
         await Promise.all([
           fetchSettings(),
-          fetchStats()
+          fetchStats(),
+          fetchStudyPlan()
         ]);
 
         const pData = await pRes.json();
@@ -2187,7 +2321,14 @@ const App = () => {
             
             <div className="analytics-row">
               <SVGProgressChart dailyData={stats?.daily} />
-              <StudySettings settings={settings} onUpdate={updateSettings} />
+              <StudyPlanSettings
+                settings={settings}
+                onUpdate={updateSettings}
+                studyPlan={studyPlan}
+                onGenerate={generateStudyPlan}
+                onClear={clearStudyPlan}
+                generating={studyPlanLoading}
+              />
             </div>
 
             <div className="activity-table-wrapper glass">

@@ -136,6 +136,14 @@ const UserSettings = sequelize.define('UserSettings', {
     revisions_per_day: { type: DataTypes.INTEGER, defaultValue: 3 }
 }, { timestamps: true, tableName: 'user_settings' });
 
+const StudyPlan = sequelize.define('StudyPlan', {
+    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    user_id: { type: DataTypes.INTEGER, allowNull: false },
+    session_id: { type: DataTypes.INTEGER, allowNull: true },
+    config_json: DataTypes.TEXT,
+    plan_json: DataTypes.TEXT('long')
+}, { timestamps: true, tableName: 'study_plans' });
+
 const ProgressLog = sequelize.define('ProgressLog', {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
     user_id: { type: DataTypes.INTEGER, allowNull: true },
@@ -750,6 +758,204 @@ app.post('/api/admin/generate-hints', async (req, res) => {
         }
 
         res.json({ success: true, generated, failed, results });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ── AI Study Plan ──────────────────────────────────────────────────────────────
+
+function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+app.post('/api/study-plan/generate', requireAuth, requireSession, async (req, res) => {
+    const { days, questions_per_day, revisions_per_day = 0, type = 'neetcode' } = req.body;
+
+    if (!days || days < 1 || days > 365) return res.status(400).json({ error: 'days must be 1–365' });
+    if (!questions_per_day || questions_per_day < 1 || questions_per_day > 20) return res.status(400).json({ error: 'questions_per_day must be 1–20' });
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey === 'your_gemini_api_key_here') {
+        return res.status(500).json({ error: 'Gemini API key not configured.' });
+    }
+
+    try {
+        const whereClause = type === 'neetcode' ? { tag: 'neetcode' } : {};
+        const pool = await Problem.findAll({
+            where: whereClause,
+            attributes: ['id', 'category', 'difficulty'],
+            order: [['id', 'ASC']]
+        });
+
+        if (pool.length === 0) return res.status(400).json({ error: 'No problems found in pool' });
+
+        // Build category → difficulty count map for Gemini
+        const catMap = {};
+        for (const p of pool) {
+            const cat = p.category || 'General';
+            const diff = p.difficulty || 'Medium';
+            if (!catMap[cat]) catMap[cat] = { Easy: 0, Medium: 0, Hard: 0 };
+            catMap[cat][diff] = (catMap[cat][diff] || 0) + 1;
+        }
+
+        const categorySummary = Object.entries(catMap)
+            .map(([cat, counts]) => {
+                const parts = [];
+                if (counts.Easy > 0) parts.push(`${counts.Easy} Easy`);
+                if (counts.Medium > 0) parts.push(`${counts.Medium} Medium`);
+                if (counts.Hard > 0) parts.push(`${counts.Hard} Hard`);
+                return `${cat}: ${parts.join(', ')}`;
+            })
+            .join('\n');
+
+        const totalAvailable = pool.length;
+        const totalSlots = days * questions_per_day;
+        const typeLabel = type === 'neetcode' ? 'NeetCode 150' : 'All LeetCode';
+
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+        const prompt = `You are a competitive programming curriculum designer.
+Design a ${days}-day study plan with ${questions_per_day} new problems per day.
+Problem pool: ${typeLabel} (${totalAvailable} total, ${totalSlots} total slots).
+
+Available categories:
+${categorySummary}
+
+Rules:
+1. DIVERSITY: Do not cluster the same category for more than 2 consecutive days.
+2. RAMP: Within each category, assign Easy first in early days, then Medium, then Hard.
+3. PRIORITIZE: If total slots (${totalSlots}) < total problems (${totalAvailable}), skip most Easy and focus on Medium/Hard.
+4. WARMUP: Days 1-3 must include at least 1 Easy problem.
+5. BALANCE: Every category with 5+ problems must appear at least once.
+6. Each day's slot counts must sum to EXACTLY ${questions_per_day}.
+
+Return ONLY valid JSON (no markdown, no explanation):
+{
+  "curriculum": [
+    { "day": 1, "slots": [{"category":"Arrays & Hashing","difficulty":"Easy","count":2},{"category":"Two Pointers","difficulty":"Easy","count":${Math.max(1, questions_per_day - 2)}}] }
+  ],
+  "summary": {
+    "categories_covered": ["Arrays & Hashing"],
+    "difficulty_breakdown": {"Easy": 10, "Medium": 40, "Hard": 20}
+  }
+}
+
+Generate all ${days} days. Slot counts per day must sum to exactly ${questions_per_day}.`;
+
+        const result = await model.generateContent(prompt);
+        let responseText = result.response.text().trim()
+            .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/, '');
+
+        let curriculum;
+        try {
+            curriculum = JSON.parse(responseText);
+        } catch (e) {
+            console.error('[StudyPlan] Invalid JSON from Gemini:', responseText.substring(0, 300));
+            return res.status(500).json({ error: 'AI returned invalid format. Please try again.' });
+        }
+
+        // Build shuffled buckets: "Category::Difficulty" → [ids]
+        const buckets = {};
+        for (const p of pool) {
+            const key = `${p.category || 'General'}::${p.difficulty || 'Medium'}`;
+            if (!buckets[key]) buckets[key] = [];
+            buckets[key].push(p.id);
+        }
+        for (const key of Object.keys(buckets)) shuffleArray(buckets[key]);
+
+        const plan = {};
+        const usedIds = new Set();
+        const allAssignedIds = [];
+
+        for (const dayPlan of (curriculum.curriculum || [])) {
+            const day = dayPlan.day;
+            const newIds = [];
+
+            for (const slot of (dayPlan.slots || [])) {
+                const needed = slot.count || 1;
+                let added = 0;
+
+                // Try exact bucket first, then fallback to other difficulties in same category
+                const tryDiffs = [slot.difficulty, 'Medium', 'Hard', 'Easy'].filter((d, i, a) => a.indexOf(d) === i);
+                for (const diff of tryDiffs) {
+                    const bucket = buckets[`${slot.category}::${diff}`] || [];
+                    for (const id of bucket) {
+                        if (!usedIds.has(id)) {
+                            newIds.push(id);
+                            usedIds.add(id);
+                            added++;
+                            if (added >= needed) break;
+                        }
+                    }
+                    if (added >= needed) break;
+                }
+            }
+
+            // Revision: pick from earlier days, prefer Medium/Hard
+            const revIds = [];
+            if (day > 3 && revisions_per_day > 0 && allAssignedIds.length > 0) {
+                const earlier = allAssignedIds.flat();
+                const medHard = earlier.filter(id => {
+                    const p = pool.find(pr => pr.id === id);
+                    return p && p.difficulty !== 'Easy';
+                });
+                const candidates = [...(medHard.length > 0 ? medHard : earlier)];
+                shuffleArray(candidates);
+                for (let i = 0; i < Math.min(revisions_per_day, candidates.length); i++) {
+                    revIds.push(candidates[i]);
+                }
+            }
+
+            plan[String(day)] = { new: newIds, revision: revIds };
+            allAssignedIds.push(newIds);
+        }
+
+        const config = { days, questions_per_day, revisions_per_day, type };
+        const fullPlan = { days, plan, summary: curriculum.summary, config };
+
+        // Upsert
+        const existing = await StudyPlan.findOne({ where: { user_id: req.userId, session_id: req.sessionId } });
+        if (existing) {
+            await existing.update({ config_json: JSON.stringify(config), plan_json: JSON.stringify(fullPlan) });
+        } else {
+            await StudyPlan.create({
+                user_id: req.userId,
+                session_id: req.sessionId,
+                config_json: JSON.stringify(config),
+                plan_json: JSON.stringify(fullPlan)
+            });
+        }
+
+        res.json(fullPlan);
+    } catch (err) {
+        console.error('[StudyPlan Generate]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/study-plan', requireAuth, requireSession, async (req, res) => {
+    try {
+        const sp = await StudyPlan.findOne({
+            where: { user_id: req.userId, session_id: req.sessionId },
+            order: [['createdAt', 'DESC']]
+        });
+        if (!sp) return res.json(null);
+        res.json(JSON.parse(sp.plan_json));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/study-plan', requireAuth, requireSession, async (req, res) => {
+    try {
+        await StudyPlan.destroy({ where: { user_id: req.userId, session_id: req.sessionId } });
+        res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
