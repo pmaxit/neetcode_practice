@@ -695,18 +695,24 @@ const App = () => {
   }), [problems, filterCategory, filterDifficulty, filterTag]);
 
   const getDayForProblem = useCallback((problemId) => {
+    if (studyPlan?.plan) {
+      for (const [day, dayData] of Object.entries(studyPlan.plan)) {
+        if ((dayData.new || []).includes(problemId)) return parseInt(day);
+      }
+      return 1;
+    }
     const idx = problems.findIndex(p => p.id === problemId);
     if (idx === -1) return 1;
     const problemsPerDay = Math.ceil(problems.length / maxDay);
     return Math.floor(idx / problemsPerDay) + 1;
-  }, [problems, maxDay]);
+  }, [problems, maxDay, studyPlan]);
 
   const getProblemsForDay = useCallback((day) => {
     // AI plan branch
     if (studyPlan?.plan?.[String(day)]) {
       const { new: newIds = [], revision: revIds = [] } = studyPlan.plan[String(day)];
-      const newProbs = newIds.map(id => { const p = problems.find(pr => pr.id === id); return p ? { ...p, isRevision: false } : null; }).filter(Boolean);
-      const revProbs = revIds.map(id => { const p = problems.find(pr => pr.id === id); return p ? { ...p, isRevision: true } : null; }).filter(Boolean);
+      const newProbs = newIds.map(id => { const p = problems.find(pr => pr.id === id); return p ? { ...p, day, isRevision: false } : null; }).filter(Boolean);
+      const revProbs = revIds.map(id => { const p = problems.find(pr => pr.id === id); return p ? { ...p, day, isRevision: true } : null; }).filter(Boolean);
       return [...newProbs, ...revProbs];
     }
 

@@ -613,6 +613,9 @@ app.post('/api/settings/reset', requireAuth, requireSession, async (req, res) =>
         await SystemDesignProgress.destroy({
             where: { user_id: req.userId, session_id: req.sessionId }
         });
+        await ProgressLog.destroy({
+            where: { user_id: req.userId, session_id: req.sessionId }
+        });
         res.json({ success: true, message: 'All progress has been reset.' });
     } catch (error) {
         res.status(500).json({ error: error.message });
