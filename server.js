@@ -68,6 +68,7 @@ const Problem = sequelize.define('Problem', {
     title: DataTypes.STRING,
     category: DataTypes.STRING,
     difficulty: DataTypes.STRING,
+    tag: { type: DataTypes.STRING, defaultValue: 'neetcode' },
     statement: DataTypes.TEXT,
     examples: DataTypes.JSON,
     python_code: DataTypes.TEXT,

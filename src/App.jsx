@@ -483,6 +483,7 @@ const App = () => {
   const [activeView, setActiveView] = useState('dashboard'); // 'dashboard' | 'calendar' | 'browse'
   const [filterCategory, setFilterCategory] = useState('');
   const [filterDifficulty, setFilterDifficulty] = useState('');
+  const [filterTag, setFilterTag] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [navigationContext, setNavigationContext] = useState('dashboard'); // 'dashboard' | 'browse'
   const [librarySelectedTopic, setLibrarySelectedTopic] = useState(null);
@@ -592,8 +593,9 @@ const App = () => {
   const browsedProblems = useMemo(() => problems.filter(p => {
     if (filterCategory && p.category !== filterCategory) return false;
     if (filterDifficulty && p.difficulty !== filterDifficulty) return false;
+    if (filterTag && p.tag !== filterTag) return false;
     return true;
-  }), [problems, filterCategory, filterDifficulty]);
+  }), [problems, filterCategory, filterDifficulty, filterTag]);
 
   const getDayForProblem = useCallback((problemId) => {
     const idx = problems.findIndex(p => p.id === problemId);
@@ -2039,6 +2041,17 @@ const App = () => {
               <button className="qf-pill" onClick={() => { setActiveView('machine-learning'); setMlCategoryFilter('ML Infrastructure'); setActiveMlNoteId(null); }}>ML Infra</button>
             </div>
 
+            <div className="filter-tag-toggle">
+              {[['', 'All'], ['neetcode', 'NeetCode 150'], ['leetcode', 'LeetCode']].map(([val, label]) => (
+                <button
+                  key={val}
+                  className={`filter-tag-btn ${filterTag === val ? 'active' : ''}`}
+                  onClick={() => setFilterTag(val)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
             <div className="filter-controls">
               <select
                 className="filter-select"
