@@ -452,7 +452,7 @@ const LoginView = ({ onSuccess, onRetry, error: externalError, hasStoredSession 
 
 // ── Session Selector View ──────────────────────────────────────────────────────
 
-const SessionSelectView = ({ user, sessions, onSelectSession, onCreateSession, onLogout }) => {
+const SessionSelectView = ({ user, sessions, onSelectSession, onCreateSession, onLogout, onCancel }) => {
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState(null);
@@ -477,12 +477,22 @@ const SessionSelectView = ({ user, sessions, onSelectSession, onCreateSession, o
       <div className="glass" style={{ padding: '2rem', minWidth: '440px', maxWidth: '560px', width: '100%', borderRadius: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
           <div className="logo" style={{ fontSize: '1rem' }}><Sparkles size={20} /> NeetPractice</div>
-          <button
-            onClick={onLogout}
-            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem' }}
-          >
-            <LogOut size={14} /> Sign out
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+            {onCancel && (
+              <button
+                onClick={onCancel}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem' }}
+              >
+                <ChevronLeft size={14} /> Back
+              </button>
+            )}
+            <button
+              onClick={onLogout}
+              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem' }}
+            >
+              <LogOut size={14} /> Sign out
+            </button>
+          </div>
         </div>
         <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', fontSize: '0.82rem' }}>
           Signed in as <strong style={{ color: 'var(--text)' }}>{user?.email}</strong>. Choose a study session to continue.
@@ -1725,6 +1735,26 @@ const App = () => {
                 <RotateCcw size={16} />
                 <span>Reset Problem</span>
               </button>
+
+              {activeProblem.tag === 'ai' && (
+                <button
+                  className="btn btn-danger-outline"
+                  title="Delete this AI-generated problem"
+                  onClick={async () => {
+                    if (!window.confirm(`Delete "${activeProblem.title}"? This cannot be undone.`)) return;
+                    try {
+                      const res = await api(`/api/problems/${activeProblem.id}`, { method: 'DELETE' });
+                      if (!res.ok) { const e = await res.json(); alert(e.error); return; }
+                      setProblems(prev => prev.filter(p => p.id !== activeProblem.id));
+                      const remaining = problems.filter(p => p.id !== activeProblem.id);
+                      if (remaining.length > 0) setActiveProblemId(remaining[0].id);
+                    } catch (err) { alert('Delete failed: ' + err.message); }
+                  }}
+                >
+                  <Trash2 size={16} />
+                  <span>Delete</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -2022,6 +2052,7 @@ const App = () => {
           const newSession = await res.json();
           setSessions(prev => [newSession, ...prev]);
         }}
+        onCancel={activeSession ? () => setAuthPhase('app') : undefined}
         onLogout={() => {
           localStorage.removeItem('jwt');
           localStorage.removeItem('activeSession');

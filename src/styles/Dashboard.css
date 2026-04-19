@@ -3950,3 +3950,22 @@ input[type=range]::-webkit-slider-thumb {
   margin: 0;
   line-height: 1.55;
 }
+
+.btn-danger-outline {
+  background: transparent;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: var(--hard);
+  border-radius: 8px;
+  padding: 0.4rem 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-danger-outline:hover {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: var(--hard);
+}

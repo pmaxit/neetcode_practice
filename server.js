@@ -531,6 +531,20 @@ app.get('/api/problems', requireAuth, requireSession, async (req, res) => {
     }
 });
 
+app.delete('/api/problems/:id', requireAuth, async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    try {
+        const problem = await Problem.findByPk(id);
+        if (!problem) return res.status(404).json({ error: 'Problem not found' });
+        if (problem.tag !== 'ai') return res.status(403).json({ error: 'Only AI-generated problems can be deleted' });
+        await UserProgress.destroy({ where: { problem_id: id } });
+        await problem.destroy();
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // ── Progress ───────────────────────────────────────────────────────────────────
 
 app.get('/api/progress', requireAuth, requireSession, async (req, res) => {
