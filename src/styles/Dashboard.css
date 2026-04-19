@@ -1115,17 +1115,31 @@ textarea:focus { outline: none; border-color: var(--accent); }
   .sidebar {
     position: fixed;
     top: 0; left: 0;
-    height: 100vh;
+    height: 100dvh;
     z-index: 100;
     transform: translateX(-100%);
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 4px 0 24px rgba(0,0,0,0.4);
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: block;
   }
 
   .sidebar.sidebar-open { transform: translateX(0); }
 
-  .sidebar-header { display: flex; align-items: center; justify-content: space-between; }
+  .sidebar-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; }
   .logo { margin-bottom: 0; }
+
+  .sidebar-nav { margin-bottom: 0.5rem; }
+
+  .sidebar-body {
+    flex: none;
+    overflow-y: visible;
+    min-height: auto;
+    padding-bottom: 30vh;
+  }
+
+  .nav-item { padding: 0.6rem 1rem; }
 
   .main-content { padding: 1.25rem 1rem; padding-top: 4rem; }
 
