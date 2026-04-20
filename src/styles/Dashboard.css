@@ -58,6 +58,9 @@ body {
   background-color: var(--bg-main);
   margin: 0;
   /* overflow: hidden;  -- Removed to allow natural app flow */
+  /* iOS PWA: respect notch/home bar */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .fade-in {
@@ -1081,7 +1084,7 @@ textarea:focus { outline: none; border-color: var(--accent); }
 .mobile-menu-btn {
   display: none;
   position: fixed;
-  top: 1rem; left: 1rem;
+  top: max(1rem, env(safe-area-inset-top)); left: max(1rem, env(safe-area-inset-left));
   z-index: 200;
   background: var(--bg-sidebar);
   border: 1px solid var(--border);
@@ -1123,6 +1126,8 @@ textarea:focus { outline: none; border-color: var(--accent); }
     overflow-y: auto;
     overflow-x: hidden;
     display: block;
+    padding-top: max(1.5rem, env(safe-area-inset-top));
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   .sidebar.sidebar-open { transform: translateX(0); }
