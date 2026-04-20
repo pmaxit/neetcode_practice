@@ -20,8 +20,10 @@ gcloud run deploy "$SERVICE_NAME" \
   --set-env-vars "INSTANCE_CONNECTION_NAME=${INSTANCE_CONNECTION_NAME}" \
   --set-env-vars "DB_NAME=neetcode_db" \
   --set-env-vars "DB_USER=test" \
+  --set-env-vars "JWT_EXPIRES_IN=7d" \
   --set-secrets "DB_PASS=neetcode-db-password:latest" \
   --set-secrets "GEMINI_API_KEY=gemini-api-key:latest" \
+  --set-secrets "JWT_SECRET=neetcode-jwt-secret:latest" \
   --port 8080 \
   --memory 512Mi \
   --min-instances 0 \
