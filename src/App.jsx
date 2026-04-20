@@ -960,7 +960,7 @@ const App = () => {
         body: JSON.stringify({
           problemTitle: activeProblem.title,
           statement: activeProblem.statement,
-          localUserCode: currentCode,
+          userCode: currentCode,
           hints: activeProblem.guided_hints,
           difficulty: activeProblem.difficulty,
           category: activeProblem.category
@@ -1374,7 +1374,7 @@ const App = () => {
       setAgentError(null);
       setLocalNotes(activeProblem.user_notes || '');
     }
-  }, [activeProblemId, activeProblem]);
+  }, [activeProblemId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!activeProblem) return;
