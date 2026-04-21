@@ -98,7 +98,7 @@ const UserProgress = sequelize.define('UserProgress', {
 const SystemDesignProblem = sequelize.define('SystemDesignProblem', {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
     title: DataTypes.STRING,
-    slug: { type: DataTypes.STRING, unique: true },
+    slug: { type: DataTypes.STRING },
     url: DataTypes.STRING,
     difficulty: DataTypes.STRING,
     content: DataTypes.TEXT('long'),

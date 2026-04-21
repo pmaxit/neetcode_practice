@@ -50,6 +50,7 @@
 .python-editor-wrapper textarea {
   outline: none !important;
   background: transparent !important;
+  caret-color: #e2e8f0 !important;
 }
 
 body {
