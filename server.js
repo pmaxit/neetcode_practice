@@ -76,7 +76,8 @@ const Problem = sequelize.define('Problem', {
     guided_hints: DataTypes.TEXT,
     neetcode_url: DataTypes.STRING,
     leetcode_url: DataTypes.STRING,
-    youtube_url: DataTypes.STRING
+    youtube_url: DataTypes.STRING,
+    visualization: DataTypes.JSON
 }, { timestamps: false, tableName: 'problems' });
 
 const UserProgress = sequelize.define('UserProgress', {
@@ -1251,7 +1252,7 @@ app.listen(PORT, async () => {
         await sequelize.authenticate();
         console.log('Database connected.');
         await ensureTableStructure();
-        await sequelize.sync({ alter: true });
+        await sequelize.sync();
         await seedDatabase();
     } catch (err) {
         console.error('Database initialization failed:', err);

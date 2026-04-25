@@ -1,0 +1,180 @@
+[
+  {
+    "problemId": 3,
+    "title": "Two Sum",
+    "code": "class Solution:\n    def twoSum(self, nums: List[int], target: int) -> List[int]:\n        prevMap = {}  # val -> index\n\n        for i, n in enumerate(nums):\n            diff = target - n\n            if diff in prevMap:\n                return [prevMap[diff], i]\n            prevMap[n] = i\n",
+    "steps": [
+      {
+        "line": 3,
+        "state": {
+          "nums": [
+            2,
+            7,
+            11,
+            15
+          ],
+          "target": 9,
+          "prevMap": {}
+        },
+        "explanation": "• Initialize an empty hash map `prevMap` to store numbers and their corresponding indices encountered so far.",
+        "visualHint": "variable_creation"
+      },
+      {
+        "line": 5,
+        "state": {
+          "nums": [
+            2,
+            7,
+            11,
+            15
+          ],
+          "target": 9,
+          "prevMap": {},
+          "i": 0,
+          "n": 2
+        },
+        "explanation": "• Start iterating through the `nums` array. For the first element, `i` is 0 and `n` is 2.",
+        "visualHint": "pointer_move"
+      },
+      {
+        "line": 6,
+        "state": {
+          "nums": [
+            2,
+            7,
+            11,
+            15
+          ],
+          "target": 9,
+          "prevMap": {},
+          "i": 0,
+          "n": 2,
+          "diff": 7
+        },
+        "explanation": "• Calculate the `diff`erence needed: `target` (9) - current number `n` (2) = 7.",
+        "visualHint": "variable_creation"
+      },
+      {
+        "line": 7,
+        "state": {
+          "nums": [
+            2,
+            7,
+            11,
+            15
+          ],
+          "target": 9,
+          "prevMap": {},
+          "i": 0,
+          "n": 2,
+          "diff": 7
+        },
+        "explanation": "• Check if `diff` (7) exists as a key in `prevMap`. It does not, as `prevMap` is currently empty.",
+        "visualHint": "logic_check"
+      },
+      {
+        "line": 9,
+        "state": {
+          "nums": [
+            2,
+            7,
+            11,
+            15
+          ],
+          "target": 9,
+          "prevMap": {
+            "2": 0
+          },
+          "i": 0,
+          "n": 2,
+          "diff": 7
+        },
+        "explanation": "• Add the current number `n` (2) and its index `i` (0) to `prevMap`.",
+        "visualHint": "map_update"
+      },
+      {
+        "line": 5,
+        "state": {
+          "nums": [
+            2,
+            7,
+            11,
+            15
+          ],
+          "target": 9,
+          "prevMap": {
+            "2": 0
+          },
+          "i": 1,
+          "n": 7
+        },
+        "explanation": "• Move to the next element in `nums`. Now, `i` is 1 and `n` is 7.",
+        "visualHint": "pointer_move"
+      },
+      {
+        "line": 6,
+        "state": {
+          "nums": [
+            2,
+            7,
+            11,
+            15
+          ],
+          "target": 9,
+          "prevMap": {
+            "2": 0
+          },
+          "i": 1,
+          "n": 7,
+          "diff": 2
+        },
+        "explanation": "• Calculate the `diff`erence needed: `target` (9) - current number `n` (7) = 2.",
+        "visualHint": "variable_creation"
+      },
+      {
+        "line": 7,
+        "state": {
+          "nums": [
+            2,
+            7,
+            11,
+            15
+          ],
+          "target": 9,
+          "prevMap": {
+            "2": 0
+          },
+          "i": 1,
+          "n": 7,
+          "diff": 2
+        },
+        "explanation": "• Check if `diff` (2) exists as a key in `prevMap`. It does, `prevMap` contains `2: 0`.",
+        "visualHint": "logic_check"
+      },
+      {
+        "line": 8,
+        "state": {
+          "nums": [
+            2,
+            7,
+            11,
+            15
+          ],
+          "target": 9,
+          "prevMap": {
+            "2": 0
+          },
+          "i": 1,
+          "n": 7,
+          "diff": 2,
+          "return_value": [
+            0,
+            1
+          ]
+        },
+        "explanation": "• The `diff` (2) was found in `prevMap` with an index of 0. The current index `i` is 1. The solution is found, return `[0, 1]`.",
+        "visualHint": "found"
+      }
+    ]
+  }
+]

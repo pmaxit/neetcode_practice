@@ -43,6 +43,7 @@ import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import problemsData from './data/problems.json';
+import CodeVisualizer from './components/CodeVisualizer.jsx';
 import './styles/Dashboard.css';
 
 // Code Editor Imports
@@ -70,7 +71,7 @@ const PythonEditor = ({ code, onChange, placeholder, className = "" }) => {
   );
 };
 
-const SolutionToggle = ({ mode, onModeChange }) => (
+const SolutionToggle = ({ mode, onModeChange, hasViz }) => (
   <div className="solution-toggle-container glass">
     <button 
       className={`toggle-btn ${mode === 'reference' ? 'active' : ''}`}
@@ -78,6 +79,14 @@ const SolutionToggle = ({ mode, onModeChange }) => (
     >
       <Sparkles size={16} /> Reference
     </button>
+    {hasViz && (
+      <button 
+        className={`toggle-btn ${mode === 'visualize' ? 'active' : ''}`}
+        onClick={() => onModeChange('visualize')}
+      >
+        <Tv size={16} /> Visualize
+      </button>
+    )}
     <button 
       className={`toggle-btn ${mode === 'practice' ? 'active' : ''}`}
       onClick={() => onModeChange('practice')}
@@ -1778,9 +1787,16 @@ const App = () => {
                 <div className="interface-header-left">
                   <h3>
                     {interfaceMode === 'edit' ? 'Draft Your Solution' : 
-                     interfaceMode === 'practice' ? 'Practice' : 'Reference Solution'}
+                     interfaceMode === 'practice' ? 'Practice' : 
+                     interfaceMode === 'visualize' ? 'Visual Execution' : 'Reference Solution'}
                   </h3>
-                  {!isMock && <SolutionToggle mode={interfaceMode} onModeChange={setInterfaceMode} />}
+                  {!isMock && (
+                    <SolutionToggle 
+                      mode={interfaceMode} 
+                      onModeChange={setInterfaceMode} 
+                      hasViz={!!activeProblem.visualization} 
+                    />
+                  )}
                 </div>
                 <div className="interface-actions">
                   {(interfaceMode === 'practice' || interfaceMode === 'edit') && (
@@ -1812,6 +1828,10 @@ const App = () => {
                     onChange={setPracticeCode}
                     placeholder="# Guided implementation..."
                   />
+                </div>
+              ) : interfaceMode === 'visualize' ? (
+                <div className="visualization-wrapper">
+                  <CodeVisualizer data={activeProblem.visualization} />
                 </div>
               ) : interfaceMode === 'reference' ? (
                 <div className="solution-container">
