@@ -1,3 +1,5 @@
+/* ... previous styles ... */
+
 .visualizer-container {
   display: flex;
   flex-direction: column;
@@ -8,71 +10,12 @@
   border: 1px solid var(--border);
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   color: var(--text-main);
-  animation: fadeIn 0.4s ease-out;
-}
-
-.visualizer-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 1rem;
-}
-
-.visualizer-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--accent);
-}
-
-.visualizer-controls {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.viz-btn {
-  padding: 0.5rem 1rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--text-main);
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.viz-btn:hover:not(:disabled) {
-  background: var(--border);
-  border-color: var(--accent);
-}
-
-.viz-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.viz-btn-primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  font-weight: 600;
-}
-
-.viz-btn-primary:hover:not(:disabled) {
-  background: var(--accent);
-  filter: brightness(1.2);
-  box-shadow: 0 0 15px var(--accent-glow);
 }
 
 .visualizer-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
-}
-
-@media (max-width: 1024px) {
-  .visualizer-content {
-    grid-template-columns: 1fr;
-  }
 }
 
 .code-panel {
@@ -82,151 +25,107 @@
   overflow: hidden;
 }
 
-.code-panel-header {
-  background: rgba(255,255,255,0.05);
-  padding: 0.5rem 1rem;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-family: monospace;
+.code-line.active {
+  background: rgba(16, 185, 129, 0.15);
+  border-left: 3px solid var(--accent);
 }
 
-.code-display {
-  padding: 1rem;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.85rem;
-  line-height: 1.6;
+/* --- Linked List Styles --- */
+.linked-list-container {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 2rem 0;
   overflow-x: auto;
 }
 
-.code-line {
+.list-node-wrapper {
   display: flex;
-  gap: 1rem;
-  padding: 0 0.5rem;
-  border-left: 3px solid transparent;
-}
-
-.code-line.active {
-  background: rgba(16, 185, 129, 0.15);
-  border-left-color: var(--accent);
-}
-
-.line-num {
-  color: var(--text-muted);
-  width: 2rem;
-  text-align: right;
-  user-select: none;
-}
-
-.explanation-card {
-  background: rgba(16, 185, 129, 0.05);
-  border: 1px solid var(--accent-glow);
-  padding: 1rem;
-  border-radius: 12px;
-  margin-bottom: 1rem;
-}
-
-.explanation-text {
-  font-style: italic;
-  color: var(--text-main);
-  line-height: 1.5;
-}
-
-.viz-panel {
-  background: rgba(0,0,0,0.2);
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.viz-section-title {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 1rem;
-}
-
-.array-container {
-  display: flex;
-  gap: 0.75rem;
-  align-items: flex-end;
-  height: 100px;
-  padding-bottom: 1rem;
-}
-
-.array-item {
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
 }
 
-.array-box {
-  width: 45px;
-  height: 45px;
+.list-node {
+  width: 50px;
+  height: 50px;
+  border: 2px solid var(--border);
+  background: var(--bg-card);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-card);
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 1.1rem;
+  font-weight: bold;
+  position: relative;
   transition: all 0.3s ease;
 }
 
-.array-box.active {
-  background: var(--accent);
-  border-color: #fff;
-  transform: scale(1.1);
+.list-node.active {
+  border-color: var(--accent);
   box-shadow: 0 0 15px var(--accent-glow);
+  transform: scale(1.1);
 }
 
-.pointer-i {
-  color: var(--accent);
-  animation: bounce 1s infinite;
+.list-arrow {
+  width: 40px;
+  height: 2px;
+  background: var(--border);
+  position: relative;
 }
 
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+.list-arrow::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: -4px;
+  border-left: 8px solid var(--border);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
 }
 
-.data-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+.list-arrow.active {
+  background: var(--accent);
 }
 
-.variable-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  padding: 0.75rem;
-  border-radius: 8px;
+.list-arrow.active::after {
+  border-left-color: var(--accent);
 }
 
-.variable-label {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  margin-bottom: 0.25rem;
-}
-
-.variable-value {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--accent);
-}
-
-.map-item {
+/* --- Tree Styles --- */
+.tree-container {
   display: flex;
-  justify-content: space-between;
-  background: rgba(255,255,255,0.05);
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  margin-bottom: 0.25rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 1rem;
 }
+
+.tree-level {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  width: 100%;
+}
+
+.tree-node {
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: bold;
+  background: var(--bg-card);
+  transition: all 0.3s ease;
+}
+
+.tree-node.active {
+  border-color: var(--accent);
+  background: rgba(16, 185, 129, 0.2);
+  transform: translateY(-5px);
+}
+
+/* ... existing logic for maps/vars ... */
+.data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.variable-card { background: var(--bg-card); border: 1px solid var(--border); padding: 0.75rem; border-radius: 8px; }
+.variable-value { font-size: 1.25rem; font-weight: 700; color: var(--accent); }
