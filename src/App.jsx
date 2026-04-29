@@ -653,9 +653,10 @@ const App = () => {
     return base;
   };
 
-  const generatePracticeScaffold = (code, hints) => {
+  const generatePracticeScaffold = (code, hints, prebuiltScaffold) => {
+    if (prebuiltScaffold) return prebuiltScaffold;
     if (!code) return '# No solution available yet.';
-    
+
     // If hints already looks like a Python scaffold (contains code structure), use it directly
     if (hints && (hints.includes('class Solution') || hints.includes('def '))) {
       return hints;
@@ -1036,7 +1037,7 @@ const App = () => {
 
   const resetCode = () => {
     if (window.confirm('Reset this problem to its original state? This will clear your current code and hints.')) {
-      const scaffold = generatePracticeScaffold(activeProblem.python_code, activeProblem.guided_hints);
+      const scaffold = generatePracticeScaffold(activeProblem.python_code, activeProblem.guided_hints, activeProblem.practice_scaffold);
       setLocalUserCode('');
       setPracticeCode(scaffold);
       updateBackend(activeProblem.id, 'not-started', '', scaffold, localNotes);
@@ -1376,8 +1377,8 @@ const App = () => {
     if (!activeProblem) return;
     if (activeProblemId) {
       setLocalUserCode(activeProblem.user_code || '');
-      // Use saved practice_code if available, otherwise generate from scaffold
-      setPracticeCode(activeProblem.practice_code || generatePracticeScaffold(activeProblem.python_code, activeProblem.guided_hints));
+      // practice_scaffold always wins — it's the Gemini-generated scaffold; practice_code is legacy
+      setPracticeCode(generatePracticeScaffold(activeProblem.python_code, activeProblem.guided_hints, activeProblem.practice_scaffold));
       setInterfaceMode('practice');
       setAgentResponse(null);
       setAgentError(null);
@@ -1859,16 +1860,28 @@ const App = () => {
                 </div>
               )}
 
-              {interfaceMode === 'edit' && activeProblem.guided_hints && (
-                <div className="guided-hints-section glass-inset">
-                  <div className="hints-header">
-                    <Zap size={14} /> GUIDED APPROACH HINTS
+              {interfaceMode === 'practice' && activeProblem.guided_hints && (() => {
+                const HINT_LABELS = ['STATE DEFINITION', 'BASE CASE', 'CORE TRANSITION', 'ITERATION STRATEGY', 'INITIALIZATION', 'FINAL ANSWER'];
+                const hintLines = activeProblem.guided_hints
+                  .split('\n')
+                  .map(l => l.replace(/^\d+\.\s*/, '').trim())
+                  .filter(Boolean);
+                return (
+                  <div className="guided-hints-section">
+                    <div className="hints-header">
+                      <Zap size={14} /> SOLUTION BLUEPRINT
+                    </div>
+                    <div className="hints-grid">
+                      {hintLines.map((hint, i) => (
+                        <div key={i} className="hint-card">
+                          <div className="hint-card-label">{HINT_LABELS[i] || `STEP ${i + 1}`}</div>
+                          <div className="hint-card-text">{hint}</div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <pre className="hints-content">
-                    {activeProblem.guided_hints}
-                  </pre>
-                </div>
-              )}
+                );
+              })()}
 
               {(agentResponse || agentError) && (
                 <div className={`agent-feedback-panel glass ${agentError ? 'error' : ''} fade-in`}>

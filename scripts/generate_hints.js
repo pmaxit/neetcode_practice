@@ -1,13 +1,14 @@
 /**
  * generate_hints.js
  * ─────────────────
- * One-time script to generate tailored step-by-step guided hints for each
- * LeetCode problem in the DB using Gemini, then persist them as `guided_hints`.
+ * For each problem generates two things in one Gemini call:
+ *   - guided_hints: 6-point plain-text blueprint (no code)
+ *   - practice_scaffold: boilerplate-preserved Python with only the critical logic blanked out
  *
  * Usage:
- *   node scripts/generate_hints.js                  # process up to 10 problems with no hints
+ *   node scripts/generate_hints.js                  # process up to 10 problems missing both fields
  *   node scripts/generate_hints.js --limit 50       # process up to 50
- *   node scripts/generate_hints.js --all            # process ALL problems missing hints
+ *   node scripts/generate_hints.js --all            # process ALL problems missing either field
  *   node scripts/generate_hints.js --overwrite      # re-generate ALL (even existing)
  */
 
@@ -25,7 +26,7 @@ const limitArg = args.includes('--limit') ? parseInt(args[args.indexOf('--limit'
 const processAll = args.includes('--all');
 const overwrite = args.includes('--overwrite');
 const LIMIT = !processAll ? (limitArg || 10) : 9999;
-const DELAY_MS = 400; // avoid Gemini rate limits
+const DELAY_MS = 400;
 
 // ─── DB connection ───────────────────────────────────────────────────────────
 const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASS, {
@@ -40,9 +41,9 @@ const Problem = sequelize.define('Problem', {
     title: DataTypes.STRING,
     category: DataTypes.STRING,
     difficulty: DataTypes.STRING,
-    statement: DataTypes.TEXT,
     python_code: DataTypes.TEXT,
     guided_hints: DataTypes.TEXT,
+    practice_scaffold: DataTypes.TEXT,
 }, { timestamps: false, tableName: 'problems' });
 
 // ─── Gemini setup ────────────────────────────────────────────────────────────
@@ -54,38 +55,47 @@ if (!apiKey || apiKey === 'your_gemini_api_key_here') {
 const genAI = new GoogleGenerativeAI(apiKey);
 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-// ─── Hint generation prompt ──────────────────────────────────────────────────
+// ─── Prompt ──────────────────────────────────────────────────────────────────
 function buildPrompt(problem) {
-    const cleanStatement = (problem.statement || '')
-        .replace(/<[^>]+>/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .substring(0, 800);
-
     return [
-        `You are an elite Lead Engineer acting as a mentor. Your task is to generate a "High-Impact Scaffold" for the LeetCode problem: "${problem.title}".`,
-        `Category: ${problem.category}, Difficulty: ${problem.difficulty}`,
+        `You are a programming tutor for the LeetCode problem "${problem.title}" (${problem.category}, ${problem.difficulty}).`,
         '',
-        `Problem Statement: ${cleanStatement}`,
-        '',
-        `Full Reference Solution:`,
-        '```python',
+        `Reference Solution:`,
         problem.python_code || '# Code not available',
-        '```',
         '',
-        'TASK:',
-        'Identify the most "critical" or "clever" part of the solution (the algorithmic pivot).',
-        'Generate a Python code snippet that includes the full class and method structure, preserving ALL "trivial" parts (loops, basic initializations, return statements).',
+        'Produce TWO sections separated by exactly the line "---":',
         '',
-        'RULES:',
-        '1. Replace ONLY the critical/clever logic with a single, high-quality descriptive comment and a "pass".',
-        '2. The descriptive comment should start with "# GUIDED HINT: " and clearly explain the logic the candidate needs to implement here without giving the code away.',
-        '3. Ensure the scaffold is valid Python syntax.',
-        '4. DO NOT provide a list of steps. Provide EXACTLY ONE high-impact hint/blank unless the problem is truly multi-phase (maximum 2).',
-        '5. Preserve the setup (e.g., if it uses a hash set, include "seen = set()").',
-        '6. Output ONLY the resulting Python code block.',
-        '7. DO NOT wrap in markdown fences (no ```).',
+        'SECTION 1 — Solution Blueprint (plain text, no code):',
+        'Exactly 6 numbered lines:',
+        '1. State definition: what to store',
+        '2. Base case',
+        '3. Core transition (the key algorithmic decision)',
+        '4. Iteration strategy (high-level only)',
+        '5. Initialization',
+        '6. Where to find the final answer',
+        'Rules: no code, no pseudocode, no variable names, 1-2 lines per point.',
+        '',
+        'SECTION 2 — Practice Scaffold (valid Python):',
+        'Copy the full reference solution but replace ONLY the critical/clever logic with:',
+        '    # TODO: <one-line description of what to implement>',
+        '    pass',
+        'Keep ALL boilerplate: imports, class/method signatures, trivial loops, initializations, return statements.',
+        'Replace at most 2 blanks. Do NOT wrap in markdown fences.',
+        '',
+        'Output format (nothing else):',
+        '<6 blueprint lines>',
+        '---',
+        '<practice scaffold python>',
     ].join('\n');
+}
+
+function parseResponse(text) {
+    const parts = text.split(/^---$/m);
+    if (parts.length < 2) return null;
+    return {
+        guided_hints: parts[0].trim(),
+        practice_scaffold: parts[1].trim(),
+    };
 }
 
 // ─── Main ────────────────────────────────────────────────────────────────────
@@ -94,11 +104,13 @@ async function main() {
         await sequelize.authenticate();
         console.log('✅  Database connected\n');
 
-        const whereClause = overwrite ? {} : { guided_hints: null };
+        const whereClause = overwrite
+            ? {}
+            : { [Op.or]: [{ guided_hints: null }, { practice_scaffold: null }] };
         const problems = await Problem.findAll({ where: whereClause, limit: LIMIT, order: [['id', 'ASC']] });
 
         if (problems.length === 0) {
-            console.log('🎉  All problems already have hints! Use --overwrite to regenerate.');
+            console.log('🎉  All problems already have blueprints and scaffolds! Use --overwrite to regenerate.');
             process.exit(0);
         }
 
@@ -110,11 +122,11 @@ async function main() {
         for (const problem of problems) {
             process.stdout.write(`  [${problem.id}] ${problem.title}... `);
             try {
-                const prompt = buildPrompt(problem);
-                const result = await model.generateContent(prompt);
-                const hints = result.response.text().trim();
+                const result = await model.generateContent(buildPrompt(problem));
+                const parsed = parseResponse(result.response.text().trim());
+                if (!parsed) throw new Error('Could not parse --- separator in response');
 
-                await problem.update({ guided_hints: hints });
+                await problem.update(parsed);
                 generated++;
                 console.log('✅');
             } catch (err) {

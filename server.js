@@ -74,6 +74,7 @@ const Problem = sequelize.define('Problem', {
     python_code: DataTypes.TEXT,
     mnemonic: DataTypes.TEXT,
     guided_hints: DataTypes.TEXT,
+    practice_scaffold: DataTypes.TEXT,
     neetcode_url: DataTypes.STRING,
     leetcode_url: DataTypes.STRING,
     youtube_url: DataTypes.STRING,
@@ -468,7 +469,8 @@ app.get('/api/daily', requireAuth, requireSession, async (req, res) => {
                 practice_code: prog ? prog.practice_code : '',
                 user_notes: prog ? prog.user_notes : '',
                 is_favorite: prog ? prog.is_favorite : false,
-                guided_hints: p.guided_hints || null
+                guided_hints: p.guided_hints || null,
+                practice_scaffold: p.practice_scaffold || null
             };
         });
 
@@ -521,7 +523,8 @@ app.get('/api/problems', requireAuth, requireSession, async (req, res) => {
                 practice_code: prog ? prog.practice_code : '',
                 user_notes: prog ? prog.user_notes : '',
                 is_favorite: prog ? prog.is_favorite : false,
-                guided_hints: p.guided_hints || null
+                guided_hints: p.guided_hints || null,
+                practice_scaffold: p.practice_scaffold || null
             };
         });
 
