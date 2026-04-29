@@ -75,6 +75,7 @@ const Problem = sequelize.define('Problem', {
     mnemonic: DataTypes.TEXT,
     guided_hints: DataTypes.TEXT,
     practice_scaffold: DataTypes.TEXT,
+    pattern_hint: DataTypes.TEXT,
     neetcode_url: DataTypes.STRING,
     leetcode_url: DataTypes.STRING,
     youtube_url: DataTypes.STRING,

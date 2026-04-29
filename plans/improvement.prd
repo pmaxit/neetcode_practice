@@ -1,0 +1,37 @@
+## Problem Statement Enrichment
+
+### Problem
+101 non-AI problems in the DB have missing or generic statements that show no real problem content to the user:
+- 1 with null/empty statement
+- 100 with the generic template: "Practice this {Category} problem: {Title}. Implement an optimal solution."
+
+### Definition
+A statement is **generic** if it matches:
+```
+/^Practice this .+ problem: .+\. Implement an optimal solution\.$/i
+```
+or is null/empty. A **real** statement contains a problem description, input/output format, constraints, and examples.
+
+### Solution
+Extended `scripts/fix_missing_statements.js` to detect both null/empty and generic template statements. Detection uses a SQL LIKE filter + JS regex confirmation. The existing LeetCode GraphQL → Anki-NeetCode → Gemini fallback chain handles enrichment.
+
+### Stats (as of 2026-04-28)
+| Category | Count |
+|---|---|
+| Total non-AI problems | 1145 |
+| Null/empty | 1 |
+| Generic template | 100 |
+| **Total to fix** | **101** |
+| Already enriched | 1044 |
+
+### Usage
+```bash
+# Dry-run (see what will be fixed)
+node scripts/fix_missing_statements.js
+
+# Fix all 101
+node scripts/fix_missing_statements.js --execute
+
+# Fix in batches
+node scripts/fix_missing_statements.js --execute --limit 20
+```

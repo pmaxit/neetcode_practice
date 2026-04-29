@@ -622,6 +622,11 @@ const App = () => {
   const [activeMlNoteId, setActiveMlNoteId] = useState(null);
   const [sdLoading, setSdLoading] = useState(false);
   const [interfaceMode, setInterfaceMode] = useState('practice'); // 'reference' | 'practice' | 'edit'
+  const [hintIndex, setHintIndex] = useState(0);
+  const [stuckLevel, setStuckLevel] = useState(0); // 0 = untouched, 1–4 = levels revealed
+  const [assistanceMode, setAssistanceMode] = useState(
+    () => localStorage.getItem('assistanceMode') || 'beginner'
+  );
   const [practiceCode, setPracticeCode] = useState('');
   const [showSettings, setShowSettings] = useState(false);
   const [settings, setSettings] = useState({ planned_days: 25, revisions_per_day: 3 });
@@ -1374,11 +1379,17 @@ const App = () => {
   }, [authPhase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    localStorage.setItem('assistanceMode', assistanceMode);
+  }, [assistanceMode]);
+
+  useEffect(() => {
     if (!activeProblem) return;
     if (activeProblemId) {
       setLocalUserCode(activeProblem.user_code || '');
-      // practice_scaffold always wins — it's the Gemini-generated scaffold; practice_code is legacy
-      setPracticeCode(generatePracticeScaffold(activeProblem.python_code, activeProblem.guided_hints, activeProblem.practice_scaffold));
+      const scaffold = generatePracticeScaffold(activeProblem.python_code, activeProblem.guided_hints, activeProblem.practice_scaffold);
+      setPracticeCode(assistanceMode === 'beginner' ? scaffold : '');
+      setHintIndex(0);
+      setStuckLevel(0);
       setInterfaceMode('practice');
       setAgentResponse(null);
       setAgentError(null);
@@ -1676,6 +1687,17 @@ const App = () => {
               <span>{activeProblem.category}</span>
               <ChevronRight size={14} />
               <span className={`difficulty-tag ${activeProblem.difficulty.toLowerCase()}`}>{activeProblem.difficulty}</span>
+              <div className="assistance-mode-toggle">
+                {['beginner', 'interview', 'challenge'].map(m => (
+                  <button
+                    key={m}
+                    className={`mode-btn ${assistanceMode === m ? 'active' : ''}`}
+                    onClick={() => setAssistanceMode(m)}
+                  >
+                    {m.charAt(0).toUpperCase() + m.slice(1)}
+                  </button>
+                ))}
+              </div>
             </div>
             <h1>{activeProblem.title}</h1>
             <a href={activeProblem.neetcode_url} target="_blank" rel="noopener noreferrer" className="external-link">
@@ -1822,66 +1844,62 @@ const App = () => {
                   {interfaceMode === 'edit' && <span className="auto-save-tag">Auto-saving...</span>}
                 </div>
               </div>
-              {interfaceMode === 'practice' ? (
-                <div className="code-editor-container practice-mode">
-                  <PythonEditor
-                    code={practiceCode}
-                    onChange={setPracticeCode}
-                    placeholder="# Guided implementation..."
-                  />
-                </div>
-              ) : interfaceMode === 'visualize' ? (
-                <div className="visualization-wrapper">
-                  <CodeVisualizer data={activeProblem.visualization} />
-                </div>
-              ) : interfaceMode === 'reference' ? (
-                <div className="solution-container">
-                  <SyntaxHighlighter
-                    language="python"
-                    style={atomDark}
-                    customStyle={{
-                      borderRadius: '12px',
-                      padding: '1.5rem',
-                      fontSize: '0.9rem',
-                      margin: 0,
-                      background: 'rgba(0,0,0,0.3)'
-                    }}
-                  >
-                    {activeProblem.python_code || '# No solution available yet.'}
-                  </SyntaxHighlighter>
-                </div>
-              ) : (
-                <div className="code-editor-container">
-                  <PythonEditor
-                    code={localUserCode}
-                    onChange={setLocalUserCode}
-                    placeholder="# Start typing your solution here..."
-                  />
-                </div>
-              )}
-
-              {interfaceMode === 'practice' && activeProblem.guided_hints && (() => {
-                const HINT_LABELS = ['STATE DEFINITION', 'BASE CASE', 'CORE TRANSITION', 'ITERATION STRATEGY', 'INITIALIZATION', 'FINAL ANSWER'];
-                const hintLines = activeProblem.guided_hints
-                  .split('\n')
-                  .map(l => l.replace(/^\d+\.\s*/, '').trim())
-                  .filter(Boolean);
-                return (
-                  <div className="guided-hints-section">
-                    <div className="hints-header">
-                      <Zap size={14} /> SOLUTION BLUEPRINT
+              <div className="editor-hints-row">
+                <div className="editor-hints-main">
+                  {interfaceMode === 'practice' ? (
+                    <div className="code-editor-container practice-mode">
+                      <PythonEditor
+                        code={practiceCode}
+                        onChange={setPracticeCode}
+                        placeholder="# Guided implementation..."
+                      />
                     </div>
-                    <div className="hints-grid">
-                      {hintLines.map((hint, i) => (
+                  ) : interfaceMode === 'visualize' ? (
+                    <div className="visualization-wrapper">
+                      <CodeVisualizer data={activeProblem.visualization} />
+                    </div>
+                  ) : interfaceMode === 'reference' ? (
+                    <div className="solution-container">
+                      <SyntaxHighlighter
+                        language="python"
+                        style={atomDark}
+                        customStyle={{
+                          borderRadius: '12px',
+                          padding: '1.5rem',
+                          fontSize: '0.9rem',
+                          margin: 0,
+                          background: 'rgba(0,0,0,0.3)'
+                        }}
+                      >
+                        {activeProblem.python_code || '# No solution available yet.'}
+                      </SyntaxHighlighter>
+                    </div>
+                  ) : (
+                    <div className="code-editor-container">
+                      <PythonEditor
+                        code={localUserCode}
+                        onChange={setLocalUserCode}
+                        placeholder="# Start typing your solution here..."
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {assistanceMode !== 'challenge' && activeProblem.guided_hints && (() => {
+                  const insightLines = activeProblem.guided_hints.trim().split('\n').filter(Boolean);
+                  return (
+                    <div className="hint-blueprint-stack">
+                      {insightLines.map((line, i) => (
                         <div key={i} className="hint-card">
-                          <div className="hint-card-label">{HINT_LABELS[i] || `STEP ${i + 1}`}</div>
-                          <div className="hint-card-text">{hint}</div>
+                          {i === 0 && <div className="hint-card-label">BLUEPRINT</div>}
+                          <div className="hint-card-insight-line">{line}</div>
                         </div>
                       ))}
                     </div>
-                  </div>
-                );
-              })()}
+                  );
+                })()}
+              </div>
+
 
               {(agentResponse || agentError) && (
                 <div className={`agent-feedback-panel glass ${agentError ? 'error' : ''} fade-in`}>

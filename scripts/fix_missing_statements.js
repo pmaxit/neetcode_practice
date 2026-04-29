@@ -118,19 +118,26 @@ async function main() {
     await sequelize.authenticate();
     console.log('✓ Database connected');
 
-    const missing = await Problem.findAll({
+    const candidates = await Problem.findAll({
         where: {
             tag: { [Op.ne]: 'ai' },
             [Op.or]: [
                 { statement: null },
-                { statement: '' }
+                { statement: '' },
+                { statement: { [Op.like]: 'Practice this %' } }
             ]
         },
-        attributes: ['id', 'title', 'difficulty', 'category', 'leetcode_url', 'tag'],
+        attributes: ['id', 'title', 'difficulty', 'category', 'leetcode_url', 'tag', 'statement'],
         order: [['id', 'ASC']]
     });
 
-    console.log(`✓ Found ${missing.length} problems with missing statements\n`);
+    // Filter out generic template statements in JS (LIKE catches most, regex confirms)
+    const GENERIC_RE = /^Practice this .+ problem: .+\. Implement an optimal solution\.$/i;
+    const missing = candidates.filter(p =>
+        !p.statement || p.statement.trim() === '' || GENERIC_RE.test(p.statement.trim())
+    );
+
+    console.log(`✓ Found ${missing.length} problems with missing or generic statements\n`);
 
     if (missing.length === 0) {
         console.log('Nothing to fix!');
@@ -140,7 +147,7 @@ async function main() {
 
     if (!EXECUTE) {
         console.log('DRY RUN — no changes written. Pass --execute to fix.\n');
-        console.log('Problems with missing statements:');
+        console.log('Problems with missing or generic statements:');
         missing.slice(0, 30).forEach(p =>
             console.log(`  [${p.tag}] #${p.id} ${p.title} → ${p.leetcode_url || 'no leetcode_url'}`)
         );

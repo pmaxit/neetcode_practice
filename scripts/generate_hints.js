@@ -1,14 +1,15 @@
 /**
  * generate_hints.js
  * ─────────────────
- * For each problem generates two things in one Gemini call:
+ * For each problem generates three things in one Gemini call:
  *   - guided_hints: 6-point plain-text blueprint (no code)
- *   - practice_scaffold: boilerplate-preserved Python with only the critical logic blanked out
+ *   - practice_scaffold: boilerplate-preserved Python with critical logic blanked out + # Think: prompts
+ *   - pattern_hint: short algorithmic pattern phrase (e.g. "sliding window + hashmap")
  *
  * Usage:
- *   node scripts/generate_hints.js                  # process up to 10 problems missing both fields
+ *   node scripts/generate_hints.js                  # process up to 10 problems missing any field
  *   node scripts/generate_hints.js --limit 50       # process up to 50
- *   node scripts/generate_hints.js --all            # process ALL problems missing either field
+ *   node scripts/generate_hints.js --all            # process ALL problems missing any field
  *   node scripts/generate_hints.js --overwrite      # re-generate ALL (even existing)
  */
 
@@ -44,6 +45,7 @@ const Problem = sequelize.define('Problem', {
     python_code: DataTypes.TEXT,
     guided_hints: DataTypes.TEXT,
     practice_scaffold: DataTypes.TEXT,
+    pattern_hint: DataTypes.TEXT,
 }, { timestamps: false, tableName: 'problems' });
 
 // ─── Gemini setup ────────────────────────────────────────────────────────────
@@ -63,38 +65,52 @@ function buildPrompt(problem) {
         `Reference Solution:`,
         problem.python_code || '# Code not available',
         '',
-        'Produce TWO sections separated by exactly the line "---":',
+        'Produce THREE sections separated by exactly the line "---":',
         '',
-        'SECTION 1 — Solution Blueprint (plain text, no code):',
-        'Exactly 6 numbered lines:',
-        '1. State definition: what to store',
-        '2. Base case',
-        '3. Core transition (the key algorithmic decision)',
-        '4. Iteration strategy (high-level only)',
-        '5. Initialization',
-        '6. Where to find the final answer',
-        'Rules: no code, no pseudocode, no variable names, 1-2 lines per point.',
+        'SECTION 1 — Blueprint (plain text, no code):',
+        'List every non-obvious decision a student would get stuck on when deriving this solution from scratch.',
+        'One decision per line. Cover: data structure choice, key algorithmic moves, edge case handling, duplicate skipping, termination conditions — whatever is NOT obvious.',
+        'Skip trivial steps (iterate, return result). Only include lines where a student would pause and think.',
+        'Use as many lines as the problem needs. Simple problems: 1-2 lines. Hard problems: 4-6 lines.',
+        'No punctuation, no grammar rules, no variable names, no filler words.',
+        '',
+        'Example for 3Sum:',
+        '  "sort array first to enable two-pointer and duplicate skipping"',
+        '  "fix one element, use two pointers on the rest to find pairs"',
+        '  "stop outer loop early when fixed element is positive"',
+        '  "skip duplicate values of the fixed element"',
+        '  "after finding a triplet, advance both pointers and skip duplicate left values"',
+        '',
+        'Example for Contains Duplicate:',
+        '  "hash set membership check before insert catches duplicates in O(1)"',
         '',
         'SECTION 2 — Practice Scaffold (valid Python):',
         'Copy the full reference solution but replace ONLY the critical/clever logic with:',
+        '    # Think: <one Socratic question that nudges the student toward the insight>',
         '    # TODO: <one-line description of what to implement>',
         '    pass',
         'Keep ALL boilerplate: imports, class/method signatures, trivial loops, initializations, return statements.',
         'Replace at most 2 blanks. Do NOT wrap in markdown fences.',
         '',
+        'SECTION 3 — Pattern (one short phrase only, e.g. "sliding window + hashmap" or "DFS + backtracking"):',
+        'Name the core algorithmic technique(s) this problem uses. No explanation, just the phrase.',
+        '',
         'Output format (nothing else):',
-        '<6 blueprint lines>',
+        '<1-line core insight fragment>',
         '---',
         '<practice scaffold python>',
+        '---',
+        '<pattern phrase>',
     ].join('\n');
 }
 
 function parseResponse(text) {
     const parts = text.split(/^---$/m);
-    if (parts.length < 2) return null;
+    if (parts.length < 3) return null;
     return {
         guided_hints: parts[0].trim(),
         practice_scaffold: parts[1].trim(),
+        pattern_hint: parts[2].trim(),
     };
 }
 
@@ -104,13 +120,22 @@ async function main() {
         await sequelize.authenticate();
         console.log('✅  Database connected\n');
 
+        // Add pattern_hint column if it doesn't exist yet
+        const [cols] = await sequelize.query(
+            "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='problems' AND COLUMN_NAME='pattern_hint'"
+        );
+        if (cols.length === 0) {
+            await sequelize.query("ALTER TABLE problems ADD COLUMN pattern_hint TEXT");
+            console.log('✅  Added pattern_hint column\n');
+        }
+
         const whereClause = overwrite
             ? {}
-            : { [Op.or]: [{ guided_hints: null }, { practice_scaffold: null }] };
+            : { [Op.or]: [{ guided_hints: null }, { practice_scaffold: null }, { pattern_hint: null }] };
         const problems = await Problem.findAll({ where: whereClause, limit: LIMIT, order: [['id', 'ASC']] });
 
         if (problems.length === 0) {
-            console.log('🎉  All problems already have blueprints and scaffolds! Use --overwrite to regenerate.');
+            console.log('🎉  All problems already have blueprints, scaffolds, and patterns! Use --overwrite to regenerate.');
             process.exit(0);
         }
 

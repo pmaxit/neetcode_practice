@@ -833,22 +833,163 @@ body {
 .problem-view-master-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4rem;
+  gap: 2rem;
   align-items: stretch;
   margin-top: 2rem;
   margin-bottom: 4rem;
-  min-width: 0; /* Prevent grid expansion */
+  min-width: 0;
 }
 
 .problem-view-master-grid > div {
-  min-width: 0; /* Critical: allow items to shrink smaller than their content */
+  min-width: 0;
 }
 
 @media (max-width: 1200px) {
   .problem-view-master-grid {
     grid-template-columns: 1fr;
-    gap: 2.5rem;
+    gap: 2rem;
   }
+}
+
+.editor-hints-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.editor-hints-main {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .editor-hints-row {
+    flex-direction: column;
+  }
+}
+
+/* ── Assistance Mode Toggle ─────────────────────────────────────────────── */
+.assistance-mode-toggle {
+  display: inline-flex;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 3px;
+  margin-left: 0.75rem;
+}
+
+.mode-btn {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.mode-btn:hover {
+  color: #cbd5e1;
+}
+
+.mode-btn.active {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+/* ── Hint Card Navigation ───────────────────────────────────────────────── */
+.hint-nav-container {
+  margin-top: 1rem;
+}
+
+.hint-nav-btn {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  color: #f59e0b;
+  font-size: 0.8rem;
+  padding: 6px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.hint-nav-btn:hover {
+  background: rgba(245, 158, 11, 0.18);
+}
+
+.hint-nav-prev {
+  background: rgba(100, 116, 139, 0.08);
+  border-color: rgba(100, 116, 139, 0.25);
+  color: #94a3b8;
+}
+
+.hint-nav-prev:hover {
+  background: rgba(100, 116, 139, 0.15);
+}
+
+.hint-card-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: hintReveal 0.25s ease-out;
+}
+
+@keyframes hintReveal {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hint-card {
+  padding: 1rem 1.25rem;
+  border: 1px solid rgba(245, 158, 11, 0.18);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.hint-card-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #f59e0b;
+  opacity: 0.75;
+}
+
+.hint-blueprint-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.hint-card-insight-line {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  letter-spacing: 0.01em;
+}
+
+.hint-card-pattern {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  letter-spacing: 0.02em;
+}
+
+.hint-card-note {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.hint-card-nav {
+  display: flex;
+  gap: 0.5rem;
 }
 
 .solution-media-grid {
@@ -2328,49 +2469,6 @@ textarea:focus { outline: none; border-color: var(--accent); }
   background: linear-gradient(135deg, #475569 0%, #64748b 100%);
 }
 
-.guided-hints-section {
-  margin-top: 1.5rem;
-}
-
-.hints-header {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #f59e0b;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.hints-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.6rem;
-}
-
-.hint-card {
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid rgba(245, 158, 11, 0.15);
-  border-left: 3px solid rgba(245, 158, 11, 0.5);
-  border-radius: 8px;
-  padding: 0.65rem 0.85rem;
-}
-
-.hint-card-label {
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: #f59e0b;
-  margin-bottom: 0.3rem;
-  opacity: 0.8;
-}
-
-.hint-card-text {
-  font-size: 0.82rem;
-  color: #cbd5e1;
-  line-height: 1.5;
-}
 
 .agent-feedback-panel {
   margin-top: 1.5rem;
