@@ -1951,6 +1951,59 @@ const App = () => {
                   )}
                 </div>
 
+                {assistanceMode !== 'challenge' && activeProblem.problem_format && (() => {
+                  const lines = activeProblem.problem_format.trim().split('\n').filter(Boolean);
+                  return (
+                    <div className="hint-blueprint-stack">
+                      <div className="hint-card hint-card--step">
+                        <div className="hint-card-label">PROBLEM</div>
+                        {lines.map((line, i) => (
+                          <div key={i} className="hint-card-insight-line">{line}</div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {assistanceMode !== 'challenge' && activeProblem.solution_format && (() => {
+                  const lines = activeProblem.solution_format.trim().split('\n').filter(Boolean);
+                  return (
+                    <div className="hint-blueprint-stack">
+                      <div className="hint-card hint-card--step">
+                        <div className="hint-card-label">SOLUTION</div>
+                        {lines.map((line, i) => (
+                          <div key={i} className="hint-card-insight-line">{line}</div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {assistanceMode !== 'challenge' && activeProblem.practice_scaffold && (() => {
+                  const lines = activeProblem.practice_scaffold.trim().split('\n').filter(Boolean);
+                  return (
+                    <div className="hint-blueprint-stack">
+                      <div className="hint-card hint-card--step">
+                        <div className="hint-card-label">PRACTICE</div>
+                        {lines.map((line, i) => (
+                          <div key={i} className="hint-card-insight-line">{line}</div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {assistanceMode !== 'challenge' && activeProblem.pattern_hint && (() => {
+                  return (
+                    <div className="hint-blueprint-stack">
+                      <div className="hint-card hint-card--step">
+                        <div className="hint-card-label">PATTERN</div>
+                        <div className="hint-card-insight-line">{activeProblem.pattern_hint}</div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {assistanceMode !== 'challenge' && activeProblem.guided_hints && (() => {
                   const insightLines = activeProblem.guided_hints.trim().split('\n').filter(Boolean);
                   return (

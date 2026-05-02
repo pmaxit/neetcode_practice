@@ -7,10 +7,12 @@
  *   - pattern_hint: short algorithmic pattern phrase (e.g. "sliding window + hashmap")
  *
  * Usage:
- *   node scripts/generate_hints.js                  # process up to 10 problems missing any field
- *   node scripts/generate_hints.js --limit 50       # process up to 50
- *   node scripts/generate_hints.js --all            # process ALL problems missing any field
- *   node scripts/generate_hints.js --overwrite      # re-generate ALL (even existing)
+ *   node scripts/generate_hints.js                       # process up to 10 problems missing any field
+ *   node scripts/generate_hints.js --limit 50            # process up to 50
+ *   node scripts/generate_hints.js --all                 # process ALL problems missing any field
+ *   node scripts/generate_hints.js --overwrite           # re-generate ALL (even existing)
+ *   node scripts/generate_hints.js --all --after 461     # process all problems with id > 461
+ *   node scripts/generate_hints.js --overwrite --after 461  # re-generate all with id > 461
  */
 
 import { Sequelize, DataTypes, Op } from 'sequelize';
@@ -24,6 +26,7 @@ dotenv.config({ path: path.join(path.dirname(fileURLToPath(import.meta.url)), '.
 // ─── Parse CLI args ─────────────────────────────────────────────────────────
 const args = process.argv.slice(2);
 const limitArg = args.includes('--limit') ? parseInt(args[args.indexOf('--limit') + 1]) : null;
+const afterArg = args.includes('--after') ? parseInt(args[args.indexOf('--after') + 1]) : null;
 const processAll = args.includes('--all');
 const overwrite = args.includes('--overwrite');
 const LIMIT = !processAll ? (limitArg || 10) : 9999;
@@ -46,6 +49,8 @@ const Problem = sequelize.define('Problem', {
     guided_hints: DataTypes.TEXT,
     practice_scaffold: DataTypes.TEXT,
     pattern_hint: DataTypes.TEXT,
+    problem_format: DataTypes.TEXT,  // Problem statement summary (SECTION 1)
+    solution_format: DataTypes.TEXT,  // Solution walkthrough (SECTION 2)
 }, { timestamps: false, tableName: 'problems' });
 
 // ─── Gemini setup ────────────────────────────────────────────────────────────
@@ -67,24 +72,50 @@ function buildPrompt(problem) {
         '',
         'Produce THREE sections separated by exactly the line "---":',
         '',
-        'SECTION 1 — Blueprint (plain text, no code):',
-        'List every non-obvious decision a student would get stuck on when deriving this solution from scratch.',
-        'One decision per line. Cover: data structure choice, key algorithmic moves, edge case handling, duplicate skipping, termination conditions — whatever is NOT obvious.',
-        'Skip trivial steps (iterate, return result). Only include lines where a student would pause and think.',
-        'Use as many lines as the problem needs. Simple problems: 1-2 lines. Hard problems: 4-6 lines.',
-        'No punctuation, no grammar rules, no variable names, no filler words.',
+        'SECTION 1 — Problem Format (plain text, no code):',
+        'Write a clear, concise problem statement that includes:',
+        '- Input format and constraints',
+        '- Expected output with examples',
+        '- Key edge cases to consider',
+        '- Any special rules or termination conditions',
+        'Keep it under 80 words. Use natural language, no markdown.',
         '',
-        'Example for 3Sum:',
-        '  "sort array first to enable two-pointer and duplicate skipping"',
-        '  "fix one element, use two pointers on the rest to find pairs"',
-        '  "stop outer loop early when fixed element is positive"',
-        '  "skip duplicate values of the fixed element"',
-        '  "after finding a triplet, advance both pointers and skip duplicate left values"',
+        'IMPORTANT: Include guiding questions like "How do we approach this?" and "What data structure helps here?"',
         '',
-        'Example for Contains Duplicate:',
-        '  "hash set membership check before insert catches duplicates in O(1)"',
+        'Example:',
+        '  "You are given an integer array nums and an integer target."',
+        '  "Hint: How do we find two numbers that sum to target?"',
         '',
-        'SECTION 2 — Practice Scaffold (valid Python):',
+        'SECTION 2 — Solution Format (plain text explanation, no code):',
+        'Write a step-by-step solution walkthrough using Socratic questioning. For EACH step, present the question THEN the answer.',
+        'Structure as: "How do we...?" + answer, or "What if we try..." + insight.',
+        '- Start with the KEY INSIGHT first (the big idea)',
+        '- For each subsequent step, ask a guiding question, then give the answer',
+        '- Include data structure choice reasoning',
+        '- Include algorithm steps in logical order',
+        '- Explain edge case handling',
+        '- Add time and space complexity',
+        'Use natural language explanations, no code blocks. Aim for 5-7 sentences.',
+        '',
+        'Example for Two Sum:',
+        'KEY INSIGHT: Use a hash map to store each element as we traverse, allowing O(1) lookup of the complement (target - current).',
+        '- How do we efficiently find the pair that sums to target? We can use a hash map to look up complements in O(1).',
+        '- What should the hash map store? Each number and its index as we traverse.',
+        '- As we iterate, what complement do we need? For nums[i], we need target - nums[i].',
+        '- When do we find the answer? When the complement already exists in our map.',
+        '- What is the fallback if no pair exists? Return [-1, -1].',
+        'TIME COMPLEXITY: O(n) - single pass through array',
+        'SPACE COMPLEXITY: O(n) - hash map stores at most n elements',
+        '',
+        'Example for Container With Most Water:',
+        'KEY INSIGHT: Use two pointers starting at edges; the area is bounded by shorter height and distance between pointers.',
+        '- How do we maximize area? Try both left and right boundaries, pick maximum.',
+        '- When should we move a pointer? Move the shorter side inward (it\'s the bottleneck).',
+        '- What terminates the search? Pointers meet at center.',
+        'TIME COMPLEXITY: O(n) - two pointers traverse array once',
+        'SPACE COMPLEXITY: O(1) - no extra space needed',
+        '',
+        'SECTION 3 — Practice Scaffold (valid Python):',
         'Copy the full reference solution but replace ONLY the critical/clever logic with:',
         '    # Think: <one Socratic question that nudges the student toward the insight>',
         '    # TODO: <one-line description of what to implement>',
@@ -92,11 +123,13 @@ function buildPrompt(problem) {
         'Keep ALL boilerplate: imports, class/method signatures, trivial loops, initializations, return statements.',
         'Replace at most 2 blanks. Do NOT wrap in markdown fences.',
         '',
-        'SECTION 3 — Pattern (one short phrase only, e.g. "sliding window + hashmap" or "DFS + backtracking"):',
+        'SECTION 4 — Pattern (one short phrase only):',
         'Name the core algorithmic technique(s) this problem uses. No explanation, just the phrase.',
         '',
         'Output format (nothing else):',
-        '<1-line core insight fragment>',
+        '<problem statement>',
+        '---',
+        '<solution explanation with questions and answers>',
         '---',
         '<practice scaffold python>',
         '---',
@@ -106,11 +139,21 @@ function buildPrompt(problem) {
 
 function parseResponse(text) {
     const parts = text.split(/^---$/m);
-    if (parts.length < 3) return null;
+    if (parts.length < 4) return null;
+
+    // Ensure each section has content
+    const section1 = parts[0].trim();
+    const section2 = parts[1].trim();
+    const section3 = parts[2].trim();
+    const section4 = parts[3].trim();
+
+    if (!section1 || !section2 || !section3 || !section4) return null;
+
     return {
-        guided_hints: parts[0].trim(),
-        practice_scaffold: parts[1].trim(),
-        pattern_hint: parts[2].trim(),
+        problem_format: section1,
+        solution_format: section2,
+        practice_scaffold: section3,
+        pattern_hint: section4,
     };
 }
 
@@ -129,9 +172,29 @@ async function main() {
             console.log('✅  Added pattern_hint column\n');
         }
 
+        // Add problem_format and solution_format columns if they don't exist
+        const [cols1] = await sequelize.query(
+            "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='problems' AND COLUMN_NAME='problem_format'"
+        );
+        if (cols1.length === 0) {
+            await sequelize.query("ALTER TABLE problems ADD COLUMN problem_format TEXT");
+            console.log('✅  Added problem_format column\n');
+        }
+
+        const [cols2] = await sequelize.query(
+            "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='problems' AND COLUMN_NAME='solution_format'"
+        );
+        if (cols2.length === 0) {
+            await sequelize.query("ALTER TABLE problems ADD COLUMN solution_format TEXT");
+            console.log('✅  Added solution_format column\n');
+        }
+
         const whereClause = overwrite
-            ? {}
-            : { [Op.or]: [{ guided_hints: null }, { practice_scaffold: null }, { pattern_hint: null }] };
+            ? (afterArg ? { id: { [Op.gt]: afterArg } } : {})
+            : { [Op.and]: [
+                ...(afterArg ? [{ id: { [Op.gt]: afterArg } }] : []),
+                { [Op.or]: [{ guided_hints: null }, { practice_scaffold: null }, { pattern_hint: null }] }
+              ] };
         const problems = await Problem.findAll({ where: whereClause, limit: LIMIT, order: [['id', 'ASC']] });
 
         if (problems.length === 0) {
