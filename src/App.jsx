@@ -36,7 +36,8 @@ import {
   Star,
   LogOut,
   FolderOpen,
-  Plus
+  Plus,
+  Image
 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -44,6 +45,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import problemsData from './data/problems.json';
 import CodeVisualizer from './components/CodeVisualizer.jsx';
+import AnnotationOverlay from './components/AnnotationOverlay.jsx';
 import './styles/Dashboard.css';
 
 // Code Editor Imports
@@ -645,9 +647,16 @@ const App = () => {
     return 5400;
   });
 
+  // Annotation state
+  const [showAnnotationOverlay, setShowAnnotationOverlay] = useState(false);
+  const [annotations, setAnnotations] = useState([]);
+  const [activeAnnotation, setActiveAnnotation] = useState(null);
+  const [showAnnotationModal, setShowAnnotationModal] = useState(false);
+
   // --- Refs ---
   const dayPickerRef = useRef(null);
   const notesDebounceRef = useRef(null);
+  const editorContainerRef = useRef(null);
   const [localNotes, setLocalNotes] = useState('');
 
   // --- Static Helpers ---
@@ -946,15 +955,38 @@ const App = () => {
         method: 'POST',
         body: JSON.stringify({ problemId, status, code, practiceCode, notes }),
       });
-      setProblems(prev => prev.map(p => 
-        p.id === problemId 
-          ? { ...p, user_status: status, user_code: code, practice_code: practiceCode, user_notes: notes } 
+      setProblems(prev => prev.map(p =>
+        p.id === problemId
+          ? { ...p, user_status: status, user_code: code, practice_code: practiceCode, user_notes: notes }
           : p
       ));
     } catch (err) {
       console.error('Failed to update backend:', err);
     }
   }, [api]);
+
+  const fetchAnnotations = useCallback(async () => {
+    try {
+      const res = await api('/api/annotations');
+      const data = await res.json();
+      if (Array.isArray(data)) setAnnotations(data);
+    } catch (err) {
+      console.error('Failed to fetch annotations:', err);
+    }
+  }, [api]);
+
+  const saveAnnotation = useCallback(async (imageDataUrl) => {
+    if (!activeProblemId || !activeSession?.id) return;
+    const res = await api('/api/annotations', {
+      method: 'POST',
+      body: JSON.stringify({ imageDataUrl, problemId: activeProblemId }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      setAnnotations(prev => [{ id: data.id, session_id: activeSession.id, problem_id: activeProblemId, createdAt: new Date().toISOString() }, ...prev]);
+    }
+    return data;
+  }, [api, activeProblemId, activeSession]);
 
   const handleAgentReview = async () => {
     if (!activeProblem) return;
@@ -1350,7 +1382,8 @@ const App = () => {
         await Promise.all([
           fetchSettings(),
           fetchStats(),
-          fetchStudyPlan()
+          fetchStudyPlan(),
+          fetchAnnotations()
         ]);
 
         const pData = await pRes.json();
@@ -1448,6 +1481,9 @@ const App = () => {
                   </div>
                   <h3>{p.title}</h3>
                   <span className="tile-category">{p.category}</span>
+                  {annotations.some(a => a.problem_id === p.id) && (
+                    <span className="annotation-indicator" title="Has annotation"><Image size={12} /> Annotated</span>
+                  )}
                 </div>
               ))}
             </div>
@@ -1538,6 +1574,9 @@ const App = () => {
                     <span className="status-badge completed"><CheckCircle size={14} /> Solved</span>
                   ) : (
                     <span className="status-badge pending">In Progress</span>
+                  )}
+                  {annotations.some(a => a.problem_id === p.id) && (
+                    <span className="status-badge annotation-badge"><Image size={12} /> Annotated</span>
                   )}
                 </div>
               </div>
@@ -1823,17 +1862,26 @@ const App = () => {
                 </div>
                 <div className="interface-actions">
                   {(interfaceMode === 'practice' || interfaceMode === 'edit') && (
-                    <button 
+                    <button
                       className={`btn coach-btn ${agentLoading ? 'loading' : ''}`}
                       onClick={handleAgentReview}
                       disabled={agentLoading}
                     >
-                      <BrainCircuit size={16} /> 
+                      <BrainCircuit size={16} />
                       {agentLoading ? 'Reviewing...' : 'Review with AI Coach'}
                     </button>
                   )}
+                  {(interfaceMode === 'practice' || interfaceMode === 'edit') && (
+                    <button
+                      className="btn btn-outline"
+                      onClick={() => setShowAnnotationOverlay(true)}
+                      title="Annotate code"
+                    >
+                      <Image size={16} /> Annotate
+                    </button>
+                  )}
                   {interfaceMode === 'edit' && (
-                    <button 
+                    <button
                       className="btn reset-btn"
                       onClick={resetCode}
                       title="Reset to Scaffold"
@@ -1845,7 +1893,7 @@ const App = () => {
                 </div>
               </div>
               <div className="editor-hints-row">
-                <div className="editor-hints-main">
+                <div className="editor-hints-main" ref={editorContainerRef}>
                   {interfaceMode === 'practice' ? (
                     <div className="code-editor-container practice-mode">
                       <PythonEditor
@@ -1940,7 +1988,75 @@ const App = () => {
                   {activeProblem.user_status === 'completed' ? <CheckCircle size={18} /> : <Circle size={18} />}
                   <span>{activeProblem.user_status === 'completed' ? 'Completed' : 'Mark as Done'}</span>
                 </button>
+                {annotations.some(a => a.problem_id === activeProblemId) && (
+                  <button
+                    className="btn btn-ghost"
+                    onClick={async () => {
+                      const ann = annotations.find(a => a.problem_id === activeProblemId);
+                      if (!ann) return;
+                      try {
+                        const res = await api(`/api/annotations/${ann.id}`);
+                        const data = await res.json();
+                        setActiveAnnotation(data);
+                        setShowAnnotationModal(true);
+                      } catch (err) {
+                        console.error('Failed to load annotation:', err);
+                      }
+                    }}
+                  >
+                    <Image size={16} /> View Annotation
+                  </button>
+                )}
               </div>
+
+              {showAnnotationOverlay && (
+                <AnnotationOverlay
+                  targetRef={editorContainerRef}
+                  sessionId={activeSession?.id}
+                  problemId={activeProblemId}
+                  onClose={() => setShowAnnotationOverlay(false)}
+                  onSave={saveAnnotation}
+                />
+              )}
+
+              {showAnnotationModal && activeAnnotation && (
+                <div
+                  className="modal-overlay fade-in"
+                  onClick={() => setShowAnnotationModal(false)}
+                  style={{
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: 2000,
+                    background: 'rgba(0,0,0,0.8)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '2rem'
+                  }}
+                >
+                  <div
+                    className="glass"
+                    onClick={e => e.stopPropagation()}
+                    style={{
+                      maxWidth: '90vw',
+                      maxHeight: '90vh',
+                      overflow: 'auto',
+                      borderRadius: '16px',
+                      padding: '1rem'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                      <span style={{ fontWeight: 600 }}>Annotation</span>
+                      <button className="btn btn-sm btn-ghost" onClick={() => setShowAnnotationModal(false)}><X size={16} /></button>
+                    </div>
+                    <img
+                      src={activeAnnotation.imageDataUrl}
+                      alt="Annotation"
+                      style={{ maxWidth: '100%', maxHeight: '80vh', borderRadius: '8px', display: 'block' }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

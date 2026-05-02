@@ -167,6 +167,13 @@ const ProgressLog = sequelize.define('ProgressLog', {
     status: { type: DataTypes.STRING },
 }, { timestamps: true, tableName: 'progress_logs' });
 
+const Annotation = sequelize.define('Annotation', {
+    id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    session_id: { type: DataTypes.INTEGER, allowNull: false },
+    problem_id: { type: DataTypes.INTEGER, allowNull: false },
+    image_blob: { type: DataTypes.BLOB('long'), allowNull: false },
+}, { timestamps: true, tableName: 'annotations' });
+
 // ── JWT & Auth Middleware ───────────────────────────────────────────────────────
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -599,6 +606,72 @@ app.post('/api/progress', requireAuth, requireSession, async (req, res) => {
 
         res.json({ success: true });
     } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ── Annotations ──────────────────────────────────────────────────────────────────
+
+app.post('/api/annotations', requireAuth, requireSession, async (req, res) => {
+    const { imageDataUrl, problemId } = req.body;
+    if (!imageDataUrl || !imageDataUrl.startsWith('data:image/png;base64,')) {
+        return res.status(400).json({ error: 'imageDataUrl must be a base64 PNG data URL' });
+    }
+    if (!problemId) {
+        return res.status(400).json({ error: 'problemId is required' });
+    }
+    try {
+        const base64Data = imageDataUrl.replace(/^data:image\/png;base64,/, '');
+        const buffer = Buffer.from(base64Data, 'base64');
+        const annotation = await Annotation.create({
+            session_id: req.sessionId,
+            problem_id: parseInt(problemId, 10),
+            image_blob: buffer
+        });
+        res.status(201).json({ id: annotation.id, success: true });
+    } catch (error) {
+        console.error('[Annotations POST]', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/annotations', requireAuth, requireSession, async (req, res) => {
+    try {
+        const annotations = await Annotation.findAll({
+            where: { session_id: req.sessionId },
+            order: [['createdAt', 'DESC']]
+        });
+        const result = annotations.map(a => ({
+            id: a.id,
+            session_id: a.session_id,
+            problem_id: a.problem_id,
+            createdAt: a.createdAt,
+            updatedAt: a.updatedAt
+        }));
+        res.json(result);
+    } catch (error) {
+        console.error('[Annotations GET]', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/annotations/:id', requireAuth, requireSession, async (req, res) => {
+    try {
+        const annotation = await Annotation.findOne({
+            where: { id: req.params.id, session_id: req.sessionId }
+        });
+        if (!annotation) return res.status(404).json({ error: 'Annotation not found' });
+        const base64 = annotation.image_blob.toString('base64');
+        res.json({
+            id: annotation.id,
+            session_id: annotation.session_id,
+            problem_id: annotation.problem_id,
+            imageDataUrl: `data:image/png;base64,${base64}`,
+            createdAt: annotation.createdAt,
+            updatedAt: annotation.updatedAt
+        });
+    } catch (error) {
+        console.error('[Annotations GET by id]', error);
         res.status(500).json({ error: error.message });
     }
 });

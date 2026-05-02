@@ -4159,3 +4159,31 @@ input[type=range]::-webkit-slider-thumb {
   background: rgba(239, 68, 68, 0.12);
   border-color: var(--hard);
 }
+
+/* ── Annotation Styles ─────────────────────────────────────────────── */
+
+.annotation-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  color: var(--accent);
+  margin-top: 0.3rem;
+}
+
+.annotation-badge {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 0.15rem 0.4rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.4rem;
+}
+
+.annotation-overlay input[type="range"] {
+  accent-color: var(--accent);
+}
