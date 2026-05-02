@@ -71,11 +71,10 @@ export default function AnnotationOverlay({ targetRef, savedAnnotation, onClose,
 
     const handleReset = useCallback(() => {
         engineRef.current?.clear();
-        if (savedAnnotation && engineRef.current) {
-            // Re-load the saved annotation if available, otherwise it stays blank
-            engineRef.current.setBackgroundImage(savedAnnotation).catch(() => {});
+        if (bgImage && engineRef.current) {
+            engineRef.current.setBackgroundImage(bgImage).catch(() => {});
         }
-    }, [savedAnnotation]);
+    }, [bgImage]);
 
     const handleSave = useCallback(async () => {
         if (!engineRef.current || !containerRef.current) return;
