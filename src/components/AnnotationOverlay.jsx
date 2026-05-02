@@ -5,7 +5,7 @@ import { Pencil, Eraser, X, Save, RotateCcw, Palette } from 'lucide-react';
 
 const COLORS = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffffff', '#000000'];
 
-export default function AnnotationOverlay({ targetRef, sessionId, problemId, onClose, onSave }) {
+export default function AnnotationOverlay({ targetRef, savedAnnotation, onClose, onSave }) {
     const canvasRef = useRef(null);
     const containerRef = useRef(null);
     const engineRef = useRef(null);
@@ -25,10 +25,16 @@ export default function AnnotationOverlay({ targetRef, sessionId, problemId, onC
         canvas.height = container.clientHeight;
 
         engineRef.current = new CanvasDrawingEngine(canvas);
+
+        // Load saved annotation as background if available
+        if (savedAnnotation) {
+            engineRef.current.setBackgroundImage(savedAnnotation).catch(() => {});
+        }
+
         return () => {
             engineRef.current?.destroy();
         };
-    }, []);
+    }, [savedAnnotation]);
 
     useEffect(() => {
         if (!targetRef?.current) return;
@@ -63,9 +69,13 @@ export default function AnnotationOverlay({ targetRef, sessionId, problemId, onC
         engineRef.current.setEraserRadius(eraserRadius);
     }, [eraserRadius]);
 
-    const handleClear = useCallback(() => {
+    const handleReset = useCallback(() => {
         engineRef.current?.clear();
-    }, []);
+        if (savedAnnotation && engineRef.current) {
+            // Re-load the saved annotation if available, otherwise it stays blank
+            engineRef.current.setBackgroundImage(savedAnnotation).catch(() => {});
+        }
+    }, [savedAnnotation]);
 
     const handleSave = useCallback(async () => {
         if (!engineRef.current || !containerRef.current) return;
@@ -172,8 +182,8 @@ export default function AnnotationOverlay({ targetRef, sessionId, problemId, onC
                     {confirmMessage && (
                         <span style={{ color: 'var(--easy)', fontSize: '0.8rem' }}>{confirmMessage}</span>
                     )}
-                    <button className="btn btn-sm btn-ghost" onClick={handleClear} title="Clear">
-                        <RotateCcw size={14} />
+                    <button className="btn btn-sm btn-ghost" onClick={handleReset} title="Reset">
+                        <RotateCcw size={14} /> Reset
                     </button>
                     <button className="btn btn-sm btn-primary" onClick={handleSave} disabled={saving}>
                         <Save size={14} /> {saving ? 'Saving…' : 'Save'}

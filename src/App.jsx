@@ -651,7 +651,6 @@ const App = () => {
   const [showAnnotationOverlay, setShowAnnotationOverlay] = useState(false);
   const [annotations, setAnnotations] = useState([]);
   const [activeAnnotation, setActiveAnnotation] = useState(null);
-  const [showAnnotationModal, setShowAnnotationModal] = useState(false);
 
   // --- Refs ---
   const dayPickerRef = useRef(null);
@@ -983,7 +982,11 @@ const App = () => {
     });
     const data = await res.json();
     if (data.success) {
-      setAnnotations(prev => [{ id: data.id, session_id: activeSession.id, problem_id: activeProblemId, createdAt: new Date().toISOString() }, ...prev]);
+      setAnnotations(prev => {
+        const filtered = prev.filter(a => a.problem_id !== activeProblemId);
+        return [{ id: data.id, session_id: activeSession.id, problem_id: activeProblemId, createdAt: new Date().toISOString() }, ...filtered];
+      });
+      setActiveAnnotation({ id: data.id, imageDataUrl });
     }
     return data;
   }, [api, activeProblemId, activeSession]);
@@ -1874,7 +1877,22 @@ const App = () => {
                   {(interfaceMode === 'practice' || interfaceMode === 'edit') && (
                     <button
                       className="btn btn-outline"
-                      onClick={() => setShowAnnotationOverlay(true)}
+                      onClick={async () => {
+                        const ann = annotations.find(a => a.problem_id === activeProblemId);
+                        if (ann) {
+                          try {
+                            const res = await api(`/api/annotations/${ann.id}`);
+                            const data = await res.json();
+                            setActiveAnnotation(data);
+                          } catch (err) {
+                            console.error('Failed to load annotation:', err);
+                            setActiveAnnotation(null);
+                          }
+                        } else {
+                          setActiveAnnotation(null);
+                        }
+                        setShowAnnotationOverlay(true);
+                      }}
                       title="Annotate code"
                     >
                       <Image size={16} /> Annotate
@@ -1988,74 +2006,18 @@ const App = () => {
                   {activeProblem.user_status === 'completed' ? <CheckCircle size={18} /> : <Circle size={18} />}
                   <span>{activeProblem.user_status === 'completed' ? 'Completed' : 'Mark as Done'}</span>
                 </button>
-                {annotations.some(a => a.problem_id === activeProblemId) && (
-                  <button
-                    className="btn btn-ghost"
-                    onClick={async () => {
-                      const ann = annotations.find(a => a.problem_id === activeProblemId);
-                      if (!ann) return;
-                      try {
-                        const res = await api(`/api/annotations/${ann.id}`);
-                        const data = await res.json();
-                        setActiveAnnotation(data);
-                        setShowAnnotationModal(true);
-                      } catch (err) {
-                        console.error('Failed to load annotation:', err);
-                      }
-                    }}
-                  >
-                    <Image size={16} /> View Annotation
-                  </button>
-                )}
               </div>
 
               {showAnnotationOverlay && (
                 <AnnotationOverlay
                   targetRef={editorContainerRef}
-                  sessionId={activeSession?.id}
-                  problemId={activeProblemId}
-                  onClose={() => setShowAnnotationOverlay(false)}
+                  savedAnnotation={activeAnnotation?.imageDataUrl}
+                  onClose={() => {
+                    setShowAnnotationOverlay(false);
+                    setActiveAnnotation(null);
+                  }}
                   onSave={saveAnnotation}
                 />
-              )}
-
-              {showAnnotationModal && activeAnnotation && (
-                <div
-                  className="modal-overlay fade-in"
-                  onClick={() => setShowAnnotationModal(false)}
-                  style={{
-                    position: 'fixed',
-                    inset: 0,
-                    zIndex: 2000,
-                    background: 'rgba(0,0,0,0.8)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '2rem'
-                  }}
-                >
-                  <div
-                    className="glass"
-                    onClick={e => e.stopPropagation()}
-                    style={{
-                      maxWidth: '90vw',
-                      maxHeight: '90vh',
-                      overflow: 'auto',
-                      borderRadius: '16px',
-                      padding: '1rem'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                      <span style={{ fontWeight: 600 }}>Annotation</span>
-                      <button className="btn btn-sm btn-ghost" onClick={() => setShowAnnotationModal(false)}><X size={16} /></button>
-                    </div>
-                    <img
-                      src={activeAnnotation.imageDataUrl}
-                      alt="Annotation"
-                      style={{ maxWidth: '100%', maxHeight: '80vh', borderRadius: '8px', display: 'block' }}
-                    />
-                  </div>
-                </div>
               )}
             </div>
           </div>
