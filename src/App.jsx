@@ -50,9 +50,16 @@ import './styles/Dashboard.css';
 
 // Code Editor Imports
 import Editor from 'react-simple-code-editor';
-import prism from 'prismjs';
+import Prism from 'prismjs';
 import 'prismjs/components/prism-python';
 import 'prismjs/themes/prism-tomorrow.css';
+
+const highlightPython = (code) => {
+  if (!code) return '';
+  const grammar = Prism.languages.python;
+  if (!grammar) return code;
+  return Prism.highlight(code, grammar, 'python');
+};
 
 const PythonEditor = ({ code, onChange, placeholder, className = "" }) => {
   return (
@@ -60,7 +67,7 @@ const PythonEditor = ({ code, onChange, placeholder, className = "" }) => {
       <Editor
         value={code || ""}
         onValueChange={onChange}
-        highlight={code => prism.highlight(code || "", prism.languages.python, 'python')}
+        highlight={highlightPython}
         padding={20}
         placeholder={placeholder}
         style={{
