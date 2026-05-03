@@ -1990,49 +1990,50 @@ const App = () => {
                   )}
                 </div>
 
-                {assistanceMode !== 'challenge' && activeProblem.problem_format && (() => {
-                  const lines = activeProblem.problem_format.trim().split('\n').filter(Boolean);
-                  return (
-                    <div className="hint-blueprint-stack">
-                      <div className="hint-card hint-card--step">
-                        <div className="hint-card-label">PROBLEM</div>
+                <div className="hint-blueprint-stack">
+                  {assistanceMode !== 'challenge' && activeProblem.pattern_hint && (
+                    <div className="hint-card">
+                      <div className="hint-card-label">CORE PATTERN</div>
+                      <div className="hint-card-pattern">{activeProblem.pattern_hint}</div>
+                    </div>
+                  )}
+
+                  {assistanceMode !== 'challenge' && activeProblem.problem_format && (() => {
+                    const lines = activeProblem.problem_format.trim().split('\n').filter(Boolean);
+                    return (
+                      <div className="hint-card">
+                        <div className="hint-card-label">PROBLEM SUMMARY</div>
                         {lines.map((line, i) => (
                           <div key={i} className="hint-card-insight-line">{line}</div>
                         ))}
                       </div>
-                    </div>
-                  );
-                })()}
+                    );
+                  })()}
 
-                {assistanceMode !== 'challenge' && activeProblem.solution_format && (() => {
-                  const lines = activeProblem.solution_format.trim().split('\n').filter(Boolean);
-                  return (
-                    <div className="hint-blueprint-stack">
-                      <div className="hint-card hint-card--step">
-                        <div className="hint-card-label">SOLUTION</div>
+                  {assistanceMode !== 'challenge' && activeProblem.solution_format && (() => {
+                    const lines = activeProblem.solution_format.trim().split('\n').filter(Boolean);
+                    return (
+                      <div className="hint-card">
+                        <div className="hint-card-label">STRATEGY</div>
                         {lines.map((line, i) => (
                           <div key={i} className="hint-card-insight-line">{line}</div>
                         ))}
                       </div>
-                    </div>
-                  );
-                })()}
+                    );
+                  })()}
 
-
-
-                {assistanceMode !== 'challenge' && activeProblem.guided_hints && (() => {
-                  const insightLines = activeProblem.guided_hints.trim().split('\n').filter(Boolean);
-                  return (
-                    <div className="hint-blueprint-stack">
-                      {insightLines.map((line, i) => (
-                        <div key={i} className="hint-card">
-                          {i === 0 && <div className="hint-card-label">BLUEPRINT</div>}
-                          <div className="hint-card-insight-line">{line}</div>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })()}
+                  {assistanceMode !== 'challenge' && activeProblem.guided_hints && (() => {
+                    const insightLines = activeProblem.guided_hints.trim().split('\n').filter(Boolean);
+                    return (
+                      <div className="hint-card">
+                        <div className="hint-card-label">TECHNICAL BLUEPRINT</div>
+                        {insightLines.map((line, i) => (
+                          <div key={i} className="hint-card-insight-line" style={{ marginBottom: '0.4rem' }}>{line}</div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
               </div>
 
 

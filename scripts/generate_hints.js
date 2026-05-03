@@ -16,7 +16,6 @@
  */
 
 import { Sequelize, DataTypes, Op } from 'sequelize';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -52,15 +51,7 @@ const Problem = sequelize.define('Problem', {
     problem_format: DataTypes.TEXT,  // Problem statement summary (SECTION 1)
     solution_format: DataTypes.TEXT,  // Solution walkthrough (SECTION 2)
 }, { timestamps: false, tableName: 'problems' });
-
-// ─── Gemini setup ────────────────────────────────────────────────────────────
-const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey || apiKey === 'your_gemini_api_key_here') {
-    console.error('❌  GEMINI_API_KEY not set in .env');
-    process.exit(1);
-}
-const genAI = new GoogleGenerativeAI(apiKey);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+import { callLLM } from './llm_helper.js';
 
 // ─── Prompt ──────────────────────────────────────────────────────────────────
 function buildPrompt(problem) {
@@ -103,17 +94,8 @@ function buildPrompt(problem) {
         '- What should the hash map store? Each number and its index as we traverse.',
         '- As we iterate, what complement do we need? For nums[i], we need target - nums[i].',
         '- When do we find the answer? When the complement already exists in our map.',
-        '- What is the fallback if no pair exists? Return [-1, -1].',
         'TIME COMPLEXITY: O(n) - single pass through array',
         'SPACE COMPLEXITY: O(n) - hash map stores at most n elements',
-        '',
-        'Example for Container With Most Water:',
-        'KEY INSIGHT: Use two pointers starting at edges; the area is bounded by shorter height and distance between pointers.',
-        '- How do we maximize area? Try both left and right boundaries, pick maximum.',
-        '- When should we move a pointer? Move the shorter side inward (it\'s the bottleneck).',
-        '- What terminates the search? Pointers meet at center.',
-        'TIME COMPLEXITY: O(n) - two pointers traverse array once',
-        'SPACE COMPLEXITY: O(1) - no extra space needed',
         '',
         'SECTION 3 — Practice Scaffold (valid Python):',
         'Copy the full reference solution but replace ONLY the critical/clever logic with:',
@@ -126,34 +108,114 @@ function buildPrompt(problem) {
         'SECTION 4 — Pattern (one short phrase only):',
         'Name the core algorithmic technique(s) this problem uses. No explanation, just the phrase.',
         '',
-        'Output format (nothing else):',
-        '<problem statement>',
+        'SECTION 5 — Blueprint (6 concise points):',
+        'Provide a high-density, technical blueprint of the solution. STRICTLY AVOID generic steps like "initialize a variable", "loop through the array", or "return the result".',
+        'Focus on the CORE ALGORITHMIC ENGINE and the "trick". Each point must contain a specific technical insight or optimization.',
+        'Example for Two Sum:',
+        '1. Use a hash map to reduce search complexity from O(n) to O(1).',
+        '2. Store previously seen values as keys to enable backward-looking complement checks.',
+        '3. Calculate the required complement (target - current) at each step.',
+        '4. Instantaneous map lookups replace the need for a nested search loop.',
+        '5. The single-pass approach ensures O(n) time complexity.',
+        '6. Space complexity is O(n) to store the value-to-index mapping.',
+        '',
+        'Example for Trapping Rain Water:',
+        '1. Use two pointers at the boundaries to bound the possible water level.',
+        '2. Maintain left_max and right_max to track the elevation bottleneck at each side.',
+        '3. Move the pointer pointing to the smaller maximum to process the current bottleneck.',
+        '4. Water trapped at any bar is determined by the minimum of the two boundary heights.',
+        '5. This greedy approach ensures we only process each bar once (O(n)).',
+        '6. Constant space (O(1)) is achieved by not storing auxiliary prefix/suffix arrays.',
+        '',
+        'Output format (nothing else, NO markdown fences around the whole response):',
+        'SECTION 1: <problem statement - MAX 50 WORDS>',
         '---',
-        '<solution explanation with questions and answers>',
+        'SECTION 2: <solution explanation>',
         '---',
-        '<practice scaffold python>',
+        'SECTION 3: <practice scaffold python>',
         '---',
-        '<pattern phrase>',
+        'SECTION 4: <pattern phrase>',
+        '---',
+        'SECTION 5: <6-point blueprint>',
+        '',
+        'STRICTLY follow the format. Use "---" on its own line as the ONLY separator.',
     ].join('\n');
 }
 
 function parseResponse(text) {
-    const parts = text.split(/^---$/m);
-    if (parts.length < 4) return null;
+    // Strip markdown code blocks if the model wrapped the whole thing
+    const cleanedText = text.replace(/^```[a-z]*\n/i, '').replace(/\n```$/m, '').trim();
+    
+    // Landmark detection: find where each section starts
+    const findPos = (label) => {
+        const regex = new RegExp(`SECTION ${label}:?`, 'i');
+        const match = cleanedText.match(regex);
+        return match ? match.index : -1;
+    };
 
-    // Ensure each section has content
-    const section1 = parts[0].trim();
-    const section2 = parts[1].trim();
-    const section3 = parts[2].trim();
-    const section4 = parts[3].trim();
+    const p1 = findPos(1);
+    const p2 = findPos(2);
+    const p4 = findPos(4);
+    const p5 = findPos(5);
 
-    if (!section1 || !section2 || !section3 || !section4) return null;
+    // If we can't find the main anchor points, something is wrong
+    if (p1 === -1 || p2 === -1 || p4 === -1 || p5 === -1) {
+        // Fallback to simple dash split if anchors fail
+        const parts = cleanedText.split(/\n?\s*---\s*\n?/m).map(s => s.trim()).filter(Boolean);
+        if (parts.length >= 5) return {
+            problem_format: parts[0],
+            solution_format: parts[1],
+            practice_scaffold: parts[2],
+            pattern_hint: parts[3],
+            guided_hints: parts[4]
+        };
+        return null;
+    }
+
+    // Extract sections based on landmarks
+    const getClean = (start, end) => {
+        let chunk = end !== -1 ? cleanedText.substring(start, end) : cleanedText.substring(start);
+        // Remove the label itself from the start
+        chunk = chunk.replace(/^SECTION \d+:?/i, '').trim();
+        // Remove trailing/leading dashes
+        chunk = chunk.replace(/^---+\s*/, '').replace(/\s*---+\s*$/, '').trim();
+        return chunk;
+    };
+
+    const s1 = getClean(p1, p2);
+    const s2 = getClean(p2, p4); 
+    
+    // Section 3 is everything between the end of Section 2 and the start of Section 4
+    // But s2 currently includes Section 2 + Section 3. Let's fix that.
+    // Actually, it's easier to find the separator after Section 2.
+    const s2Content = s2.split(/\n?\s*---\s*\n?/m);
+    
+    let section2, section3;
+    if (s2Content.length >= 2) {
+        section2 = s2Content[0];
+        section3 = s2Content[1];
+    } else {
+        // Fallback: if no dash, assume the last 1/3 is code or vice versa? 
+        // Better: look for 'class Solution' or 'def ' as a marker for start of Section 3
+        const codeMarker = s2.search(/\n(class |def |import )/);
+        if (codeMarker !== -1) {
+            section2 = s2.substring(0, codeMarker).trim();
+            section3 = s2.substring(codeMarker).trim();
+        } else {
+            section2 = s2;
+            section3 = "# Error: Could not isolate code section";
+        }
+    }
+
+    const section4 = getClean(p4, p5);
+    const section5 = getClean(p5, -1);
 
     return {
-        problem_format: section1,
+        problem_format: s1,
         solution_format: section2,
         practice_scaffold: section3,
         pattern_hint: section4,
+        guided_hints: section5
     };
 }
 
@@ -210,9 +272,14 @@ async function main() {
         for (const problem of problems) {
             process.stdout.write(`  [${problem.id}] ${problem.title}... `);
             try {
-                const result = await model.generateContent(buildPrompt(problem));
-                const parsed = parseResponse(result.response.text().trim());
-                if (!parsed) throw new Error('Could not parse --- separator in response');
+                const responseText = await callLLM(buildPrompt(problem));
+                const parsed = parseResponse(responseText.trim());
+                if (!parsed) {
+                    console.log('\n--- DEBUG: RAW RESPONSE (FULL) ---');
+                    console.log(responseText);
+                    console.log('----------------------------------\n');
+                    throw new Error('Could not parse --- separator in response');
+                }
 
                 await problem.update(parsed);
                 generated++;

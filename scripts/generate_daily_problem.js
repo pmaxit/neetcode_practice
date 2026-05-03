@@ -16,7 +16,7 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { Sequelize, DataTypes, Op } from 'sequelize';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { callLLM } from './llm_helper.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -170,13 +170,7 @@ async function main() {
     console.log('\nTopics covered today:');
     console.log(topicSummary);
 
-    // 6. Build Gemini prompt
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey || apiKey === 'your_gemini_api_key_here') {
-        console.error('✗ GEMINI_API_KEY not set in .env');
-        process.exit(1);
-    }
-
+    // 6. Build prompt
     const prompt = `You are a senior competitive programming problem setter who creates elite, original interview problems.
 
 A student has been studying these LeetCode problems today (Day ${targetDay}):
@@ -222,21 +216,8 @@ Return ONLY valid JSON (absolutely no markdown fences, no extra text):
   "mnemonic": "One sentence that captures the core trick so you never forget it."
 }`;
 
-    console.log('\nCalling Gemini to generate problem...');
-
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
-    // Stream the generation so we can see progress
-    const streamResult = await model.generateContentStream(prompt);
-    let fullText = '';
-    process.stdout.write('Streaming: ');
-    for await (const chunk of streamResult.stream) {
-        const text = chunk.text();
-        fullText += text;
-        process.stdout.write('.');
-    }
-    console.log(' done.\n');
+    console.log('\nCalling LM Studio to generate problem...');
+    const fullText = await callLLM(prompt, "You are a senior competitive programming problem setter.");
 
     // 7. Parse the JSON response
     let cleaned = fullText.trim()

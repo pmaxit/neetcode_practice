@@ -5,7 +5,36 @@ import { fileURLToPath } from 'url';
 import { Sequelize, DataTypes } from 'sequelize';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+
+const LM_STUDIO_URL = 'http://localhost:1234/v1/chat/completions';
+
+async function callLLM(prompt, systemPrompt = "You are a professional coding tutor.", stream = false) {
+    const payload = {
+        model: "local-model",
+        messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: prompt }
+        ],
+        temperature: 0.2,
+        stream
+    };
+
+    const response = await fetch(LM_STUDIO_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`LM Studio error: ${response.status} - ${errorText}`);
+    }
+
+    if (stream) return response.body; // Return the stream
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+}
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -779,28 +808,8 @@ app.post('/api/agent/review', requireAuth, async (req, res) => {
         return res.status(400).json({ error: 'Please write some code before asking for a review.' });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey || apiKey === 'your_gemini_api_key_here') {
-        return res.status(500).json({ error: 'Gemini API key not configured. Add GEMINI_API_KEY to .env.' });
-    }
 
     try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({
-            model: 'gemini-2.5-flash',
-            systemInstruction: [
-                'You are an expert coding interview coach specializing in LeetCode-style problems.',
-                'Your role is to review Python solutions written by an engineer practicing for interviews.',
-                'Be concise, technical, and constructive. Focus on:',
-                '  1. Correctness — does the logic handle all edge cases?',
-                '  2. Time/Space complexity — state the Big-O with justification.',
-                '  3. Minimal improvements — suggest only the most impactful changes with short code snippets.',
-                '  4. Encourage the learner — acknowledge what they got right.',
-                'Format your response in markdown with clear sections.',
-                'Never rewrite the entire solution — only show the changed parts.',
-            ].join('\n')
-        });
-
         const cleanStatement = (problemText)
             .replace(/<[^>]+>/g, ' ')
             .replace(/\s+/g, ' ')
@@ -824,12 +833,11 @@ app.post('/api/agent/review', requireAuth, async (req, res) => {
             'and suggest minimal changes with clear explanations.',
         ].join('\n');
 
-        const result = await model.generateContent(userMessage);
-        const responseText = result.response.text();
+        const responseText = await callLLM(userMessage, "You are an expert coding interview coach specializing in LeetCode-style problems.");
         res.json({ feedback: responseText });
     } catch (err) {
         console.error('[Agent Review] Error:', err);
-        res.status(500).json({ error: 'Gemini API call failed: ' + err.message });
+        res.status(500).json({ error: 'LM Studio call failed: ' + err.message });
     }
 });
 
@@ -838,15 +846,7 @@ app.post('/api/agent/review', requireAuth, async (req, res) => {
 app.post('/api/admin/generate-hints', async (req, res) => {
     const { limit = 10, overwrite = false } = req.body;
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey || apiKey === 'your_gemini_api_key_here') {
-        return res.status(500).json({ error: 'Gemini API key not configured.' });
-    }
-
     try {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
         const whereClause = overwrite ? {} : { guided_hints: null };
         const problems = await Problem.findAll({ where: whereClause, limit });
 
@@ -861,11 +861,6 @@ app.post('/api/admin/generate-hints', async (req, res) => {
                     .replace(/\s+/g, ' ')
                     .trim()
                     .substring(0, 600);
-
-                const codePreview = (problem.python_code || '')
-                    .split('\n')
-                    .slice(0, 8)
-                    .join('\n');
 
                 const prompt = [
                     `You are an elite Lead Engineer acting as a mentor. Your task is to generate a "High-Impact Scaffold" for the LeetCode problem: "${problem.title}".`,
@@ -892,8 +887,7 @@ app.post('/api/admin/generate-hints', async (req, res) => {
                     '7. DO NOT wrap in markdown fences (no ```).',
                 ].join('\n');
 
-                const result = await model.generateContent(prompt);
-                const hints = result.response.text().trim();
+                const hints = await callLLM(prompt, "You are an elite Lead Engineer acting as a mentor.");
 
                 await problem.update({ guided_hints: hints });
                 generated++;
@@ -904,7 +898,6 @@ app.post('/api/admin/generate-hints', async (req, res) => {
                 results.push({ id: problem.id, title: problem.title, status: 'error', error: err.message });
                 console.warn(`[Hints] Failed for ${problem.title}:`, err.message);
             }
-            await new Promise(r => setTimeout(r, 400));
         }
 
         res.json({ success: true, generated, failed, results });
@@ -929,10 +922,6 @@ app.post('/api/study-plan/generate', requireAuth, requireSession, async (req, re
     if (!days || days < 1 || days > 365) return res.status(400).json({ error: 'days must be 1–365' });
     if (!questions_per_day || questions_per_day < 1 || questions_per_day > 20) return res.status(400).json({ error: 'questions_per_day must be 1–20' });
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey || apiKey === 'your_gemini_api_key_here') {
-        return res.status(500).json({ error: 'Gemini API key not configured.' });
-    }
 
     try {
         const whereClause = type === 'neetcode' ? { tag: 'neetcode' } : {};
@@ -998,7 +987,7 @@ Return ONLY valid JSON (no markdown, no explanation):
 
 Generate all ${days} days. Slot counts per day must sum to exactly ${questions_per_day}.`;
 
-        // SSE headers — stream Gemini output to client in real-time
+        // SSE headers — stream output to client in real-time
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
@@ -1006,12 +995,32 @@ Generate all ${days} days. Slot counts per day must sum to exactly ${questions_p
 
         const sendEvent = (obj) => res.write(`data: ${JSON.stringify(obj)}\n\n`);
 
-        const streamResult = await model.generateContentStream(prompt);
+        const streamBody = await callLLM(prompt, "You are a competitive programming curriculum designer.", true);
+        const reader = streamBody.getReader();
+        const decoder = new TextDecoder();
         let fullText = '';
-        for await (const chunk of streamResult.stream) {
-            const text = chunk.text();
-            fullText += text;
-            sendEvent({ type: 'chunk', text });
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            // LM Studio (OpenAI format) returns data: { ... } chunks
+            const lines = chunk.split('\n').filter(line => line.trim() !== '');
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const dataStr = line.slice(6).trim();
+                    if (dataStr === '[DONE]') break;
+                    try {
+                        const data = JSON.parse(dataStr);
+                        const text = data.choices[0]?.delta?.content || '';
+                        fullText += text;
+                        if (text) sendEvent({ type: 'chunk', text });
+                    } catch (e) {
+                        // Ignore parse errors for incomplete chunks
+                    }
+                }
+            }
         }
 
         let responseText = fullText.trim()

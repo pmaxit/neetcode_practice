@@ -9,7 +9,7 @@
  *   node scripts/fix_missing_statements.js --execute --limit 20
  */
 import { Sequelize, DataTypes, Op } from 'sequelize';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { callLLM } from './llm_helper.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -19,7 +19,7 @@ const LIMIT_IDX = process.argv.indexOf('--limit');
 const LIMIT = LIMIT_IDX !== -1 ? parseInt(process.argv[LIMIT_IDX + 1], 10) : Infinity;
 
 // ── DB Setup ───────────────────────────────────────────────────────────────────
-const { DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT, INSTANCE_CONNECTION_NAME, K_SERVICE, GEMINI_API_KEY } = process.env;
+const { DB_HOST, DB_USER, DB_PASS, DB_NAME, DB_PORT, INSTANCE_CONNECTION_NAME, K_SERVICE } = process.env;
 const useSocket = INSTANCE_CONNECTION_NAME && K_SERVICE;
 const sequelize = useSocket
     ? new Sequelize(DB_NAME, DB_USER, DB_PASS, {
@@ -46,13 +46,8 @@ const Problem = sequelize.define('Problem', {
     youtube_url: DataTypes.STRING
 }, { timestamps: false, tableName: 'problems' });
 
-// ── Gemini Setup ───────────────────────────────────────────────────────────────
-if (!GEMINI_API_KEY) {
-    console.error('❌  GEMINI_API_KEY not set in .env');
-    process.exit(1);
-}
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+// ── LLM Setup (LM Studio) ──────────────────────────────────────────────────────
+// No specific setup needed for fetch-based helper.
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function slugFromUrl(url) {
@@ -107,9 +102,8 @@ This is a well-known LeetCode coding interview problem. Write an accurate and co
 
 Format the output as clean HTML using <p>, <ul>, <li>, <pre>, <strong>, <code> tags as LeetCode does. Do not include any markdown. Do not add any preamble or explanation — output only the HTML problem statement.`;
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().trim();
-    // Strip markdown code fences if Gemini wrapped it
+    const text = await callLLM(prompt, "You are a professional coding problem setter.");
+    // Strip markdown code fences if LLM wrapped it
     return text.replace(/^```html\n?/, '').replace(/\n?```$/, '').trim();
 }
 

@@ -1,12 +1,10 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+
+import { callLLM } from './llm_helper.js';
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 
 dotenv.config();
-
-const genAI = new GoogleGenerativeAI(process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
 /**
  * Instruments and executes code to capture state at each line.
@@ -55,8 +53,7 @@ async function generateExplanation(code, step, previousSteps) {
     Return JSON only: { "explanation": "• Point 1\n• Point 2", "visualHint": "..." }
     `;
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const text = await callLLM(prompt, "You are a professional coding tutor.");
     return JSON.parse(text.replace(/```json|```/g, '').trim());
 }
 
@@ -74,8 +71,7 @@ async function critiqueExplanation(code, step, explanationData) {
     Return JSON only: { "isAccurate": true/false, "feedback": "...", "suggestion": "..." }
     `;
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const text = await callLLM(prompt, "You are a code critique expert.");
     return JSON.parse(text.replace(/```json|```/g, '').trim());
 }
 

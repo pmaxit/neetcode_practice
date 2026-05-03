@@ -1,13 +1,32 @@
 #!/usr/bin/env node
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 const mysql = require('mysql2/promise');
 const dotenv = require('dotenv');
-
 dotenv.config();
 
-const apiKey = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
-const genAI = new GoogleGenerativeAI(apiKey);
-const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+const LM_STUDIO_URL = 'http://localhost:1234/v1/chat/completions';
+
+async function callLLM(prompt, systemPrompt = "You are a professional coding tutor.") {
+    const response = await fetch(LM_STUDIO_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            model: "local-model",
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: prompt }
+            ],
+            temperature: 0.2,
+        })
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`LM Studio error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+}
 
 const SAMPLE_INPUTS = {
     "two sum": { nums: [2, 7, 11, 15], target: 9 },
@@ -59,8 +78,7 @@ Return ONLY the JSON object/array.
 `;
 
     try {
-        const result = await model.generateContent(prompt);
-        let text = result.response.text();
+        let text = await callLLM(prompt, "You are an expert Python execution tracer.");
         text = text.replace(/```json|```/g, '').trim();
         return JSON.parse(text);
     } catch (err) {
@@ -90,8 +108,7 @@ Return JSON only: { "score": number, "feedback": "Detailed explanation of what t
 `;
 
     try {
-        const result = await model.generateContent(prompt);
-        let text = result.response.text();
+        let text = await callLLM(prompt, "You are an expert at critiquing execution traces.");
         text = text.replace(/```json|```/g, '').trim();
         return JSON.parse(text);
     } catch (err) {
