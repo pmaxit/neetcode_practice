@@ -13,6 +13,7 @@
  *   node scripts/generate_hints.js --overwrite           # re-generate ALL (even existing)
  *   node scripts/generate_hints.js --all --after 461     # process all problems with id > 461
  *   node scripts/generate_hints.js --overwrite --after 461  # re-generate all with id > 461
+ *   node scripts/generate_hints.js --model google/gemma-3n-e4b # specify model
  */
 
 import { Sequelize, DataTypes, Op } from 'sequelize';
@@ -28,6 +29,7 @@ const limitArg = args.includes('--limit') ? parseInt(args[args.indexOf('--limit'
 const afterArg = args.includes('--after') ? parseInt(args[args.indexOf('--after') + 1]) : null;
 const processAll = args.includes('--all');
 const overwrite = args.includes('--overwrite');
+const modelArg = args.includes('--model') ? args[args.indexOf('--model') + 1] : null;
 const LIMIT = !processAll ? (limitArg || 10) : 9999;
 const DELAY_MS = 400;
 
@@ -272,7 +274,7 @@ async function main() {
         for (const problem of problems) {
             process.stdout.write(`  [${problem.id}] ${problem.title}... `);
             try {
-                const responseText = await callLLM(buildPrompt(problem));
+                const responseText = await callLLM(buildPrompt(problem), undefined, modelArg || undefined);
                 const parsed = parseResponse(responseText.trim());
                 if (!parsed) {
                     console.log('\n--- DEBUG: RAW RESPONSE (FULL) ---');

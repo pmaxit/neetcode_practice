@@ -1,12 +1,12 @@
 
 const LM_STUDIO_URL = 'http://localhost:1234/v1/chat/completions';
 
-export async function callLLM(prompt, systemPrompt = "You are a robotic technical assistant. ZERO conversation. ZERO thinking blocks. Start with 'SECTION 1:' and follow the format perfectly.") {
+export async function callLLM(prompt, systemPrompt = "You are a robotic technical assistant. ZERO conversation. ZERO thinking blocks. Start with 'SECTION 1:' and follow the format perfectly.", model = "google/gemma-3n-e4b") {
     const response = await fetch(LM_STUDIO_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            model: "local-model",
+            model: model,
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: prompt }
