@@ -136,7 +136,8 @@ const UserSettings = sequelize.define('UserSettings', {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
     user_id: { type: DataTypes.INTEGER, allowNull: true },
     planned_days: { type: DataTypes.INTEGER, defaultValue: 25 },
-    revisions_per_day: { type: DataTypes.INTEGER, defaultValue: 3 }
+    revisions_per_day: { type: DataTypes.INTEGER, defaultValue: 3 },
+    show_visualize_tab: { type: DataTypes.BOOLEAN, defaultValue: true }
 }, { timestamps: true, tableName: 'user_settings' });
 
 const StudyPlan = sequelize.define('StudyPlan', {
@@ -692,12 +693,21 @@ app.get('/api/settings', requireAuth, async (req, res) => {
 
 app.post('/api/settings', requireAuth, async (req, res) => {
     try {
-        const { planned_days, revisions_per_day } = req.body;
+        const { planned_days, revisions_per_day, show_visualize_tab } = req.body;
         let settings = await UserSettings.findOne({ where: { user_id: req.userId } });
         if (!settings) {
-            settings = await UserSettings.create({ user_id: req.userId, planned_days, revisions_per_day });
+            settings = await UserSettings.create({ 
+                user_id: req.userId, 
+                planned_days, 
+                revisions_per_day,
+                show_visualize_tab: show_visualize_tab !== undefined ? show_visualize_tab : true
+            });
         } else {
-            await settings.update({ planned_days, revisions_per_day });
+            const updates = {};
+            if (planned_days !== undefined) updates.planned_days = planned_days;
+            if (revisions_per_day !== undefined) updates.revisions_per_day = revisions_per_day;
+            if (show_visualize_tab !== undefined) updates.show_visualize_tab = show_visualize_tab;
+            await settings.update(updates);
         }
         res.json(settings);
     } catch (error) {
@@ -1315,10 +1325,22 @@ async function ensureTableStructure() {
                 console.log(`Restructured ${table} (added surrogate PK + tenant columns)`);
             }
         } catch (e) {
-            // Table may not exist yet on a fresh deploy — sync({ alter }) will create it
             if (!e.message?.includes("doesn't exist")) {
                 console.warn(`ensureTableStructure warning for ${table}:`, e.message);
             }
+        }
+    }
+
+    // Ensure user_settings has show_visualize_tab
+    try {
+        const [cols] = await sequelize.query(`SHOW COLUMNS FROM \`user_settings\` LIKE 'show_visualize_tab'`);
+        if (cols.length === 0) {
+            await sequelize.query(`ALTER TABLE \`user_settings\` ADD COLUMN show_visualize_tab BOOLEAN DEFAULT TRUE`);
+            console.log('Added show_visualize_tab column to user_settings');
+        }
+    } catch (e) {
+        if (!e.message?.includes("doesn't exist")) {
+            console.warn('ensureTableStructure warning for user_settings:', e.message);
         }
     }
 }

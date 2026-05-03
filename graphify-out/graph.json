@@ -55,8 +55,26 @@
       "source_file": "vite.config.js",
       "source_location": "L1",
       "id": "vite_config_js",
-      "community": 32,
+      "community": 38,
       "norm_label": "vite.config.js"
+    },
+    {
+      "label": "cypress.config.js",
+      "file_type": "code",
+      "source_file": "cypress.config.js",
+      "source_location": "L1",
+      "id": "cypress_config_js",
+      "community": 17,
+      "norm_label": "cypress.config.js"
+    },
+    {
+      "label": "setupNodeEvents()",
+      "file_type": "code",
+      "source_file": "cypress.config.js",
+      "source_location": "L6",
+      "id": "practice_app_cypress_config_setupnodeevents",
+      "community": 17,
+      "norm_label": "setupnodeevents()"
     },
     {
       "label": "server.js",
@@ -64,71 +82,143 @@
       "source_file": "server.js",
       "source_location": "L1",
       "id": "server_js",
-      "community": 4,
+      "community": 5,
       "norm_label": "server.js"
     },
     {
       "label": "signToken()",
       "file_type": "code",
       "source_file": "server.js",
-      "source_location": "L173",
+      "source_location": "L183",
       "id": "practice_app_server_signtoken",
-      "community": 4,
+      "community": 5,
       "norm_label": "signtoken()"
     },
     {
       "label": "requireAuth()",
       "file_type": "code",
       "source_file": "server.js",
-      "source_location": "L177",
+      "source_location": "L187",
       "id": "practice_app_server_requireauth",
-      "community": 4,
+      "community": 5,
       "norm_label": "requireauth()"
     },
     {
       "label": "requireSession()",
       "file_type": "code",
       "source_file": "server.js",
-      "source_location": "L191",
+      "source_location": "L201",
       "id": "practice_app_server_requiresession",
-      "community": 4,
+      "community": 5,
       "norm_label": "requiresession()"
     },
     {
       "label": "shuffleArray()",
       "file_type": "code",
       "source_file": "server.js",
-      "source_location": "L831",
+      "source_location": "L918",
       "id": "practice_app_server_shufflearray",
-      "community": 4,
+      "community": 5,
       "norm_label": "shufflearray()"
     },
     {
       "label": "sendEvent()",
       "file_type": "code",
       "source_file": "server.js",
-      "source_location": "L920",
+      "source_location": "L1007",
       "id": "practice_app_server_sendevent",
-      "community": 4,
+      "community": 5,
       "norm_label": "sendevent()"
     },
     {
       "label": "seedDatabase()",
       "file_type": "code",
       "source_file": "server.js",
-      "source_location": "L1180",
+      "source_location": "L1267",
       "id": "practice_app_server_seeddatabase",
-      "community": 4,
+      "community": 5,
       "norm_label": "seeddatabase()"
     },
     {
       "label": "ensureTableStructure()",
       "file_type": "code",
       "source_file": "server.js",
-      "source_location": "L1223",
+      "source_location": "L1310",
       "id": "practice_app_server_ensuretablestructure",
-      "community": 4,
+      "community": 5,
       "norm_label": "ensuretablestructure()"
+    },
+    {
+      "label": "jest.config.js",
+      "file_type": "code",
+      "source_file": "jest.config.js",
+      "source_location": "L1",
+      "id": "jest_config_js",
+      "community": 39,
+      "norm_label": "jest.config.js"
+    },
+    {
+      "label": "setup.js",
+      "file_type": "code",
+      "source_file": "tests/setup.js",
+      "source_location": "L1",
+      "id": "tests_setup_js",
+      "community": 40,
+      "norm_label": "setup.js"
+    },
+    {
+      "label": "canvasDrawingEngine.test.js",
+      "file_type": "code",
+      "source_file": "tests/canvasDrawingEngine.test.js",
+      "source_location": "L1",
+      "id": "tests_canvasdrawingengine_test_js",
+      "community": 41,
+      "norm_label": "canvasdrawingengine.test.js"
+    },
+    {
+      "label": "annotations.integration.test.js",
+      "file_type": "code",
+      "source_file": "tests/annotations.integration.test.js",
+      "source_location": "L1",
+      "id": "tests_annotations_integration_test_js",
+      "community": 10,
+      "norm_label": "annotations.integration.test.js"
+    },
+    {
+      "label": "signToken()",
+      "file_type": "code",
+      "source_file": "tests/annotations.integration.test.js",
+      "source_location": "L12",
+      "id": "tests_annotations_integration_test_signtoken",
+      "community": 10,
+      "norm_label": "signtoken()"
+    },
+    {
+      "label": "requireAuth()",
+      "file_type": "code",
+      "source_file": "tests/annotations.integration.test.js",
+      "source_location": "L16",
+      "id": "tests_annotations_integration_test_requireauth",
+      "community": 10,
+      "norm_label": "requireauth()"
+    },
+    {
+      "label": "requireSession()",
+      "file_type": "code",
+      "source_file": "tests/annotations.integration.test.js",
+      "source_location": "L30",
+      "id": "tests_annotations_integration_test_requiresession",
+      "community": 10,
+      "norm_label": "requiresession()"
+    },
+    {
+      "label": "createTestApp()",
+      "file_type": "code",
+      "source_file": "tests/annotations.integration.test.js",
+      "source_location": "L37",
+      "id": "tests_annotations_integration_test_createtestapp",
+      "community": 10,
+      "norm_label": "createtestapp()"
     },
     {
       "label": "main.jsx",
@@ -136,7 +226,7 @@
       "source_file": "src/main.jsx",
       "source_location": "L1",
       "id": "src_main_jsx",
-      "community": 33,
+      "community": 42,
       "norm_label": "main.jsx"
     },
     {
@@ -145,134 +235,413 @@
       "source_file": "src/App.jsx",
       "source_location": "L1",
       "id": "src_app_jsx",
-      "community": 1,
+      "community": 2,
       "norm_label": "app.jsx"
+    },
+    {
+      "label": "highlightPython()",
+      "file_type": "code",
+      "source_file": "src/App.jsx",
+      "source_location": "L57",
+      "id": "src_app_highlightpython",
+      "community": 2,
+      "norm_label": "highlightpython()"
     },
     {
       "label": "PythonEditor()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L55",
+      "source_location": "L64",
       "id": "src_app_pythoneditor",
-      "community": 1,
+      "community": 2,
       "norm_label": "pythoneditor()"
     },
     {
       "label": "SolutionToggle()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L74",
+      "source_location": "L83",
       "id": "src_app_solutiontoggle",
-      "community": 1,
+      "community": 2,
       "norm_label": "solutiontoggle()"
     },
     {
       "label": "StatsSummary()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L107",
+      "source_location": "L116",
       "id": "src_app_statssummary",
-      "community": 1,
+      "community": 2,
       "norm_label": "statssummary()"
     },
     {
       "label": "SVGProgressChart()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L136",
+      "source_location": "L145",
       "id": "src_app_svgprogresschart",
-      "community": 1,
+      "community": 2,
       "norm_label": "svgprogresschart()"
     },
     {
       "label": "StudyPlanSettings()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L201",
+      "source_location": "L210",
       "id": "src_app_studyplansettings",
-      "community": 1,
+      "community": 2,
       "norm_label": "studyplansettings()"
     },
     {
       "label": "apiFetch()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L359",
+      "source_location": "L400",
       "id": "src_app_apifetch",
-      "community": 1,
+      "community": 2,
       "norm_label": "apifetch()"
     },
     {
       "label": "LoginView()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L368",
+      "source_location": "L409",
       "id": "src_app_loginview",
-      "community": 1,
+      "community": 2,
       "norm_label": "loginview()"
     },
     {
       "label": "SessionSelectView()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L464",
+      "source_location": "L505",
       "id": "src_app_sessionselectview",
-      "community": 1,
+      "community": 2,
       "norm_label": "sessionselectview()"
     },
     {
       "label": "App()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L572",
+      "source_location": "L613",
       "id": "src_app_app",
-      "community": 1,
+      "community": 2,
       "norm_label": "app()"
     },
     {
       "label": "parseSystemDesignContent()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L2737",
+      "source_location": "L2940",
       "id": "src_app_parsesystemdesigncontent",
-      "community": 1,
+      "community": 2,
       "norm_label": "parsesystemdesigncontent()"
     },
     {
       "label": "RequirementCard()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L2806",
+      "source_location": "L3009",
       "id": "src_app_requirementcard",
-      "community": 1,
+      "community": 2,
       "norm_label": "requirementcard()"
     },
     {
       "label": "SectionHeader()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L2819",
+      "source_location": "L3022",
       "id": "src_app_sectionheader",
-      "community": 1,
+      "community": 2,
       "norm_label": "sectionheader()"
     },
     {
       "label": "SystemDesignView()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L2826",
+      "source_location": "L3029",
       "id": "src_app_systemdesignview",
-      "community": 1,
+      "community": 2,
       "norm_label": "systemdesignview()"
     },
     {
       "label": "SystemDesignDetail()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L2871",
+      "source_location": "L3074",
       "id": "src_app_systemdesigndetail",
-      "community": 1,
+      "community": 2,
       "norm_label": "systemdesigndetail()"
+    },
+    {
+      "label": "canvasDrawingEngine.js",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L1",
+      "id": "src_lib_canvasdrawingengine_js",
+      "community": 0,
+      "norm_label": "canvasdrawingengine.js"
+    },
+    {
+      "label": "CanvasDrawingEngine",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L1",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine",
+      "community": 0,
+      "norm_label": "canvasdrawingengine"
+    },
+    {
+      "label": ".constructor()",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L2",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine_constructor",
+      "community": 0,
+      "norm_label": ".constructor()"
+    },
+    {
+      "label": "._initContext()",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L15",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine_initcontext",
+      "community": 0,
+      "norm_label": "._initcontext()"
+    },
+    {
+      "label": "._bindEvents()",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L20",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine_bindevents",
+      "community": 0,
+      "norm_label": "._bindevents()"
+    },
+    {
+      "label": "._getPoint()",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L37",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine_getpoint",
+      "community": 0,
+      "norm_label": "._getpoint()"
+    },
+    {
+      "label": "._onMouseDown()",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L49",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine_onmousedown",
+      "community": 0,
+      "norm_label": "._onmousedown()"
+    },
+    {
+      "label": "._onMouseMove()",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L61",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine_onmousemove",
+      "community": 0,
+      "norm_label": "._onmousemove()"
+    },
+    {
+      "label": "._onMouseUp()",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L75",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine_onmouseup",
+      "community": 0,
+      "norm_label": "._onmouseup()"
+    },
+    {
+      "label": "._onTouchStart()",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L84",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine_ontouchstart",
+      "community": 0,
+      "norm_label": "._ontouchstart()"
+    },
+    {
+      "label": "._onTouchMove()",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L89",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine_ontouchmove",
+      "community": 0,
+      "norm_label": "._ontouchmove()"
+    },
+    {
+      "label": "._onTouchEnd()",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L94",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine_ontouchend",
+      "community": 0,
+      "norm_label": "._ontouchend()"
+    },
+    {
+      "label": "._erase()",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L99",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine_erase",
+      "community": 0,
+      "norm_label": "._erase()"
+    },
+    {
+      "label": ".setTool()",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L108",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine_settool",
+      "community": 0,
+      "norm_label": ".settool()"
+    },
+    {
+      "label": ".setColor()",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L112",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine_setcolor",
+      "community": 0,
+      "norm_label": ".setcolor()"
+    },
+    {
+      "label": ".setLineWidth()",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L116",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine_setlinewidth",
+      "community": 0,
+      "norm_label": ".setlinewidth()"
+    },
+    {
+      "label": ".setEraserRadius()",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L120",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine_seteraserradius",
+      "community": 0,
+      "norm_label": ".seteraserradius()"
+    },
+    {
+      "label": ".clear()",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L124",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine_clear",
+      "community": 0,
+      "norm_label": ".clear()"
+    },
+    {
+      "label": ".exportToBase64()",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L129",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine_exporttobase64",
+      "community": 0,
+      "norm_label": ".exporttobase64()"
+    },
+    {
+      "label": ".setBackgroundImage()",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L133",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine_setbackgroundimage",
+      "community": 0,
+      "norm_label": ".setbackgroundimage()"
+    },
+    {
+      "label": ".destroy()",
+      "file_type": "code",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L145",
+      "id": "lib_canvasdrawingengine_canvasdrawingengine_destroy",
+      "community": 0,
+      "norm_label": ".destroy()"
+    },
+    {
+      "label": "imageRenderer.js",
+      "file_type": "code",
+      "source_file": "src/services/imageRenderer.js",
+      "source_location": "L1",
+      "id": "src_services_imagerenderer_js",
+      "community": 6,
+      "norm_label": "imagerenderer.js"
+    },
+    {
+      "label": "ImageRendererService",
+      "file_type": "code",
+      "source_file": "src/services/imageRenderer.js",
+      "source_location": "L5",
+      "id": "services_imagerenderer_imagerendererservice",
+      "community": 6,
+      "norm_label": "imagerendererservice"
+    },
+    {
+      "label": ".constructor()",
+      "file_type": "code",
+      "source_file": "src/services/imageRenderer.js",
+      "source_location": "L6",
+      "id": "services_imagerenderer_imagerendererservice_constructor",
+      "community": 6,
+      "norm_label": ".constructor()"
+    },
+    {
+      "label": "._ensureContainer()",
+      "file_type": "code",
+      "source_file": "src/services/imageRenderer.js",
+      "source_location": "L10",
+      "id": "services_imagerenderer_imagerendererservice_ensurecontainer",
+      "community": 6,
+      "norm_label": "._ensurecontainer()"
+    },
+    {
+      "label": "._removeContainer()",
+      "file_type": "code",
+      "source_file": "src/services/imageRenderer.js",
+      "source_location": "L28",
+      "id": "services_imagerenderer_imagerendererservice_removecontainer",
+      "community": 6,
+      "norm_label": "._removecontainer()"
+    },
+    {
+      "label": ".renderCodeToHtml()",
+      "file_type": "code",
+      "source_file": "src/services/imageRenderer.js",
+      "source_location": "L35",
+      "id": "services_imagerenderer_imagerendererservice_rendercodetohtml",
+      "community": 6,
+      "norm_label": ".rendercodetohtml()"
+    },
+    {
+      "label": ".renderToBase64()",
+      "file_type": "code",
+      "source_file": "src/services/imageRenderer.js",
+      "source_location": "L49",
+      "id": "services_imagerenderer_imagerendererservice_rendertobase64",
+      "community": 6,
+      "norm_label": ".rendertobase64()"
+    },
+    {
+      "label": "AnnotationOverlay.jsx",
+      "file_type": "code",
+      "source_file": "src/components/AnnotationOverlay.jsx",
+      "source_location": "L1",
+      "id": "src_components_annotationoverlay_jsx",
+      "community": 18,
+      "norm_label": "annotationoverlay.jsx"
+    },
+    {
+      "label": "AnnotationOverlay()",
+      "file_type": "code",
+      "source_file": "src/components/AnnotationOverlay.jsx",
+      "source_location": "L8",
+      "id": "components_annotationoverlay_annotationoverlay",
+      "community": 18,
+      "norm_label": "annotationoverlay()"
     },
     {
       "label": "CodeVisualizer.jsx",
@@ -280,44 +649,71 @@
       "source_file": "src/components/CodeVisualizer.jsx",
       "source_location": "L1",
       "id": "src_components_codevisualizer_jsx",
-      "community": 8,
+      "community": 11,
       "norm_label": "codevisualizer.jsx"
     },
     {
       "label": "LinkedListRenderer()",
       "file_type": "code",
       "source_file": "src/components/CodeVisualizer.jsx",
-      "source_location": "L4",
+      "source_location": "L7",
       "id": "components_codevisualizer_linkedlistrenderer",
-      "community": 8,
+      "community": 11,
       "norm_label": "linkedlistrenderer()"
     },
     {
       "label": "TreeRenderer()",
       "file_type": "code",
       "source_file": "src/components/CodeVisualizer.jsx",
-      "source_location": "L23",
+      "source_location": "L26",
       "id": "components_codevisualizer_treerenderer",
-      "community": 8,
+      "community": 11,
       "norm_label": "treerenderer()"
     },
     {
       "label": "ArrayRenderer()",
       "file_type": "code",
       "source_file": "src/components/CodeVisualizer.jsx",
-      "source_location": "L48",
+      "source_location": "L51",
       "id": "components_codevisualizer_arrayrenderer",
-      "community": 8,
+      "community": 11,
       "norm_label": "arrayrenderer()"
     },
     {
       "label": "CodeVisualizer()",
       "file_type": "code",
       "source_file": "src/components/CodeVisualizer.jsx",
-      "source_location": "L67",
+      "source_location": "L70",
       "id": "components_codevisualizer_codevisualizer",
-      "community": 8,
+      "community": 11,
       "norm_label": "codevisualizer()"
+    },
+    {
+      "label": "SolutionCard.jsx",
+      "file_type": "code",
+      "source_file": "src/components/cards/SolutionCard.jsx",
+      "source_location": "L1",
+      "id": "src_components_cards_solutioncard_jsx",
+      "community": 15,
+      "norm_label": "solutioncard.jsx"
+    },
+    {
+      "label": "Difficulty()",
+      "file_type": "code",
+      "source_file": "src/components/cards/SolutionCard.jsx",
+      "source_location": "L4",
+      "id": "cards_solutioncard_difficulty",
+      "community": 15,
+      "norm_label": "difficulty()"
+    },
+    {
+      "label": "SolutionCard()",
+      "file_type": "code",
+      "source_file": "src/components/cards/SolutionCard.jsx",
+      "source_location": "L10",
+      "id": "cards_solutioncard_solutioncard",
+      "community": 15,
+      "norm_label": "solutioncard()"
     },
     {
       "label": "test_db.js",
@@ -325,7 +721,7 @@
       "source_file": "scratch/test_db.js",
       "source_location": "L1",
       "id": "scratch_test_db_js",
-      "community": 13,
+      "community": 19,
       "norm_label": "test_db.js"
     },
     {
@@ -334,7 +730,7 @@
       "source_file": "scratch/test_db.js",
       "source_location": "L5",
       "id": "scratch_test_db_test",
-      "community": 13,
+      "community": 19,
       "norm_label": "test()"
     },
     {
@@ -343,7 +739,7 @@
       "source_file": "scratch/list_models.js",
       "source_location": "L1",
       "id": "scratch_list_models_js",
-      "community": 14,
+      "community": 20,
       "norm_label": "list_models.js"
     },
     {
@@ -352,7 +748,7 @@
       "source_file": "scratch/list_models.js",
       "source_location": "L5",
       "id": "scratch_list_models_listmodels",
-      "community": 14,
+      "community": 20,
       "norm_label": "listmodels()"
     },
     {
@@ -361,7 +757,7 @@
       "source_file": "scratch/fix_schema.js",
       "source_location": "L1",
       "id": "scratch_fix_schema_js",
-      "community": 15,
+      "community": 21,
       "norm_label": "fix_schema.js"
     },
     {
@@ -370,7 +766,7 @@
       "source_file": "scratch/fix_schema.js",
       "source_location": "L17",
       "id": "scratch_fix_schema_run",
-      "community": 15,
+      "community": 21,
       "norm_label": "run()"
     },
     {
@@ -379,7 +775,7 @@
       "source_file": "scratch/find_flash_id.js",
       "source_location": "L1",
       "id": "scratch_find_flash_id_js",
-      "community": 16,
+      "community": 22,
       "norm_label": "find_flash_id.js"
     },
     {
@@ -388,7 +784,7 @@
       "source_file": "scratch/find_flash_id.js",
       "source_location": "L11",
       "id": "scratch_find_flash_id_findsmallestflash",
-      "community": 16,
+      "community": 22,
       "norm_label": "findsmallestflash()"
     },
     {
@@ -397,7 +793,7 @@
       "source_file": "scratch/update_videos.js",
       "source_location": "L1",
       "id": "scratch_update_videos_js",
-      "community": 17,
+      "community": 23,
       "norm_label": "update_videos.js"
     },
     {
@@ -406,7 +802,7 @@
       "source_file": "scratch/update_videos.js",
       "source_location": "L23",
       "id": "scratch_update_videos_updatevideos",
-      "community": 17,
+      "community": 23,
       "norm_label": "updatevideos()"
     },
     {
@@ -415,7 +811,7 @@
       "source_file": "scratch/test_25_flash.js",
       "source_location": "L1",
       "id": "scratch_test_25_flash_js",
-      "community": 18,
+      "community": 24,
       "norm_label": "test_25_flash.js"
     },
     {
@@ -424,7 +820,7 @@
       "source_file": "scratch/test_25_flash.js",
       "source_location": "L5",
       "id": "scratch_test_25_flash_testmodel",
-      "community": 18,
+      "community": 24,
       "norm_label": "testmodel()"
     },
     {
@@ -433,7 +829,7 @@
       "source_file": "scratch/test_scaffold.js",
       "source_location": "L1",
       "id": "scratch_test_scaffold_js",
-      "community": 19,
+      "community": 25,
       "norm_label": "test_scaffold.js"
     },
     {
@@ -442,7 +838,7 @@
       "source_file": "scratch/test_scaffold.js",
       "source_location": "L1",
       "id": "scratch_test_scaffold_generatepracticescaffold",
-      "community": 19,
+      "community": 25,
       "norm_label": "generatepracticescaffold()"
     },
     {
@@ -451,7 +847,7 @@
       "source_file": "scratch/find_working_model.js",
       "source_location": "L1",
       "id": "scratch_find_working_model_js",
-      "community": 20,
+      "community": 26,
       "norm_label": "find_working_model.js"
     },
     {
@@ -460,7 +856,7 @@
       "source_file": "scratch/find_working_model.js",
       "source_location": "L16",
       "id": "scratch_find_working_model_checkmodels",
-      "community": 20,
+      "community": 26,
       "norm_label": "checkmodels()"
     },
     {
@@ -469,7 +865,7 @@
       "source_file": "scratch/test_scraper.js",
       "source_location": "L1",
       "id": "scratch_test_scraper_js",
-      "community": 21,
+      "community": 27,
       "norm_label": "test_scraper.js"
     },
     {
@@ -478,7 +874,7 @@
       "source_file": "scratch/test_scraper.js",
       "source_location": "L3",
       "id": "scratch_test_scraper_testscraper",
-      "community": 21,
+      "community": 27,
       "norm_label": "testscraper()"
     },
     {
@@ -487,7 +883,7 @@
       "source_file": "scratch/check_hints.js",
       "source_location": "L1",
       "id": "scratch_check_hints_js",
-      "community": 22,
+      "community": 28,
       "norm_label": "check_hints.js"
     },
     {
@@ -496,7 +892,7 @@
       "source_file": "scratch/check_hints.js",
       "source_location": "L21",
       "id": "scratch_check_hints_check",
-      "community": 22,
+      "community": 28,
       "norm_label": "check()"
     },
     {
@@ -505,7 +901,7 @@
       "source_file": "scratch/test_latest_model.js",
       "source_location": "L1",
       "id": "scratch_test_latest_model_js",
-      "community": 23,
+      "community": 29,
       "norm_label": "test_latest_model.js"
     },
     {
@@ -514,7 +910,7 @@
       "source_file": "scratch/test_latest_model.js",
       "source_location": "L11",
       "id": "scratch_test_latest_model_testlatest",
-      "community": 23,
+      "community": 29,
       "norm_label": "testlatest()"
     },
     {
@@ -523,7 +919,7 @@
       "source_file": "scratch/migrate_hints_col.js",
       "source_location": "L1",
       "id": "scratch_migrate_hints_col_js",
-      "community": 24,
+      "community": 30,
       "norm_label": "migrate_hints_col.js"
     },
     {
@@ -532,7 +928,7 @@
       "source_file": "scratch/migrate_hints_col.js",
       "source_location": "L15",
       "id": "scratch_migrate_hints_col_migrate",
-      "community": 24,
+      "community": 30,
       "norm_label": "migrate()"
     },
     {
@@ -541,7 +937,7 @@
       "source_file": "scratch/test_lite_model.js",
       "source_location": "L1",
       "id": "scratch_test_lite_model_js",
-      "community": 25,
+      "community": 31,
       "norm_label": "test_lite_model.js"
     },
     {
@@ -550,7 +946,7 @@
       "source_file": "scratch/test_lite_model.js",
       "source_location": "L11",
       "id": "scratch_test_lite_model_testlite",
-      "community": 25,
+      "community": 31,
       "norm_label": "testlite()"
     },
     {
@@ -559,7 +955,7 @@
       "source_file": "scratch/check_gemini_models.js",
       "source_location": "L1",
       "id": "scratch_check_gemini_models_js",
-      "community": 26,
+      "community": 32,
       "norm_label": "check_gemini_models.js"
     },
     {
@@ -568,7 +964,7 @@
       "source_file": "scratch/check_gemini_models.js",
       "source_location": "L8",
       "id": "scratch_check_gemini_models_checkmodels",
-      "community": 26,
+      "community": 32,
       "norm_label": "checkmodels()"
     },
     {
@@ -577,7 +973,7 @@
       "source_file": "scripts/populate_sd_db.js",
       "source_location": "L1",
       "id": "scripts_populate_sd_db_js",
-      "community": 27,
+      "community": 33,
       "norm_label": "populate_sd_db.js"
     },
     {
@@ -586,7 +982,7 @@
       "source_file": "scripts/populate_sd_db.js",
       "source_location": "L55",
       "id": "scripts_populate_sd_db_populate",
-      "community": 27,
+      "community": 33,
       "norm_label": "populate()"
     },
     {
@@ -595,25 +991,34 @@
       "source_file": "scripts/generate_hints.js",
       "source_location": "L1",
       "id": "scripts_generate_hints_js",
-      "community": 11,
+      "community": 13,
       "norm_label": "generate_hints.js"
     },
     {
       "label": "buildPrompt()",
       "file_type": "code",
       "source_file": "scripts/generate_hints.js",
-      "source_location": "L58",
+      "source_location": "L66",
       "id": "scripts_generate_hints_buildprompt",
-      "community": 11,
+      "community": 13,
       "norm_label": "buildprompt()"
+    },
+    {
+      "label": "parseResponse()",
+      "file_type": "code",
+      "source_file": "scripts/generate_hints.js",
+      "source_location": "L140",
+      "id": "scripts_generate_hints_parseresponse",
+      "community": 13,
+      "norm_label": "parseresponse()"
     },
     {
       "label": "main()",
       "file_type": "code",
       "source_file": "scripts/generate_hints.js",
-      "source_location": "L92",
+      "source_location": "L161",
       "id": "scripts_generate_hints_main",
-      "community": 11,
+      "community": 13,
       "norm_label": "main()"
     },
     {
@@ -622,7 +1027,7 @@
       "source_file": "scripts/generate_daily_problem.js",
       "source_location": "L1",
       "id": "scripts_generate_daily_problem_js",
-      "community": 10,
+      "community": 14,
       "norm_label": "generate_daily_problem.js"
     },
     {
@@ -631,7 +1036,7 @@
       "source_file": "scripts/generate_daily_problem.js",
       "source_location": "L28",
       "id": "scripts_generate_daily_problem_getarg",
-      "community": 10,
+      "community": 14,
       "norm_label": "getarg()"
     },
     {
@@ -640,7 +1045,7 @@
       "source_file": "scripts/generate_daily_problem.js",
       "source_location": "L82",
       "id": "scripts_generate_daily_problem_computetodaydayfromplan",
-      "community": 10,
+      "community": 14,
       "norm_label": "computetodaydayfromplan()"
     },
     {
@@ -649,7 +1054,7 @@
       "source_file": "scripts/generate_daily_problem.js",
       "source_location": "L93",
       "id": "scripts_generate_daily_problem_main",
-      "community": 10,
+      "community": 14,
       "norm_label": "main()"
     },
     {
@@ -658,7 +1063,7 @@
       "source_file": "scripts/populate_ml_notes.js",
       "source_location": "L1",
       "id": "scripts_populate_ml_notes_js",
-      "community": 28,
+      "community": 34,
       "norm_label": "populate_ml_notes.js"
     },
     {
@@ -667,7 +1072,7 @@
       "source_file": "scripts/populate_ml_notes.js",
       "source_location": "L102",
       "id": "scripts_populate_ml_notes_run",
-      "community": 28,
+      "community": 34,
       "norm_label": "run()"
     },
     {
@@ -676,7 +1081,7 @@
       "source_file": "scripts/seed_ml_notes.js",
       "source_location": "L1",
       "id": "scripts_seed_ml_notes_js",
-      "community": 29,
+      "community": 35,
       "norm_label": "seed_ml_notes.js"
     },
     {
@@ -685,7 +1090,7 @@
       "source_file": "scripts/seed_ml_notes.js",
       "source_location": "L23",
       "id": "scripts_seed_ml_notes_seed",
-      "community": 29,
+      "community": 35,
       "norm_label": "seed()"
     },
     {
@@ -694,7 +1099,7 @@
       "source_file": "scripts/fix_missing_statements.js",
       "source_location": "L1",
       "id": "scripts_fix_missing_statements_js",
-      "community": 6,
+      "community": 8,
       "norm_label": "fix_missing_statements.js"
     },
     {
@@ -703,7 +1108,7 @@
       "source_file": "scripts/fix_missing_statements.js",
       "source_location": "L58",
       "id": "scripts_fix_missing_statements_slugfromurl",
-      "community": 6,
+      "community": 8,
       "norm_label": "slugfromurl()"
     },
     {
@@ -712,7 +1117,7 @@
       "source_file": "scripts/fix_missing_statements.js",
       "source_location": "L63",
       "id": "scripts_fix_missing_statements_fetchleetcodestatement",
-      "community": 6,
+      "community": 8,
       "norm_label": "fetchleetcodestatement()"
     },
     {
@@ -721,7 +1126,7 @@
       "source_file": "scripts/fix_missing_statements.js",
       "source_location": "L87",
       "id": "scripts_fix_missing_statements_fetchankistatement",
-      "community": 6,
+      "community": 8,
       "norm_label": "fetchankistatement()"
     },
     {
@@ -730,7 +1135,7 @@
       "source_file": "scripts/fix_missing_statements.js",
       "source_location": "L99",
       "id": "scripts_fix_missing_statements_generatestatement",
-      "community": 6,
+      "community": 8,
       "norm_label": "generatestatement()"
     },
     {
@@ -739,7 +1144,7 @@
       "source_file": "scripts/fix_missing_statements.js",
       "source_location": "L117",
       "id": "scripts_fix_missing_statements_main",
-      "community": 6,
+      "community": 8,
       "norm_label": "main()"
     },
     {
@@ -748,7 +1153,7 @@
       "source_file": "scripts/cleanup_indexes.js",
       "source_location": "L1",
       "id": "scripts_cleanup_indexes_js",
-      "community": 30,
+      "community": 36,
       "norm_label": "cleanup_indexes.js"
     },
     {
@@ -757,7 +1162,7 @@
       "source_file": "scripts/cleanup_indexes.js",
       "source_location": "L16",
       "id": "scripts_cleanup_indexes_cleanup",
-      "community": 30,
+      "community": 36,
       "norm_label": "cleanup()"
     },
     {
@@ -766,7 +1171,7 @@
       "source_file": "scripts/migrate_to_multitenant.js",
       "source_location": "L1",
       "id": "scripts_migrate_to_multitenant_js",
-      "community": 9,
+      "community": 12,
       "norm_label": "migrate_to_multitenant.js"
     },
     {
@@ -775,7 +1180,7 @@
       "source_file": "scripts/migrate_to_multitenant.js",
       "source_location": "L33",
       "id": "scripts_migrate_to_multitenant_columnexists",
-      "community": 9,
+      "community": 12,
       "norm_label": "columnexists()"
     },
     {
@@ -784,7 +1189,7 @@
       "source_file": "scripts/migrate_to_multitenant.js",
       "source_location": "L40",
       "id": "scripts_migrate_to_multitenant_tableexists",
-      "community": 9,
+      "community": 12,
       "norm_label": "tableexists()"
     },
     {
@@ -793,7 +1198,7 @@
       "source_file": "scripts/migrate_to_multitenant.js",
       "source_location": "L47",
       "id": "scripts_migrate_to_multitenant_indexexists",
-      "community": 9,
+      "community": 12,
       "norm_label": "indexexists()"
     },
     {
@@ -802,7 +1207,7 @@
       "source_file": "scripts/migrate_to_multitenant.js",
       "source_location": "L54",
       "id": "scripts_migrate_to_multitenant_run",
-      "community": 9,
+      "community": 12,
       "norm_label": "run()"
     },
     {
@@ -811,7 +1216,7 @@
       "source_file": "scripts/scrape_sd.js",
       "source_location": "L1",
       "id": "scripts_scrape_sd_js",
-      "community": 31,
+      "community": 37,
       "norm_label": "scrape_sd.js"
     },
     {
@@ -820,7 +1225,7 @@
       "source_file": "scripts/scrape_sd.js",
       "source_location": "L32",
       "id": "scripts_scrape_sd_scrape",
-      "community": 31,
+      "community": 37,
       "norm_label": "scrape()"
     },
     {
@@ -829,7 +1234,7 @@
       "source_file": "scripts/generate_visualizations.js",
       "source_location": "L1",
       "id": "scripts_generate_visualizations_js",
-      "community": 7,
+      "community": 9,
       "norm_label": "generate_visualizations.js"
     },
     {
@@ -838,7 +1243,7 @@
       "source_file": "scripts/generate_visualizations.js",
       "source_location": "L15",
       "id": "scripts_generate_visualizations_tracecodeexecution",
-      "community": 7,
+      "community": 9,
       "norm_label": "tracecodeexecution()"
     },
     {
@@ -847,7 +1252,7 @@
       "source_file": "scripts/generate_visualizations.js",
       "source_location": "L38",
       "id": "scripts_generate_visualizations_generateexplanation",
-      "community": 7,
+      "community": 9,
       "norm_label": "generateexplanation()"
     },
     {
@@ -856,7 +1261,7 @@
       "source_file": "scripts/generate_visualizations.js",
       "source_location": "L63",
       "id": "scripts_generate_visualizations_critiqueexplanation",
-      "community": 7,
+      "community": 9,
       "norm_label": "critiqueexplanation()"
     },
     {
@@ -865,7 +1270,7 @@
       "source_file": "scripts/generate_visualizations.js",
       "source_location": "L82",
       "id": "scripts_generate_visualizations_runagenticflow",
-      "community": 7,
+      "community": 9,
       "norm_label": "runagenticflow()"
     },
     {
@@ -874,7 +1279,7 @@
       "source_file": "scripts/generate_visualizations.js",
       "source_location": "L114",
       "id": "scripts_generate_visualizations_main",
-      "community": 7,
+      "community": 9,
       "norm_label": "main()"
     },
     {
@@ -883,7 +1288,7 @@
       "source_file": "scripts/sync_leetcode_questions.js",
       "source_location": "L1",
       "id": "scripts_sync_leetcode_questions_js",
-      "community": 5,
+      "community": 7,
       "norm_label": "sync_leetcode_questions.js"
     },
     {
@@ -892,7 +1297,7 @@
       "source_file": "scripts/sync_leetcode_questions.js",
       "source_location": "L51",
       "id": "scripts_sync_leetcode_questions_parsequestionsfile",
-      "community": 5,
+      "community": 7,
       "norm_label": "parsequestionsfile()"
     },
     {
@@ -901,7 +1306,7 @@
       "source_file": "scripts/sync_leetcode_questions.js",
       "source_location": "L68",
       "id": "scripts_sync_leetcode_questions_slugfromurl",
-      "community": 5,
+      "community": 7,
       "norm_label": "slugfromurl()"
     },
     {
@@ -910,7 +1315,7 @@
       "source_file": "scripts/sync_leetcode_questions.js",
       "source_location": "L73",
       "id": "scripts_sync_leetcode_questions_fetchleetcodeproblem",
-      "community": 5,
+      "community": 7,
       "norm_label": "fetchleetcodeproblem()"
     },
     {
@@ -919,7 +1324,7 @@
       "source_file": "scripts/sync_leetcode_questions.js",
       "source_location": "L101",
       "id": "scripts_sync_leetcode_questions_striphtml",
-      "community": 5,
+      "community": 7,
       "norm_label": "striphtml()"
     },
     {
@@ -928,7 +1333,7 @@
       "source_file": "scripts/sync_leetcode_questions.js",
       "source_location": "L115",
       "id": "scripts_sync_leetcode_questions_fetchgithubsolution",
-      "community": 5,
+      "community": 7,
       "norm_label": "fetchgithubsolution()"
     },
     {
@@ -937,7 +1342,7 @@
       "source_file": "scripts/sync_leetcode_questions.js",
       "source_location": "L130",
       "id": "scripts_sync_leetcode_questions_main",
-      "community": 5,
+      "community": 7,
       "norm_label": "main()"
     },
     {
@@ -946,7 +1351,7 @@
       "source_file": "scripts/trace_generator.py",
       "source_location": "L1",
       "id": "scripts_trace_generator_py",
-      "community": 0,
+      "community": 1,
       "norm_label": "trace_generator.py"
     },
     {
@@ -955,7 +1360,7 @@
       "source_file": "scripts/trace_generator.py",
       "source_location": "L15",
       "id": "scripts_trace_generator_tracerunner",
-      "community": 0,
+      "community": 1,
       "norm_label": "tracerunner"
     },
     {
@@ -964,7 +1369,7 @@
       "source_file": "scripts/trace_generator.py",
       "source_location": "L18",
       "id": "scripts_trace_generator_tracerunner_init",
-      "community": 0,
+      "community": 1,
       "norm_label": ".__init__()"
     },
     {
@@ -973,7 +1378,7 @@
       "source_file": "scripts/trace_generator.py",
       "source_location": "L23",
       "id": "scripts_trace_generator_tracerunner_visit_for",
-      "community": 0,
+      "community": 1,
       "norm_label": ".visit_for()"
     },
     {
@@ -982,7 +1387,7 @@
       "source_file": "scripts/trace_generator.py",
       "source_location": "L27",
       "id": "scripts_trace_generator_tracerunner_visit_if",
-      "community": 0,
+      "community": 1,
       "norm_label": ".visit_if()"
     },
     {
@@ -991,7 +1396,7 @@
       "source_file": "scripts/trace_generator.py",
       "source_location": "L31",
       "id": "scripts_trace_generator_tracerunner_visit_assign",
-      "community": 0,
+      "community": 1,
       "norm_label": ".visit_assign()"
     },
     {
@@ -1000,7 +1405,7 @@
       "source_file": "scripts/trace_generator.py",
       "source_location": "L37",
       "id": "scripts_trace_generator_tracerunner_visit_call",
-      "community": 0,
+      "community": 1,
       "norm_label": ".visit_call()"
     },
     {
@@ -1009,7 +1414,7 @@
       "source_file": "scripts/trace_generator.py",
       "source_location": "L42",
       "id": "scripts_trace_generator_get_sample_input",
-      "community": 0,
+      "community": 1,
       "norm_label": "get_sample_input()"
     },
     {
@@ -1018,7 +1423,7 @@
       "source_file": "scripts/trace_generator.py",
       "source_location": "L204",
       "id": "scripts_trace_generator_extract_function_and_class",
-      "community": 0,
+      "community": 1,
       "norm_label": "extract_function_and_class()"
     },
     {
@@ -1027,7 +1432,7 @@
       "source_file": "scripts/trace_generator.py",
       "source_location": "L214",
       "id": "scripts_trace_generator_create_traced_code",
-      "community": 0,
+      "community": 1,
       "norm_label": "create_traced_code()"
     },
     {
@@ -1036,7 +1441,7 @@
       "source_file": "scripts/trace_generator.py",
       "source_location": "L246",
       "id": "scripts_trace_generator_run_code",
-      "community": 0,
+      "community": 1,
       "norm_label": "run_code()"
     },
     {
@@ -1045,7 +1450,7 @@
       "source_file": "scripts/trace_generator.py",
       "source_location": "L262",
       "id": "scripts_trace_generator_generate_trace",
-      "community": 0,
+      "community": 1,
       "norm_label": "generate_trace()"
     },
     {
@@ -1053,54 +1458,72 @@
       "file_type": "rationale",
       "source_file": "scripts/trace_generator.py",
       "source_location": "L16",
-      "id": "scripts_trace_generator_rationale_16",
-      "community": 0,
-      "norm_label": "ast visitor to identify key lines for tracing."
+      "community": 1,
+      "norm_label": "ast visitor to identify key lines for tracing.",
+      "id": "scripts_trace_generator_rationale_16"
     },
     {
       "label": "Get sample input based on problem type.",
       "file_type": "rationale",
       "source_file": "scripts/trace_generator.py",
       "source_location": "L43",
-      "id": "scripts_trace_generator_rationale_43",
-      "community": 0,
-      "norm_label": "get sample input based on problem type."
+      "community": 1,
+      "norm_label": "get sample input based on problem type.",
+      "id": "scripts_trace_generator_rationale_43"
     },
     {
       "label": "Extract function/method name and class name from code.",
       "file_type": "rationale",
       "source_file": "scripts/trace_generator.py",
       "source_location": "L205",
-      "id": "scripts_trace_generator_rationale_205",
-      "community": 0,
-      "norm_label": "extract function/method name and class name from code."
+      "community": 1,
+      "norm_label": "extract function/method name and class name from code.",
+      "id": "scripts_trace_generator_rationale_205"
     },
     {
       "label": "Wrap code with tracing functionality.",
       "file_type": "rationale",
       "source_file": "scripts/trace_generator.py",
       "source_location": "L215",
-      "id": "scripts_trace_generator_rationale_215",
-      "community": 0,
-      "norm_label": "wrap code with tracing functionality."
+      "community": 1,
+      "norm_label": "wrap code with tracing functionality.",
+      "id": "scripts_trace_generator_rationale_215"
     },
     {
       "label": "Execute code and capture output.",
       "file_type": "rationale",
       "source_file": "scripts/trace_generator.py",
       "source_location": "L247",
-      "id": "scripts_trace_generator_rationale_247",
-      "community": 0,
-      "norm_label": "execute code and capture output."
+      "community": 1,
+      "norm_label": "execute code and capture output.",
+      "id": "scripts_trace_generator_rationale_247"
     },
     {
       "label": "Generate execution trace for a problem.",
       "file_type": "rationale",
       "source_file": "scripts/trace_generator.py",
       "source_location": "L263",
-      "id": "scripts_trace_generator_rationale_263",
-      "community": 0,
-      "norm_label": "generate execution trace for a problem."
+      "community": 1,
+      "norm_label": "generate execution trace for a problem.",
+      "id": "scripts_trace_generator_rationale_263"
+    },
+    {
+      "label": "annotation.cy.js",
+      "file_type": "code",
+      "source_file": "cypress/e2e/annotation.cy.js",
+      "source_location": "L1",
+      "id": "cypress_e2e_annotation_cy_js",
+      "community": 43,
+      "norm_label": "annotation.cy.js"
+    },
+    {
+      "label": "e2e.js",
+      "file_type": "code",
+      "source_file": "cypress/support/e2e.js",
+      "source_location": "L1",
+      "id": "cypress_support_e2e_js",
+      "community": 44,
+      "norm_label": "e2e.js"
     },
     {
       "label": "NeetCode Practice Deployment",
@@ -1111,9 +1534,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "deployment_skill_neetcode_practice_deployment",
-      "community": 2,
-      "norm_label": "neetcode practice deployment"
+      "community": 3,
+      "norm_label": "neetcode practice deployment",
+      "id": "deployment_skill_neetcode_practice_deployment"
     },
     {
       "label": "deploy.sh Script",
@@ -1124,9 +1547,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "deployment_skill_deploy_sh",
-      "community": 2,
-      "norm_label": "deploy.sh script"
+      "community": 3,
+      "norm_label": "deploy.sh script",
+      "id": "deployment_skill_deploy_sh"
     },
     {
       "label": "/api/health Endpoint",
@@ -1137,9 +1560,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "deployment_skill_api_health",
-      "community": 2,
-      "norm_label": "/api/health endpoint"
+      "community": 3,
+      "norm_label": "/api/health endpoint",
+      "id": "deployment_skill_api_health"
     },
     {
       "label": "Google Cloud Run",
@@ -1150,9 +1573,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "deployment_skill_cloud_run",
-      "community": 2,
-      "norm_label": "google cloud run"
+      "community": 3,
+      "norm_label": "google cloud run",
+      "id": "deployment_skill_cloud_run"
     },
     {
       "label": "Cloud SQL (MySQL)",
@@ -1163,9 +1586,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "deployment_skill_cloud_sql",
-      "community": 2,
-      "norm_label": "cloud sql (mysql)"
+      "community": 3,
+      "norm_label": "cloud sql (mysql)",
+      "id": "deployment_skill_cloud_sql"
     },
     {
       "label": "Google Container Registry",
@@ -1176,9 +1599,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "deployment_skill_gcr",
-      "community": 2,
-      "norm_label": "google container registry"
+      "community": 3,
+      "norm_label": "google container registry",
+      "id": "deployment_skill_gcr"
     },
     {
       "label": "NeetCode Practice App",
@@ -1189,9 +1612,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "readme_neetcode_practice_app",
-      "community": 2,
-      "norm_label": "neetcode practice app"
+      "community": 3,
+      "norm_label": "neetcode practice app",
+      "id": "readme_neetcode_practice_app"
     },
     {
       "label": "React (Vite) Frontend",
@@ -1202,9 +1625,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "readme_react_vite_frontend",
-      "community": 2,
-      "norm_label": "react (vite) frontend"
+      "community": 3,
+      "norm_label": "react (vite) frontend",
+      "id": "readme_react_vite_frontend"
     },
     {
       "label": "Express.js Backend",
@@ -1215,9 +1638,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "readme_express_backend",
-      "community": 2,
-      "norm_label": "express.js backend"
+      "community": 3,
+      "norm_label": "express.js backend",
+      "id": "readme_express_backend"
     },
     {
       "label": "GitHub Actions CI/CD",
@@ -1228,9 +1651,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "readme_github_actions_cicd",
-      "community": 2,
-      "norm_label": "github actions ci/cd"
+      "community": 3,
+      "norm_label": "github actions ci/cd",
+      "id": "readme_github_actions_cicd"
     },
     {
       "label": "Google Cloud Secret Manager",
@@ -1241,9 +1664,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "readme_secret_manager",
-      "community": 2,
-      "norm_label": "google cloud secret manager"
+      "community": 3,
+      "norm_label": "google cloud secret manager",
+      "id": "readme_secret_manager"
     },
     {
       "label": "problems DB Table",
@@ -1254,9 +1677,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "memory_problems_table",
-      "community": 3,
-      "norm_label": "problems db table"
+      "community": 4,
+      "norm_label": "problems db table",
+      "id": "memory_problems_table"
     },
     {
       "label": "user_progress DB Table",
@@ -1267,9 +1690,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "memory_user_progress_table",
-      "community": 3,
-      "norm_label": "user_progress db table"
+      "community": 4,
+      "norm_label": "user_progress db table",
+      "id": "memory_user_progress_table"
     },
     {
       "label": "App.jsx (Single-page UI)",
@@ -1280,9 +1703,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "memory_app_jsx",
-      "community": 3,
-      "norm_label": "app.jsx (single-page ui)"
+      "community": 4,
+      "norm_label": "app.jsx (single-page ui)",
+      "id": "memory_app_jsx"
     },
     {
       "label": "server.js (Express API)",
@@ -1293,9 +1716,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "memory_server_js",
-      "community": 3,
-      "norm_label": "server.js (express api)"
+      "community": 4,
+      "norm_label": "server.js (express api)",
+      "id": "memory_server_js"
     },
     {
       "label": "Day Assignment Formula",
@@ -1307,9 +1730,9 @@
       "author": null,
       "contributor": null,
       "rationale": "Day is computed at query time as ((p.id - 1) % 19) + 1, not stored in DB, to map 250 problems across 19 days deterministically without schema changes.",
-      "id": "memory_day_assignment_formula",
-      "community": 12,
-      "norm_label": "day assignment formula"
+      "community": 16,
+      "norm_label": "day assignment formula",
+      "id": "memory_day_assignment_formula"
     },
     {
       "label": "Spaced Repetition (Revision Selection)",
@@ -1321,9 +1744,9 @@
       "author": null,
       "contributor": null,
       "rationale": "Revision problems are selected via source[(day * 7) % source.length] to deterministically pick different problems each day, weighted toward Medium/Hard.",
-      "id": "memory_spaced_repetition",
-      "community": 12,
-      "norm_label": "spaced repetition (revision selection)"
+      "community": 16,
+      "norm_label": "spaced repetition (revision selection)",
+      "id": "memory_spaced_repetition"
     },
     {
       "label": "NeetCode 250 Problem Set",
@@ -1334,9 +1757,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "memory_neetcode_250",
-      "community": 12,
-      "norm_label": "neetcode 250 problem set"
+      "community": 16,
+      "norm_label": "neetcode 250 problem set",
+      "id": "memory_neetcode_250"
     },
     {
       "label": "GET /api/problems Endpoint",
@@ -1347,9 +1770,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "memory_api_problems",
-      "community": 3,
-      "norm_label": "get /api/problems endpoint"
+      "community": 4,
+      "norm_label": "get /api/problems endpoint",
+      "id": "memory_api_problems"
     },
     {
       "label": "POST /api/progress Endpoint",
@@ -1360,9 +1783,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "memory_api_progress",
-      "community": 3,
-      "norm_label": "post /api/progress endpoint"
+      "community": 4,
+      "norm_label": "post /api/progress endpoint",
+      "id": "memory_api_progress"
     },
     {
       "label": "Dashboard View",
@@ -1373,9 +1796,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "memory_dashboard_view",
-      "community": 3,
-      "norm_label": "dashboard view"
+      "community": 4,
+      "norm_label": "dashboard view",
+      "id": "memory_dashboard_view"
     },
     {
       "label": "Calendar View",
@@ -1386,9 +1809,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "memory_calendar_view",
-      "community": 3,
-      "norm_label": "calendar view"
+      "community": 4,
+      "norm_label": "calendar view",
+      "id": "memory_calendar_view"
     },
     {
       "label": "Browse View",
@@ -1399,9 +1822,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "memory_browse_view",
-      "community": 3,
-      "norm_label": "browse view"
+      "community": 4,
+      "norm_label": "browse view",
+      "id": "memory_browse_view"
     },
     {
       "label": "NeetPractice PWA Entry Point",
@@ -1412,9 +1835,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "index_html_neetpractice",
-      "community": 3,
-      "norm_label": "neetpractice pwa entry point"
+      "community": 4,
+      "norm_label": "neetpractice pwa entry point",
+      "id": "index_html_neetpractice"
     },
     {
       "label": "Graphify Rules (CLAUDE.md)",
@@ -1425,9 +1848,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "claude_md_graphify_rules",
-      "community": 34,
-      "norm_label": "graphify rules (claude.md)"
+      "community": 45,
+      "norm_label": "graphify rules (claude.md)",
+      "id": "claude_md_graphify_rules"
     },
     {
       "label": "Gamification Plan",
@@ -1438,17 +1861,29 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "gamification_plan",
-      "community": 3,
-      "norm_label": "gamification plan"
+      "community": 4,
+      "norm_label": "gamification plan",
+      "id": "gamification_plan"
     }
   ],
   "links": [
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "cypress.config.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_src": "cypress_config_js",
+      "_tgt": "practice_app_cypress_config_setupnodeevents",
+      "source": "cypress_config_js",
+      "target": "practice_app_cypress_config_setupnodeevents",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "server.js",
-      "source_location": "L173",
+      "source_location": "L183",
       "weight": 1.0,
       "_src": "server_js",
       "_tgt": "practice_app_server_signtoken",
@@ -1460,7 +1895,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "server.js",
-      "source_location": "L177",
+      "source_location": "L187",
       "weight": 1.0,
       "_src": "server_js",
       "_tgt": "practice_app_server_requireauth",
@@ -1472,7 +1907,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "server.js",
-      "source_location": "L191",
+      "source_location": "L201",
       "weight": 1.0,
       "_src": "server_js",
       "_tgt": "practice_app_server_requiresession",
@@ -1484,7 +1919,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "server.js",
-      "source_location": "L831",
+      "source_location": "L918",
       "weight": 1.0,
       "_src": "server_js",
       "_tgt": "practice_app_server_shufflearray",
@@ -1496,7 +1931,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "server.js",
-      "source_location": "L920",
+      "source_location": "L1007",
       "weight": 1.0,
       "_src": "server_js",
       "_tgt": "practice_app_server_sendevent",
@@ -1508,7 +1943,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "server.js",
-      "source_location": "L1180",
+      "source_location": "L1267",
       "weight": 1.0,
       "_src": "server_js",
       "_tgt": "practice_app_server_seeddatabase",
@@ -1520,7 +1955,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "server.js",
-      "source_location": "L1223",
+      "source_location": "L1310",
       "weight": 1.0,
       "_src": "server_js",
       "_tgt": "practice_app_server_ensuretablestructure",
@@ -1531,8 +1966,68 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "tests/annotations.integration.test.js",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_src": "tests_annotations_integration_test_js",
+      "_tgt": "tests_annotations_integration_test_signtoken",
+      "source": "tests_annotations_integration_test_js",
+      "target": "tests_annotations_integration_test_signtoken",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/annotations.integration.test.js",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_src": "tests_annotations_integration_test_js",
+      "_tgt": "tests_annotations_integration_test_requireauth",
+      "source": "tests_annotations_integration_test_js",
+      "target": "tests_annotations_integration_test_requireauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/annotations.integration.test.js",
+      "source_location": "L30",
+      "weight": 1.0,
+      "_src": "tests_annotations_integration_test_js",
+      "_tgt": "tests_annotations_integration_test_requiresession",
+      "source": "tests_annotations_integration_test_js",
+      "target": "tests_annotations_integration_test_requiresession",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/annotations.integration.test.js",
+      "source_location": "L37",
+      "weight": 1.0,
+      "_src": "tests_annotations_integration_test_js",
+      "_tgt": "tests_annotations_integration_test_createtestapp",
+      "source": "tests_annotations_integration_test_js",
+      "target": "tests_annotations_integration_test_createtestapp",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L55",
+      "source_location": "L57",
+      "weight": 1.0,
+      "_src": "src_app_jsx",
+      "_tgt": "src_app_highlightpython",
+      "source": "src_app_jsx",
+      "target": "src_app_highlightpython",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/App.jsx",
+      "source_location": "L64",
       "weight": 1.0,
       "_src": "src_app_jsx",
       "_tgt": "src_app_pythoneditor",
@@ -1544,7 +2039,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L74",
+      "source_location": "L83",
       "weight": 1.0,
       "_src": "src_app_jsx",
       "_tgt": "src_app_solutiontoggle",
@@ -1556,7 +2051,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L107",
+      "source_location": "L116",
       "weight": 1.0,
       "_src": "src_app_jsx",
       "_tgt": "src_app_statssummary",
@@ -1568,7 +2063,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L136",
+      "source_location": "L145",
       "weight": 1.0,
       "_src": "src_app_jsx",
       "_tgt": "src_app_svgprogresschart",
@@ -1580,7 +2075,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L201",
+      "source_location": "L210",
       "weight": 1.0,
       "_src": "src_app_jsx",
       "_tgt": "src_app_studyplansettings",
@@ -1592,7 +2087,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L359",
+      "source_location": "L400",
       "weight": 1.0,
       "_src": "src_app_jsx",
       "_tgt": "src_app_apifetch",
@@ -1604,7 +2099,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L368",
+      "source_location": "L409",
       "weight": 1.0,
       "_src": "src_app_jsx",
       "_tgt": "src_app_loginview",
@@ -1616,7 +2111,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L464",
+      "source_location": "L505",
       "weight": 1.0,
       "_src": "src_app_jsx",
       "_tgt": "src_app_sessionselectview",
@@ -1628,7 +2123,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L572",
+      "source_location": "L613",
       "weight": 1.0,
       "_src": "src_app_jsx",
       "_tgt": "src_app_app",
@@ -1640,7 +2135,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L2737",
+      "source_location": "L2940",
       "weight": 1.0,
       "_src": "src_app_jsx",
       "_tgt": "src_app_parsesystemdesigncontent",
@@ -1652,7 +2147,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L2806",
+      "source_location": "L3009",
       "weight": 1.0,
       "_src": "src_app_jsx",
       "_tgt": "src_app_requirementcard",
@@ -1664,7 +2159,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L2819",
+      "source_location": "L3022",
       "weight": 1.0,
       "_src": "src_app_jsx",
       "_tgt": "src_app_sectionheader",
@@ -1676,7 +2171,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L2826",
+      "source_location": "L3029",
       "weight": 1.0,
       "_src": "src_app_jsx",
       "_tgt": "src_app_systemdesignview",
@@ -1688,7 +2183,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L2871",
+      "source_location": "L3074",
       "weight": 1.0,
       "_src": "src_app_jsx",
       "_tgt": "src_app_systemdesigndetail",
@@ -1700,7 +2195,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L2879",
+      "source_location": "L3082",
       "weight": 1.0,
       "_src": "src_app_systemdesigndetail",
       "_tgt": "src_app_parsesystemdesigncontent",
@@ -1711,8 +2206,476 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_src": "src_lib_canvasdrawingengine_js",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine",
+      "source": "src_lib_canvasdrawingengine_js",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L2",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_constructor",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_constructor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_initcontext",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_initcontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_bindevents",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_bindevents",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L37",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_getpoint",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_getpoint",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L49",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_onmousedown",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_onmousedown",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L61",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_onmousemove",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_onmousemove",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L75",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_onmouseup",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_onmouseup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L84",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_ontouchstart",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_ontouchstart",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L89",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_ontouchmove",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_ontouchmove",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L94",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_ontouchend",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_ontouchend",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L99",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_erase",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_erase",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L108",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_settool",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_settool",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L112",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_setcolor",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_setcolor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L116",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_setlinewidth",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_setlinewidth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L120",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_seteraserradius",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_seteraserradius",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L124",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_clear",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_clear",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L129",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_exporttobase64",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_exporttobase64",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L133",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_setbackgroundimage",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_setbackgroundimage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L145",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_destroy",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_destroy",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine_constructor",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_bindevents",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine_constructor",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_bindevents",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine_constructor",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_initcontext",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine_constructor",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_initcontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L51",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine_onmousedown",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_getpoint",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine_getpoint",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_onmousedown",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L63",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine_onmousemove",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_getpoint",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine_getpoint",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_onmousemove",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L57",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine_onmousedown",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_erase",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine_onmousedown",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_erase",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L86",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine_ontouchstart",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_onmousedown",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine_onmousedown",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_ontouchstart",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L71",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine_onmousemove",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_erase",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine_onmousemove",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_erase",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L91",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine_ontouchmove",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_onmousemove",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine_onmousemove",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_ontouchmove",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib/canvasDrawingEngine.js",
+      "source_location": "L96",
+      "weight": 1.0,
+      "_src": "lib_canvasdrawingengine_canvasdrawingengine_ontouchend",
+      "_tgt": "lib_canvasdrawingengine_canvasdrawingengine_onmouseup",
+      "source": "lib_canvasdrawingengine_canvasdrawingengine_onmouseup",
+      "target": "lib_canvasdrawingengine_canvasdrawingengine_ontouchend",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/imageRenderer.js",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_src": "src_services_imagerenderer_js",
+      "_tgt": "services_imagerenderer_imagerendererservice",
+      "source": "src_services_imagerenderer_js",
+      "target": "services_imagerenderer_imagerendererservice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/imageRenderer.js",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_src": "services_imagerenderer_imagerendererservice",
+      "_tgt": "services_imagerenderer_imagerendererservice_constructor",
+      "source": "services_imagerenderer_imagerendererservice",
+      "target": "services_imagerenderer_imagerendererservice_constructor",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/imageRenderer.js",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_src": "services_imagerenderer_imagerendererservice",
+      "_tgt": "services_imagerenderer_imagerendererservice_ensurecontainer",
+      "source": "services_imagerenderer_imagerendererservice",
+      "target": "services_imagerenderer_imagerendererservice_ensurecontainer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/imageRenderer.js",
+      "source_location": "L28",
+      "weight": 1.0,
+      "_src": "services_imagerenderer_imagerendererservice",
+      "_tgt": "services_imagerenderer_imagerendererservice_removecontainer",
+      "source": "services_imagerenderer_imagerendererservice",
+      "target": "services_imagerenderer_imagerendererservice_removecontainer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/imageRenderer.js",
+      "source_location": "L35",
+      "weight": 1.0,
+      "_src": "services_imagerenderer_imagerendererservice",
+      "_tgt": "services_imagerenderer_imagerendererservice_rendercodetohtml",
+      "source": "services_imagerenderer_imagerendererservice",
+      "target": "services_imagerenderer_imagerendererservice_rendercodetohtml",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/imageRenderer.js",
+      "source_location": "L49",
+      "weight": 1.0,
+      "_src": "services_imagerenderer_imagerendererservice",
+      "_tgt": "services_imagerenderer_imagerendererservice_rendertobase64",
+      "source": "services_imagerenderer_imagerendererservice",
+      "target": "services_imagerenderer_imagerendererservice_rendertobase64",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/imageRenderer.js",
+      "source_location": "L50",
+      "weight": 1.0,
+      "_src": "services_imagerenderer_imagerendererservice_rendertobase64",
+      "_tgt": "services_imagerenderer_imagerendererservice_ensurecontainer",
+      "source": "services_imagerenderer_imagerendererservice_ensurecontainer",
+      "target": "services_imagerenderer_imagerendererservice_rendertobase64",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/imageRenderer.js",
+      "source_location": "L55",
+      "weight": 1.0,
+      "_src": "services_imagerenderer_imagerendererservice_rendertobase64",
+      "_tgt": "services_imagerenderer_imagerendererservice_removecontainer",
+      "source": "services_imagerenderer_imagerendererservice_removecontainer",
+      "target": "services_imagerenderer_imagerendererservice_rendertobase64",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "src/services/imageRenderer.js",
+      "source_location": "L51",
+      "weight": 1.0,
+      "_src": "services_imagerenderer_imagerendererservice_rendertobase64",
+      "_tgt": "services_imagerenderer_imagerendererservice_rendercodetohtml",
+      "source": "services_imagerenderer_imagerendererservice_rendercodetohtml",
+      "target": "services_imagerenderer_imagerendererservice_rendertobase64",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/AnnotationOverlay.jsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_src": "src_components_annotationoverlay_jsx",
+      "_tgt": "components_annotationoverlay_annotationoverlay",
+      "source": "src_components_annotationoverlay_jsx",
+      "target": "components_annotationoverlay_annotationoverlay",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "src/components/CodeVisualizer.jsx",
-      "source_location": "L4",
+      "source_location": "L7",
       "weight": 1.0,
       "_src": "src_components_codevisualizer_jsx",
       "_tgt": "components_codevisualizer_linkedlistrenderer",
@@ -1724,7 +2687,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/CodeVisualizer.jsx",
-      "source_location": "L23",
+      "source_location": "L26",
       "weight": 1.0,
       "_src": "src_components_codevisualizer_jsx",
       "_tgt": "components_codevisualizer_treerenderer",
@@ -1736,7 +2699,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/CodeVisualizer.jsx",
-      "source_location": "L48",
+      "source_location": "L51",
       "weight": 1.0,
       "_src": "src_components_codevisualizer_jsx",
       "_tgt": "components_codevisualizer_arrayrenderer",
@@ -1748,12 +2711,36 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/CodeVisualizer.jsx",
-      "source_location": "L67",
+      "source_location": "L70",
       "weight": 1.0,
       "_src": "src_components_codevisualizer_jsx",
       "_tgt": "components_codevisualizer_codevisualizer",
       "source": "src_components_codevisualizer_jsx",
       "target": "components_codevisualizer_codevisualizer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/cards/SolutionCard.jsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_src": "src_components_cards_solutioncard_jsx",
+      "_tgt": "cards_solutioncard_difficulty",
+      "source": "src_components_cards_solutioncard_jsx",
+      "target": "cards_solutioncard_difficulty",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/components/cards/SolutionCard.jsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_src": "src_components_cards_solutioncard_jsx",
+      "_tgt": "cards_solutioncard_solutioncard",
+      "source": "src_components_cards_solutioncard_jsx",
+      "target": "cards_solutioncard_solutioncard",
       "confidence_score": 1.0
     },
     {
@@ -1940,7 +2927,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_hints.js",
-      "source_location": "L58",
+      "source_location": "L66",
       "weight": 1.0,
       "_src": "scripts_generate_hints_js",
       "_tgt": "scripts_generate_hints_buildprompt",
@@ -1952,7 +2939,19 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_hints.js",
-      "source_location": "L92",
+      "source_location": "L140",
+      "weight": 1.0,
+      "_src": "scripts_generate_hints_js",
+      "_tgt": "scripts_generate_hints_parseresponse",
+      "source": "scripts_generate_hints_js",
+      "target": "scripts_generate_hints_parseresponse",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate_hints.js",
+      "source_location": "L161",
       "weight": 1.0,
       "_src": "scripts_generate_hints_js",
       "_tgt": "scripts_generate_hints_main",
@@ -1964,11 +2963,23 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_hints.js",
-      "source_location": "L113",
+      "source_location": "L213",
       "weight": 1.0,
       "_src": "scripts_generate_hints_main",
       "_tgt": "scripts_generate_hints_buildprompt",
       "source": "scripts_generate_hints_buildprompt",
+      "target": "scripts_generate_hints_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/generate_hints.js",
+      "source_location": "L214",
+      "weight": 1.0,
+      "_src": "scripts_generate_hints_main",
+      "_tgt": "scripts_generate_hints_parseresponse",
+      "source": "scripts_generate_hints_parseresponse",
       "target": "scripts_generate_hints_main",
       "confidence_score": 1.0
     },
@@ -2843,8 +3854,8 @@
       "source_file": "README.md",
       "source_location": null,
       "weight": 1.0,
-      "_src": "readme_neetcode_practice_app",
-      "_tgt": "deployment_skill_cloud_run",
+      "_src": "deployment_skill_cloud_run",
+      "_tgt": "readme_neetcode_practice_app",
       "source": "deployment_skill_cloud_run",
       "target": "readme_neetcode_practice_app"
     },
@@ -2903,8 +3914,8 @@
       "source_file": "MEMORY.md",
       "source_location": null,
       "weight": 1.0,
-      "_src": "memory_server_js",
-      "_tgt": "memory_problems_table",
+      "_src": "memory_problems_table",
+      "_tgt": "memory_server_js",
       "source": "memory_problems_table",
       "target": "memory_server_js"
     },
@@ -2915,8 +3926,8 @@
       "source_file": "MEMORY.md",
       "source_location": null,
       "weight": 1.0,
-      "_src": "memory_server_js",
-      "_tgt": "memory_user_progress_table",
+      "_src": "memory_user_progress_table",
+      "_tgt": "memory_server_js",
       "source": "memory_user_progress_table",
       "target": "memory_server_js"
     },
@@ -2975,8 +3986,8 @@
       "source_file": "index.html",
       "source_location": null,
       "weight": 1.0,
-      "_src": "index_html_neetpractice",
-      "_tgt": "memory_app_jsx",
+      "_src": "memory_app_jsx",
+      "_tgt": "index_html_neetpractice",
       "source": "memory_app_jsx",
       "target": "index_html_neetpractice"
     },
@@ -3047,8 +4058,8 @@
       "source_file": "plans/gamification.md",
       "source_location": null,
       "weight": 1.0,
-      "_src": "gamification_plan",
-      "_tgt": "memory_dashboard_view",
+      "_src": "memory_dashboard_view",
+      "_tgt": "gamification_plan",
       "source": "memory_dashboard_view",
       "target": "gamification_plan"
     }

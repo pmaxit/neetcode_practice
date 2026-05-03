@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import '../styles/Visualizer.css';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-python';
+import 'prismjs/themes/prism-tomorrow.css';
 
 const LinkedListRenderer = ({ data }) => {
   return (
@@ -103,14 +106,7 @@ const CodeVisualizer = ({ data }) => {
       <div className="visualizer-content">
         <div className="code-panel">
           <div className="code-panel-header">Python Reference Solution</div>
-          <div className="code-display">
-            {codeLines.map((line, idx) => (
-              <div key={idx} className={`code-line ${currentStep.line === idx + 1 ? 'active' : ''}`}>
-                <span className="line-num">{idx + 1}</span>
-                <span className="code-text">{line}</span>
-              </div>
-            ))}
-          </div>
+          <pre className="code-display language-python"><code className="language-python" dangerouslySetInnerHTML={{ __html: Prism.highlight(codeLines.join('\n'), Prism.languages.python, 'python') }} /></pre>
         </div>
 
         <div className="right-panel">

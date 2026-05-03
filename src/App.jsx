@@ -210,6 +210,7 @@ const SVGProgressChart = ({ dailyData }) => {
 const StudyPlanSettings = ({ settings, onUpdate, studyPlan, onGenerate, onClear, generating, streamText }) => {
   const [localDays, setLocalDays] = useState(settings.planned_days);
   const [localRev, setLocalRev] = useState(settings.revisions_per_day);
+  const [localShowViz, setLocalShowViz] = useState(settings.show_visualize_tab ?? true);
   const streamRef = useRef(null);
 
   useEffect(() => {
@@ -223,10 +224,15 @@ const StudyPlanSettings = ({ settings, onUpdate, studyPlan, onGenerate, onClear,
   useEffect(() => {
     setLocalDays(settings.planned_days);
     setLocalRev(settings.revisions_per_day);
+    setLocalShowViz(settings.show_visualize_tab ?? true);
   }, [settings]);
 
   const handleApply = () => {
-    onUpdate({ planned_days: localDays, revisions_per_day: localRev });
+    onUpdate({ 
+      planned_days: localDays, 
+      revisions_per_day: localRev,
+      show_visualize_tab: localShowViz
+    });
   };
 
   const summary = studyPlan?.summary;
@@ -354,10 +360,36 @@ const StudyPlanSettings = ({ settings, onUpdate, studyPlan, onGenerate, onClear,
           className="btn btn-primary"
           style={{ width: '100%', marginTop: '1rem' }}
           onClick={handleApply}
-          disabled={!!studyPlan || (localDays === settings.planned_days && localRev === settings.revisions_per_day)}
+          disabled={!!studyPlan || (localDays === settings.planned_days && localRev === settings.revisions_per_day && localShowViz === settings.show_visualize_tab)}
         >
           Update Schedule
         </button>
+      </div>
+
+      {/* ── Interface Settings ── */}
+      <div className="study-plan-section" style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
+        <div className="study-plan-section-header">
+          <Image size={14} className="text-muted" />
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>Interface Preferences</span>
+        </div>
+        <div className="settings-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
+          <div style={{ flex: 1 }}>
+            <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>Visualize Tab</span>
+            <p className="settings-hint" style={{ margin: '2px 0 0' }}>Show step-by-step code execution visualizer.</p>
+          </div>
+          <label className="toggle-switch">
+            <input 
+              type="checkbox" 
+              checked={localShowViz} 
+              onChange={e => {
+                const newVal = e.target.checked;
+                setLocalShowViz(newVal);
+                onUpdate({ show_visualize_tab: newVal });
+              }} 
+            />
+            <span className="toggle-slider"></span>
+          </label>
+        </div>
       </div>
     </div>
   );
@@ -638,7 +670,7 @@ const App = () => {
   );
   const [practiceCode, setPracticeCode] = useState('');
   const [showSettings, setShowSettings] = useState(false);
-  const [settings, setSettings] = useState({ planned_days: 25, revisions_per_day: 3 });
+  const [settings, setSettings] = useState({ planned_days: 25, revisions_per_day: 3, show_visualize_tab: true });
   const [stats, setStats] = useState(null);
   const [mockSession, setMockSession] = useState(() => {
     const saved = localStorage.getItem('mockSession');
@@ -1866,7 +1898,7 @@ const App = () => {
                     <SolutionToggle 
                       mode={interfaceMode} 
                       onModeChange={setInterfaceMode} 
-                      hasViz={!!activeProblem.visualization} 
+                      hasViz={!!activeProblem.visualization && (settings.show_visualize_tab ?? true)} 
                     />
                   )}
                 </div>
@@ -1986,30 +2018,7 @@ const App = () => {
                   );
                 })()}
 
-                {assistanceMode !== 'challenge' && activeProblem.practice_scaffold && (() => {
-                  const lines = activeProblem.practice_scaffold.trim().split('\n').filter(Boolean);
-                  return (
-                    <div className="hint-blueprint-stack">
-                      <div className="hint-card hint-card--step">
-                        <div className="hint-card-label">PRACTICE</div>
-                        {lines.map((line, i) => (
-                          <div key={i} className="hint-card-insight-line">{line}</div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })()}
 
-                {assistanceMode !== 'challenge' && activeProblem.pattern_hint && (() => {
-                  return (
-                    <div className="hint-blueprint-stack">
-                      <div className="hint-card hint-card--step">
-                        <div className="hint-card-label">PATTERN</div>
-                        <div className="hint-card-insight-line">{activeProblem.pattern_hint}</div>
-                      </div>
-                    </div>
-                  );
-                })()}
 
                 {assistanceMode !== 'challenge' && activeProblem.guided_hints && (() => {
                   const insightLines = activeProblem.guided_hints.trim().split('\n').filter(Boolean);
@@ -2873,6 +2882,31 @@ const App = () => {
                 </button>
               </div>
               <div className="settings-body">
+                <section className="settings-section">
+                  <h3>User Interface</h3>
+                  <p className="settings-description">Customize your practice environment and interface elements.</p>
+                  
+                  <div className="settings-card">
+                    <div className="card-info">
+                      <h4>Visualize Tab</h4>
+                      <p>Show step-by-step code execution visualizer in the problem view.</p>
+                    </div>
+                    <label className="toggle-switch">
+                      <input 
+                        type="checkbox" 
+                        checked={settings.show_visualize_tab ?? true} 
+                        onChange={e => {
+                          const newVal = e.target.checked;
+                          // Optimistic update
+                          setSettings(prev => ({ ...prev, show_visualize_tab: newVal }));
+                          updateSettings({ show_visualize_tab: newVal });
+                        }} 
+                      />
+                      <span className="toggle-slider"></span>
+                    </label>
+                  </div>
+                </section>
+
                 <section className="settings-section">
                   <h3>Data & Persistence</h3>
                   <p className="settings-description">Manage your stored progress and custom code edits.</p>
