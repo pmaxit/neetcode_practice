@@ -5,40 +5,44 @@ import { fileURLToPath } from 'url';
 import { Sequelize, DataTypes } from 'sequelize';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const LM_STUDIO_URL = 'http://localhost:1234/v1/chat/completions';
+dotenv.config();
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
 async function callLLM(prompt, systemPrompt = "You are a professional coding tutor.", stream = false) {
-    const payload = {
-        model: "local-model",
-        messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: prompt }
-        ],
-        temperature: 0.2,
-        stream
-    };
+    if (stream) {
+        const result = await model.generateContentStream({
+            contents: [{ role: "user", parts: [{ text: `${systemPrompt}\n\n${prompt}` }] }],
+        });
 
-    const response = await fetch(LM_STUDIO_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`LM Studio error: ${response.status} - ${errorText}`);
+        // Create a ReadableStream that mimics LM Studio / OpenAI SSE format
+        return new ReadableStream({
+            async start(controller) {
+                try {
+                    for await (const chunk of result.stream) {
+                        const text = chunk.text();
+                        const payload = { choices: [{ delta: { content: text } }] };
+                        controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(payload)}\n\n`));
+                    }
+                    controller.enqueue(new TextEncoder().encode(`data: [DONE]\n\n`));
+                    controller.close();
+                } catch (err) {
+                    controller.error(err);
+                }
+            }
+        });
+    } else {
+        const result = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: `${systemPrompt}\n\n${prompt}` }] }],
+        });
+        return result.response.text();
     }
-
-    if (stream) return response.body; // Return the stream
-
-    const data = await response.json();
-    return data.choices[0].message.content;
 }
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-
-dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -955,9 +959,6 @@ app.post('/api/study-plan/generate', requireAuth, requireSession, async (req, re
         const totalAvailable = pool.length;
         const totalSlots = days * questions_per_day;
         const typeLabel = type === 'neetcode' ? 'NeetCode 150' : 'All LeetCode';
-
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
         const prompt = `You are a competitive programming curriculum designer.
 Design a ${days}-day study plan with ${questions_per_day} new problems per day.

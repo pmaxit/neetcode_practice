@@ -1,0 +1,17 @@
+# Frontend & UI Rules (The "Premium" Standard)
+
+## UI Aesthetics
+- **Palette:** Midnight (#020617), Emerald Accent (#10b981), Glassmorphism (`.glass`).
+- **Typography:** `Inter` for UI, `JetBrains Mono` for code.
+- **Micro-interactions:** Use `cubic-bezier` transitions and subtle `fade-in` animations.
+- **Visuals:** Always check `src/styles/Dashboard.css` for existing variables.
+
+## Product Philosophy
+- **Day-First:** Navigation is driven by the 19-day/30-day study plan.
+- **Mnemonic-First:** Prioritize pattern-based learning over raw code memorization.
+- **Attempt-First:** Solutions should be hidden/blurred by default.
+
+## Code Organization
+- Keep `App.jsx` manageable.
+- Refactor new features into standalone components in `src/components/`.
+- Use functional components and hooks.

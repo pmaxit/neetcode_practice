@@ -64,7 +64,7 @@
       "source_file": "cypress.config.js",
       "source_location": "L1",
       "id": "cypress_config_js",
-      "community": 17,
+      "community": 15,
       "norm_label": "cypress.config.js"
     },
     {
@@ -73,7 +73,7 @@
       "source_file": "cypress.config.js",
       "source_location": "L6",
       "id": "practice_app_cypress_config_setupnodeevents",
-      "community": 17,
+      "community": 15,
       "norm_label": "setupnodeevents()"
     },
     {
@@ -82,70 +82,79 @@
       "source_file": "server.js",
       "source_location": "L1",
       "id": "server_js",
-      "community": 5,
+      "community": 6,
       "norm_label": "server.js"
+    },
+    {
+      "label": "callLLM()",
+      "file_type": "code",
+      "source_file": "server.js",
+      "source_location": "L15",
+      "id": "practice_app_server_callllm",
+      "community": 6,
+      "norm_label": "callllm()"
     },
     {
       "label": "signToken()",
       "file_type": "code",
       "source_file": "server.js",
-      "source_location": "L183",
+      "source_location": "L216",
       "id": "practice_app_server_signtoken",
-      "community": 5,
+      "community": 6,
       "norm_label": "signtoken()"
     },
     {
       "label": "requireAuth()",
       "file_type": "code",
       "source_file": "server.js",
-      "source_location": "L187",
+      "source_location": "L220",
       "id": "practice_app_server_requireauth",
-      "community": 5,
+      "community": 6,
       "norm_label": "requireauth()"
     },
     {
       "label": "requireSession()",
       "file_type": "code",
       "source_file": "server.js",
-      "source_location": "L201",
+      "source_location": "L234",
       "id": "practice_app_server_requiresession",
-      "community": 5,
+      "community": 6,
       "norm_label": "requiresession()"
     },
     {
       "label": "shuffleArray()",
       "file_type": "code",
       "source_file": "server.js",
-      "source_location": "L918",
+      "source_location": "L915",
       "id": "practice_app_server_shufflearray",
-      "community": 5,
+      "community": 6,
       "norm_label": "shufflearray()"
     },
     {
       "label": "sendEvent()",
       "file_type": "code",
       "source_file": "server.js",
-      "source_location": "L1007",
+      "source_location": "L997",
       "id": "practice_app_server_sendevent",
-      "community": 5,
+      "community": 6,
       "norm_label": "sendevent()"
     },
     {
       "label": "seedDatabase()",
       "file_type": "code",
       "source_file": "server.js",
-      "source_location": "L1267",
+      "source_location": "L1277",
       "id": "practice_app_server_seeddatabase",
-      "community": 5,
+      "community": 6,
       "norm_label": "seeddatabase()"
     },
     {
       "label": "ensureTableStructure()",
       "file_type": "code",
       "source_file": "server.js",
-      "source_location": "L1310",
+      "source_location": "L1320",
       "id": "practice_app_server_ensuretablestructure",
-      "community": 5,
+      "community": 6,
       "norm_label": "ensuretablestructure()"
     },
     {
@@ -332,7 +341,7 @@
       "label": "parseSystemDesignContent()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L2940",
+      "source_location": "L2941",
       "id": "src_app_parsesystemdesigncontent",
       "community": 2,
       "norm_label": "parsesystemdesigncontent()"
@@ -341,7 +350,7 @@
       "label": "RequirementCard()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L3009",
+      "source_location": "L3010",
       "id": "src_app_requirementcard",
       "community": 2,
       "norm_label": "requirementcard()"
@@ -350,7 +359,7 @@
       "label": "SectionHeader()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L3022",
+      "source_location": "L3023",
       "id": "src_app_sectionheader",
       "community": 2,
       "norm_label": "sectionheader()"
@@ -359,7 +368,7 @@
       "label": "SystemDesignView()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L3029",
+      "source_location": "L3030",
       "id": "src_app_systemdesignview",
       "community": 2,
       "norm_label": "systemdesignview()"
@@ -368,7 +377,7 @@
       "label": "SystemDesignDetail()",
       "file_type": "code",
       "source_file": "src/App.jsx",
-      "source_location": "L3074",
+      "source_location": "L3075",
       "id": "src_app_systemdesigndetail",
       "community": 2,
       "norm_label": "systemdesigndetail()"
@@ -568,7 +577,7 @@
       "source_file": "src/services/imageRenderer.js",
       "source_location": "L1",
       "id": "src_services_imagerenderer_js",
-      "community": 6,
+      "community": 7,
       "norm_label": "imagerenderer.js"
     },
     {
@@ -577,7 +586,7 @@
       "source_file": "src/services/imageRenderer.js",
       "source_location": "L5",
       "id": "services_imagerenderer_imagerendererservice",
-      "community": 6,
+      "community": 7,
       "norm_label": "imagerendererservice"
     },
     {
@@ -586,7 +595,7 @@
       "source_file": "src/services/imageRenderer.js",
       "source_location": "L6",
       "id": "services_imagerenderer_imagerendererservice_constructor",
-      "community": 6,
+      "community": 7,
       "norm_label": ".constructor()"
     },
     {
@@ -595,7 +604,7 @@
       "source_file": "src/services/imageRenderer.js",
       "source_location": "L10",
       "id": "services_imagerenderer_imagerendererservice_ensurecontainer",
-      "community": 6,
+      "community": 7,
       "norm_label": "._ensurecontainer()"
     },
     {
@@ -604,7 +613,7 @@
       "source_file": "src/services/imageRenderer.js",
       "source_location": "L28",
       "id": "services_imagerenderer_imagerendererservice_removecontainer",
-      "community": 6,
+      "community": 7,
       "norm_label": "._removecontainer()"
     },
     {
@@ -613,7 +622,7 @@
       "source_file": "src/services/imageRenderer.js",
       "source_location": "L35",
       "id": "services_imagerenderer_imagerendererservice_rendercodetohtml",
-      "community": 6,
+      "community": 7,
       "norm_label": ".rendercodetohtml()"
     },
     {
@@ -622,7 +631,7 @@
       "source_file": "src/services/imageRenderer.js",
       "source_location": "L49",
       "id": "services_imagerenderer_imagerendererservice_rendertobase64",
-      "community": 6,
+      "community": 7,
       "norm_label": ".rendertobase64()"
     },
     {
@@ -631,7 +640,7 @@
       "source_file": "src/components/AnnotationOverlay.jsx",
       "source_location": "L1",
       "id": "src_components_annotationoverlay_jsx",
-      "community": 18,
+      "community": 16,
       "norm_label": "annotationoverlay.jsx"
     },
     {
@@ -640,7 +649,7 @@
       "source_file": "src/components/AnnotationOverlay.jsx",
       "source_location": "L8",
       "id": "components_annotationoverlay_annotationoverlay",
-      "community": 18,
+      "community": 16,
       "norm_label": "annotationoverlay()"
     },
     {
@@ -694,7 +703,7 @@
       "source_file": "src/components/cards/SolutionCard.jsx",
       "source_location": "L1",
       "id": "src_components_cards_solutioncard_jsx",
-      "community": 15,
+      "community": 13,
       "norm_label": "solutioncard.jsx"
     },
     {
@@ -703,7 +712,7 @@
       "source_file": "src/components/cards/SolutionCard.jsx",
       "source_location": "L4",
       "id": "cards_solutioncard_difficulty",
-      "community": 15,
+      "community": 13,
       "norm_label": "difficulty()"
     },
     {
@@ -712,7 +721,7 @@
       "source_file": "src/components/cards/SolutionCard.jsx",
       "source_location": "L10",
       "id": "cards_solutioncard_solutioncard",
-      "community": 15,
+      "community": 13,
       "norm_label": "solutioncard()"
     },
     {
@@ -721,7 +730,7 @@
       "source_file": "scratch/test_db.js",
       "source_location": "L1",
       "id": "scratch_test_db_js",
-      "community": 19,
+      "community": 17,
       "norm_label": "test_db.js"
     },
     {
@@ -730,7 +739,7 @@
       "source_file": "scratch/test_db.js",
       "source_location": "L5",
       "id": "scratch_test_db_test",
-      "community": 19,
+      "community": 17,
       "norm_label": "test()"
     },
     {
@@ -739,7 +748,7 @@
       "source_file": "scratch/list_models.js",
       "source_location": "L1",
       "id": "scratch_list_models_js",
-      "community": 20,
+      "community": 18,
       "norm_label": "list_models.js"
     },
     {
@@ -748,8 +757,26 @@
       "source_file": "scratch/list_models.js",
       "source_location": "L5",
       "id": "scratch_list_models_listmodels",
-      "community": 20,
+      "community": 18,
       "norm_label": "listmodels()"
+    },
+    {
+      "label": "debug_parser.js",
+      "file_type": "code",
+      "source_file": "scratch/debug_parser.js",
+      "source_location": "L1",
+      "id": "scratch_debug_parser_js",
+      "community": 19,
+      "norm_label": "debug_parser.js"
+    },
+    {
+      "label": "parseResponse()",
+      "file_type": "code",
+      "source_file": "scratch/debug_parser.js",
+      "source_location": "L29",
+      "id": "scratch_debug_parser_parseresponse",
+      "community": 19,
+      "norm_label": "parseresponse()"
     },
     {
       "label": "fix_schema.js",
@@ -757,7 +784,7 @@
       "source_file": "scratch/fix_schema.js",
       "source_location": "L1",
       "id": "scratch_fix_schema_js",
-      "community": 21,
+      "community": 20,
       "norm_label": "fix_schema.js"
     },
     {
@@ -766,7 +793,7 @@
       "source_file": "scratch/fix_schema.js",
       "source_location": "L17",
       "id": "scratch_fix_schema_run",
-      "community": 21,
+      "community": 20,
       "norm_label": "run()"
     },
     {
@@ -775,7 +802,7 @@
       "source_file": "scratch/find_flash_id.js",
       "source_location": "L1",
       "id": "scratch_find_flash_id_js",
-      "community": 22,
+      "community": 21,
       "norm_label": "find_flash_id.js"
     },
     {
@@ -784,7 +811,7 @@
       "source_file": "scratch/find_flash_id.js",
       "source_location": "L11",
       "id": "scratch_find_flash_id_findsmallestflash",
-      "community": 22,
+      "community": 21,
       "norm_label": "findsmallestflash()"
     },
     {
@@ -793,7 +820,7 @@
       "source_file": "scratch/update_videos.js",
       "source_location": "L1",
       "id": "scratch_update_videos_js",
-      "community": 23,
+      "community": 22,
       "norm_label": "update_videos.js"
     },
     {
@@ -802,7 +829,7 @@
       "source_file": "scratch/update_videos.js",
       "source_location": "L23",
       "id": "scratch_update_videos_updatevideos",
-      "community": 23,
+      "community": 22,
       "norm_label": "updatevideos()"
     },
     {
@@ -811,7 +838,7 @@
       "source_file": "scratch/test_25_flash.js",
       "source_location": "L1",
       "id": "scratch_test_25_flash_js",
-      "community": 24,
+      "community": 23,
       "norm_label": "test_25_flash.js"
     },
     {
@@ -820,7 +847,7 @@
       "source_file": "scratch/test_25_flash.js",
       "source_location": "L5",
       "id": "scratch_test_25_flash_testmodel",
-      "community": 24,
+      "community": 23,
       "norm_label": "testmodel()"
     },
     {
@@ -829,7 +856,7 @@
       "source_file": "scratch/test_scaffold.js",
       "source_location": "L1",
       "id": "scratch_test_scaffold_js",
-      "community": 25,
+      "community": 24,
       "norm_label": "test_scaffold.js"
     },
     {
@@ -838,7 +865,7 @@
       "source_file": "scratch/test_scaffold.js",
       "source_location": "L1",
       "id": "scratch_test_scaffold_generatepracticescaffold",
-      "community": 25,
+      "community": 24,
       "norm_label": "generatepracticescaffold()"
     },
     {
@@ -847,7 +874,7 @@
       "source_file": "scratch/find_working_model.js",
       "source_location": "L1",
       "id": "scratch_find_working_model_js",
-      "community": 26,
+      "community": 25,
       "norm_label": "find_working_model.js"
     },
     {
@@ -856,7 +883,7 @@
       "source_file": "scratch/find_working_model.js",
       "source_location": "L16",
       "id": "scratch_find_working_model_checkmodels",
-      "community": 26,
+      "community": 25,
       "norm_label": "checkmodels()"
     },
     {
@@ -865,7 +892,7 @@
       "source_file": "scratch/test_scraper.js",
       "source_location": "L1",
       "id": "scratch_test_scraper_js",
-      "community": 27,
+      "community": 26,
       "norm_label": "test_scraper.js"
     },
     {
@@ -874,7 +901,7 @@
       "source_file": "scratch/test_scraper.js",
       "source_location": "L3",
       "id": "scratch_test_scraper_testscraper",
-      "community": 27,
+      "community": 26,
       "norm_label": "testscraper()"
     },
     {
@@ -883,7 +910,7 @@
       "source_file": "scratch/check_hints.js",
       "source_location": "L1",
       "id": "scratch_check_hints_js",
-      "community": 28,
+      "community": 27,
       "norm_label": "check_hints.js"
     },
     {
@@ -892,7 +919,7 @@
       "source_file": "scratch/check_hints.js",
       "source_location": "L21",
       "id": "scratch_check_hints_check",
-      "community": 28,
+      "community": 27,
       "norm_label": "check()"
     },
     {
@@ -901,7 +928,7 @@
       "source_file": "scratch/test_latest_model.js",
       "source_location": "L1",
       "id": "scratch_test_latest_model_js",
-      "community": 29,
+      "community": 28,
       "norm_label": "test_latest_model.js"
     },
     {
@@ -910,7 +937,7 @@
       "source_file": "scratch/test_latest_model.js",
       "source_location": "L11",
       "id": "scratch_test_latest_model_testlatest",
-      "community": 29,
+      "community": 28,
       "norm_label": "testlatest()"
     },
     {
@@ -919,7 +946,7 @@
       "source_file": "scratch/migrate_hints_col.js",
       "source_location": "L1",
       "id": "scratch_migrate_hints_col_js",
-      "community": 30,
+      "community": 29,
       "norm_label": "migrate_hints_col.js"
     },
     {
@@ -928,7 +955,7 @@
       "source_file": "scratch/migrate_hints_col.js",
       "source_location": "L15",
       "id": "scratch_migrate_hints_col_migrate",
-      "community": 30,
+      "community": 29,
       "norm_label": "migrate()"
     },
     {
@@ -937,7 +964,7 @@
       "source_file": "scratch/test_lite_model.js",
       "source_location": "L1",
       "id": "scratch_test_lite_model_js",
-      "community": 31,
+      "community": 30,
       "norm_label": "test_lite_model.js"
     },
     {
@@ -946,7 +973,7 @@
       "source_file": "scratch/test_lite_model.js",
       "source_location": "L11",
       "id": "scratch_test_lite_model_testlite",
-      "community": 31,
+      "community": 30,
       "norm_label": "testlite()"
     },
     {
@@ -955,7 +982,7 @@
       "source_file": "scratch/check_gemini_models.js",
       "source_location": "L1",
       "id": "scratch_check_gemini_models_js",
-      "community": 32,
+      "community": 31,
       "norm_label": "check_gemini_models.js"
     },
     {
@@ -964,7 +991,7 @@
       "source_file": "scratch/check_gemini_models.js",
       "source_location": "L8",
       "id": "scratch_check_gemini_models_checkmodels",
-      "community": 32,
+      "community": 31,
       "norm_label": "checkmodels()"
     },
     {
@@ -973,7 +1000,7 @@
       "source_file": "scripts/populate_sd_db.js",
       "source_location": "L1",
       "id": "scripts_populate_sd_db_js",
-      "community": 33,
+      "community": 32,
       "norm_label": "populate_sd_db.js"
     },
     {
@@ -982,8 +1009,26 @@
       "source_file": "scripts/populate_sd_db.js",
       "source_location": "L55",
       "id": "scripts_populate_sd_db_populate",
-      "community": 33,
+      "community": 32,
       "norm_label": "populate()"
+    },
+    {
+      "label": "test_lmstudio.js",
+      "file_type": "code",
+      "source_file": "scripts/test_lmstudio.js",
+      "source_location": "L1",
+      "id": "scripts_test_lmstudio_js",
+      "community": 33,
+      "norm_label": "test_lmstudio.js"
+    },
+    {
+      "label": "testLMStudio()",
+      "file_type": "code",
+      "source_file": "scripts/test_lmstudio.js",
+      "source_location": "L3",
+      "id": "scripts_test_lmstudio_testlmstudio",
+      "community": 33,
+      "norm_label": "testlmstudio()"
     },
     {
       "label": "generate_hints.js",
@@ -991,34 +1036,34 @@
       "source_file": "scripts/generate_hints.js",
       "source_location": "L1",
       "id": "scripts_generate_hints_js",
-      "community": 13,
+      "community": 3,
       "norm_label": "generate_hints.js"
     },
     {
       "label": "buildPrompt()",
       "file_type": "code",
       "source_file": "scripts/generate_hints.js",
-      "source_location": "L66",
+      "source_location": "L59",
       "id": "scripts_generate_hints_buildprompt",
-      "community": 13,
+      "community": 3,
       "norm_label": "buildprompt()"
     },
     {
       "label": "parseResponse()",
       "file_type": "code",
       "source_file": "scripts/generate_hints.js",
-      "source_location": "L140",
+      "source_location": "L147",
       "id": "scripts_generate_hints_parseresponse",
-      "community": 13,
+      "community": 3,
       "norm_label": "parseresponse()"
     },
     {
       "label": "main()",
       "file_type": "code",
       "source_file": "scripts/generate_hints.js",
-      "source_location": "L161",
+      "source_location": "L225",
       "id": "scripts_generate_hints_main",
-      "community": 13,
+      "community": 3,
       "norm_label": "main()"
     },
     {
@@ -1027,7 +1072,7 @@
       "source_file": "scripts/generate_daily_problem.js",
       "source_location": "L1",
       "id": "scripts_generate_daily_problem_js",
-      "community": 14,
+      "community": 3,
       "norm_label": "generate_daily_problem.js"
     },
     {
@@ -1036,7 +1081,7 @@
       "source_file": "scripts/generate_daily_problem.js",
       "source_location": "L28",
       "id": "scripts_generate_daily_problem_getarg",
-      "community": 14,
+      "community": 3,
       "norm_label": "getarg()"
     },
     {
@@ -1045,7 +1090,7 @@
       "source_file": "scripts/generate_daily_problem.js",
       "source_location": "L82",
       "id": "scripts_generate_daily_problem_computetodaydayfromplan",
-      "community": 14,
+      "community": 3,
       "norm_label": "computetodaydayfromplan()"
     },
     {
@@ -1054,7 +1099,7 @@
       "source_file": "scripts/generate_daily_problem.js",
       "source_location": "L93",
       "id": "scripts_generate_daily_problem_main",
-      "community": 14,
+      "community": 3,
       "norm_label": "main()"
     },
     {
@@ -1099,52 +1144,52 @@
       "source_file": "scripts/fix_missing_statements.js",
       "source_location": "L1",
       "id": "scripts_fix_missing_statements_js",
-      "community": 8,
+      "community": 9,
       "norm_label": "fix_missing_statements.js"
     },
     {
       "label": "slugFromUrl()",
       "file_type": "code",
       "source_file": "scripts/fix_missing_statements.js",
-      "source_location": "L58",
+      "source_location": "L53",
       "id": "scripts_fix_missing_statements_slugfromurl",
-      "community": 8,
+      "community": 9,
       "norm_label": "slugfromurl()"
     },
     {
       "label": "fetchLeetCodeStatement()",
       "file_type": "code",
       "source_file": "scripts/fix_missing_statements.js",
-      "source_location": "L63",
+      "source_location": "L58",
       "id": "scripts_fix_missing_statements_fetchleetcodestatement",
-      "community": 8,
+      "community": 9,
       "norm_label": "fetchleetcodestatement()"
     },
     {
       "label": "fetchAnkiStatement()",
       "file_type": "code",
       "source_file": "scripts/fix_missing_statements.js",
-      "source_location": "L87",
+      "source_location": "L82",
       "id": "scripts_fix_missing_statements_fetchankistatement",
-      "community": 8,
+      "community": 9,
       "norm_label": "fetchankistatement()"
     },
     {
       "label": "generateStatement()",
       "file_type": "code",
       "source_file": "scripts/fix_missing_statements.js",
-      "source_location": "L99",
+      "source_location": "L94",
       "id": "scripts_fix_missing_statements_generatestatement",
-      "community": 8,
+      "community": 9,
       "norm_label": "generatestatement()"
     },
     {
       "label": "main()",
       "file_type": "code",
       "source_file": "scripts/fix_missing_statements.js",
-      "source_location": "L117",
+      "source_location": "L111",
       "id": "scripts_fix_missing_statements_main",
-      "community": 8,
+      "community": 9,
       "norm_label": "main()"
     },
     {
@@ -1164,6 +1209,24 @@
       "id": "scripts_cleanup_indexes_cleanup",
       "community": 36,
       "norm_label": "cleanup()"
+    },
+    {
+      "label": "llm_helper.js",
+      "file_type": "code",
+      "source_file": "scripts/llm_helper.js",
+      "source_location": "L1",
+      "id": "scripts_llm_helper_js",
+      "community": 3,
+      "norm_label": "llm_helper.js"
+    },
+    {
+      "label": "callLLM()",
+      "file_type": "code",
+      "source_file": "scripts/llm_helper.js",
+      "source_location": "L12",
+      "id": "scripts_llm_helper_callllm",
+      "community": 3,
+      "norm_label": "callllm()"
     },
     {
       "label": "migrate_to_multitenant.js",
@@ -1234,52 +1297,52 @@
       "source_file": "scripts/generate_visualizations.js",
       "source_location": "L1",
       "id": "scripts_generate_visualizations_js",
-      "community": 9,
+      "community": 3,
       "norm_label": "generate_visualizations.js"
     },
     {
       "label": "traceCodeExecution()",
       "file_type": "code",
       "source_file": "scripts/generate_visualizations.js",
-      "source_location": "L15",
+      "source_location": "L13",
       "id": "scripts_generate_visualizations_tracecodeexecution",
-      "community": 9,
+      "community": 3,
       "norm_label": "tracecodeexecution()"
     },
     {
       "label": "generateExplanation()",
       "file_type": "code",
       "source_file": "scripts/generate_visualizations.js",
-      "source_location": "L38",
+      "source_location": "L36",
       "id": "scripts_generate_visualizations_generateexplanation",
-      "community": 9,
+      "community": 3,
       "norm_label": "generateexplanation()"
     },
     {
       "label": "critiqueExplanation()",
       "file_type": "code",
       "source_file": "scripts/generate_visualizations.js",
-      "source_location": "L63",
+      "source_location": "L60",
       "id": "scripts_generate_visualizations_critiqueexplanation",
-      "community": 9,
+      "community": 3,
       "norm_label": "critiqueexplanation()"
     },
     {
       "label": "runAgenticFlow()",
       "file_type": "code",
       "source_file": "scripts/generate_visualizations.js",
-      "source_location": "L82",
+      "source_location": "L78",
       "id": "scripts_generate_visualizations_runagenticflow",
-      "community": 9,
+      "community": 3,
       "norm_label": "runagenticflow()"
     },
     {
       "label": "main()",
       "file_type": "code",
       "source_file": "scripts/generate_visualizations.js",
-      "source_location": "L114",
+      "source_location": "L110",
       "id": "scripts_generate_visualizations_main",
-      "community": 9,
+      "community": 3,
       "norm_label": "main()"
     },
     {
@@ -1288,7 +1351,7 @@
       "source_file": "scripts/sync_leetcode_questions.js",
       "source_location": "L1",
       "id": "scripts_sync_leetcode_questions_js",
-      "community": 7,
+      "community": 8,
       "norm_label": "sync_leetcode_questions.js"
     },
     {
@@ -1297,7 +1360,7 @@
       "source_file": "scripts/sync_leetcode_questions.js",
       "source_location": "L51",
       "id": "scripts_sync_leetcode_questions_parsequestionsfile",
-      "community": 7,
+      "community": 8,
       "norm_label": "parsequestionsfile()"
     },
     {
@@ -1306,7 +1369,7 @@
       "source_file": "scripts/sync_leetcode_questions.js",
       "source_location": "L68",
       "id": "scripts_sync_leetcode_questions_slugfromurl",
-      "community": 7,
+      "community": 8,
       "norm_label": "slugfromurl()"
     },
     {
@@ -1315,7 +1378,7 @@
       "source_file": "scripts/sync_leetcode_questions.js",
       "source_location": "L73",
       "id": "scripts_sync_leetcode_questions_fetchleetcodeproblem",
-      "community": 7,
+      "community": 8,
       "norm_label": "fetchleetcodeproblem()"
     },
     {
@@ -1324,7 +1387,7 @@
       "source_file": "scripts/sync_leetcode_questions.js",
       "source_location": "L101",
       "id": "scripts_sync_leetcode_questions_striphtml",
-      "community": 7,
+      "community": 8,
       "norm_label": "striphtml()"
     },
     {
@@ -1333,7 +1396,7 @@
       "source_file": "scripts/sync_leetcode_questions.js",
       "source_location": "L115",
       "id": "scripts_sync_leetcode_questions_fetchgithubsolution",
-      "community": 7,
+      "community": 8,
       "norm_label": "fetchgithubsolution()"
     },
     {
@@ -1342,7 +1405,7 @@
       "source_file": "scripts/sync_leetcode_questions.js",
       "source_location": "L130",
       "id": "scripts_sync_leetcode_questions_main",
-      "community": 7,
+      "community": 8,
       "norm_label": "main()"
     },
     {
@@ -1534,7 +1597,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "neetcode practice deployment",
       "id": "deployment_skill_neetcode_practice_deployment"
     },
@@ -1547,7 +1610,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "deploy.sh script",
       "id": "deployment_skill_deploy_sh"
     },
@@ -1560,7 +1623,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "/api/health endpoint",
       "id": "deployment_skill_api_health"
     },
@@ -1573,7 +1636,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "google cloud run",
       "id": "deployment_skill_cloud_run"
     },
@@ -1586,7 +1649,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "cloud sql (mysql)",
       "id": "deployment_skill_cloud_sql"
     },
@@ -1599,7 +1662,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "google container registry",
       "id": "deployment_skill_gcr"
     },
@@ -1612,7 +1675,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "neetcode practice app",
       "id": "readme_neetcode_practice_app"
     },
@@ -1625,7 +1688,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "react (vite) frontend",
       "id": "readme_react_vite_frontend"
     },
@@ -1638,7 +1701,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "express.js backend",
       "id": "readme_express_backend"
     },
@@ -1651,7 +1714,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "github actions ci/cd",
       "id": "readme_github_actions_cicd"
     },
@@ -1664,7 +1727,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "google cloud secret manager",
       "id": "readme_secret_manager"
     },
@@ -1677,7 +1740,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 4,
+      "community": 5,
       "norm_label": "problems db table",
       "id": "memory_problems_table"
     },
@@ -1690,7 +1753,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 4,
+      "community": 5,
       "norm_label": "user_progress db table",
       "id": "memory_user_progress_table"
     },
@@ -1703,7 +1766,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 4,
+      "community": 5,
       "norm_label": "app.jsx (single-page ui)",
       "id": "memory_app_jsx"
     },
@@ -1716,7 +1779,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 4,
+      "community": 5,
       "norm_label": "server.js (express api)",
       "id": "memory_server_js"
     },
@@ -1730,7 +1793,7 @@
       "author": null,
       "contributor": null,
       "rationale": "Day is computed at query time as ((p.id - 1) % 19) + 1, not stored in DB, to map 250 problems across 19 days deterministically without schema changes.",
-      "community": 16,
+      "community": 14,
       "norm_label": "day assignment formula",
       "id": "memory_day_assignment_formula"
     },
@@ -1744,7 +1807,7 @@
       "author": null,
       "contributor": null,
       "rationale": "Revision problems are selected via source[(day * 7) % source.length] to deterministically pick different problems each day, weighted toward Medium/Hard.",
-      "community": 16,
+      "community": 14,
       "norm_label": "spaced repetition (revision selection)",
       "id": "memory_spaced_repetition"
     },
@@ -1757,7 +1820,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 16,
+      "community": 14,
       "norm_label": "neetcode 250 problem set",
       "id": "memory_neetcode_250"
     },
@@ -1770,7 +1833,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 4,
+      "community": 5,
       "norm_label": "get /api/problems endpoint",
       "id": "memory_api_problems"
     },
@@ -1783,7 +1846,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 4,
+      "community": 5,
       "norm_label": "post /api/progress endpoint",
       "id": "memory_api_progress"
     },
@@ -1796,7 +1859,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 4,
+      "community": 5,
       "norm_label": "dashboard view",
       "id": "memory_dashboard_view"
     },
@@ -1809,7 +1872,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 4,
+      "community": 5,
       "norm_label": "calendar view",
       "id": "memory_calendar_view"
     },
@@ -1822,7 +1885,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 4,
+      "community": 5,
       "norm_label": "browse view",
       "id": "memory_browse_view"
     },
@@ -1835,7 +1898,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 4,
+      "community": 5,
       "norm_label": "neetpractice pwa entry point",
       "id": "index_html_neetpractice"
     },
@@ -1861,7 +1924,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 4,
+      "community": 5,
       "norm_label": "gamification plan",
       "id": "gamification_plan"
     }
@@ -1883,7 +1946,19 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "server.js",
-      "source_location": "L183",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_src": "server_js",
+      "_tgt": "practice_app_server_callllm",
+      "source": "server_js",
+      "target": "practice_app_server_callllm",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.js",
+      "source_location": "L216",
       "weight": 1.0,
       "_src": "server_js",
       "_tgt": "practice_app_server_signtoken",
@@ -1895,7 +1970,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "server.js",
-      "source_location": "L187",
+      "source_location": "L220",
       "weight": 1.0,
       "_src": "server_js",
       "_tgt": "practice_app_server_requireauth",
@@ -1907,7 +1982,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "server.js",
-      "source_location": "L201",
+      "source_location": "L234",
       "weight": 1.0,
       "_src": "server_js",
       "_tgt": "practice_app_server_requiresession",
@@ -1919,7 +1994,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "server.js",
-      "source_location": "L918",
+      "source_location": "L915",
       "weight": 1.0,
       "_src": "server_js",
       "_tgt": "practice_app_server_shufflearray",
@@ -1931,7 +2006,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "server.js",
-      "source_location": "L1007",
+      "source_location": "L997",
       "weight": 1.0,
       "_src": "server_js",
       "_tgt": "practice_app_server_sendevent",
@@ -1943,7 +2018,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "server.js",
-      "source_location": "L1267",
+      "source_location": "L1277",
       "weight": 1.0,
       "_src": "server_js",
       "_tgt": "practice_app_server_seeddatabase",
@@ -1955,7 +2030,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "server.js",
-      "source_location": "L1310",
+      "source_location": "L1320",
       "weight": 1.0,
       "_src": "server_js",
       "_tgt": "practice_app_server_ensuretablestructure",
@@ -2135,7 +2210,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L2940",
+      "source_location": "L2941",
       "weight": 1.0,
       "_src": "src_app_jsx",
       "_tgt": "src_app_parsesystemdesigncontent",
@@ -2147,7 +2222,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L3009",
+      "source_location": "L3010",
       "weight": 1.0,
       "_src": "src_app_jsx",
       "_tgt": "src_app_requirementcard",
@@ -2159,7 +2234,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L3022",
+      "source_location": "L3023",
       "weight": 1.0,
       "_src": "src_app_jsx",
       "_tgt": "src_app_sectionheader",
@@ -2171,7 +2246,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L3029",
+      "source_location": "L3030",
       "weight": 1.0,
       "_src": "src_app_jsx",
       "_tgt": "src_app_systemdesignview",
@@ -2183,7 +2258,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L3074",
+      "source_location": "L3075",
       "weight": 1.0,
       "_src": "src_app_jsx",
       "_tgt": "src_app_systemdesigndetail",
@@ -2195,7 +2270,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "src/App.jsx",
-      "source_location": "L3082",
+      "source_location": "L3083",
       "weight": 1.0,
       "_src": "src_app_systemdesigndetail",
       "_tgt": "src_app_parsesystemdesigncontent",
@@ -2770,6 +2845,18 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "scratch/debug_parser.js",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_src": "scratch_debug_parser_js",
+      "_tgt": "scratch_debug_parser_parseresponse",
+      "source": "scratch_debug_parser_js",
+      "target": "scratch_debug_parser_parseresponse",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "scratch/fix_schema.js",
       "source_location": "L17",
       "weight": 1.0,
@@ -2926,8 +3013,20 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "scripts/test_lmstudio.js",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_src": "scripts_test_lmstudio_js",
+      "_tgt": "scripts_test_lmstudio_testlmstudio",
+      "source": "scripts_test_lmstudio_js",
+      "target": "scripts_test_lmstudio_testlmstudio",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "scripts/generate_hints.js",
-      "source_location": "L66",
+      "source_location": "L59",
       "weight": 1.0,
       "_src": "scripts_generate_hints_js",
       "_tgt": "scripts_generate_hints_buildprompt",
@@ -2939,7 +3038,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_hints.js",
-      "source_location": "L140",
+      "source_location": "L147",
       "weight": 1.0,
       "_src": "scripts_generate_hints_js",
       "_tgt": "scripts_generate_hints_parseresponse",
@@ -2951,7 +3050,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_hints.js",
-      "source_location": "L161",
+      "source_location": "L225",
       "weight": 1.0,
       "_src": "scripts_generate_hints_js",
       "_tgt": "scripts_generate_hints_main",
@@ -2963,7 +3062,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_hints.js",
-      "source_location": "L213",
+      "source_location": "L277",
       "weight": 1.0,
       "_src": "scripts_generate_hints_main",
       "_tgt": "scripts_generate_hints_buildprompt",
@@ -2975,13 +3074,25 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_hints.js",
-      "source_location": "L214",
+      "source_location": "L278",
       "weight": 1.0,
       "_src": "scripts_generate_hints_main",
       "_tgt": "scripts_generate_hints_parseresponse",
       "source": "scripts_generate_hints_parseresponse",
       "target": "scripts_generate_hints_main",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "scripts/generate_hints.js",
+      "source_location": "L277",
+      "weight": 1.0,
+      "_src": "scripts_generate_hints_main",
+      "_tgt": "scripts_llm_helper_callllm",
+      "source": "scripts_generate_hints_main",
+      "target": "scripts_llm_helper_callllm"
     },
     {
       "relation": "contains",
@@ -3032,6 +3143,18 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "scripts/generate_daily_problem.js",
+      "source_location": "L220",
+      "weight": 1.0,
+      "_src": "scripts_generate_daily_problem_main",
+      "_tgt": "scripts_llm_helper_callllm",
+      "source": "scripts_generate_daily_problem_main",
+      "target": "scripts_llm_helper_callllm"
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/populate_ml_notes.js",
@@ -3059,7 +3182,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/fix_missing_statements.js",
-      "source_location": "L58",
+      "source_location": "L53",
       "weight": 1.0,
       "_src": "scripts_fix_missing_statements_js",
       "_tgt": "scripts_fix_missing_statements_slugfromurl",
@@ -3071,7 +3194,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/fix_missing_statements.js",
-      "source_location": "L63",
+      "source_location": "L58",
       "weight": 1.0,
       "_src": "scripts_fix_missing_statements_js",
       "_tgt": "scripts_fix_missing_statements_fetchleetcodestatement",
@@ -3083,7 +3206,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/fix_missing_statements.js",
-      "source_location": "L87",
+      "source_location": "L82",
       "weight": 1.0,
       "_src": "scripts_fix_missing_statements_js",
       "_tgt": "scripts_fix_missing_statements_fetchankistatement",
@@ -3095,7 +3218,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/fix_missing_statements.js",
-      "source_location": "L99",
+      "source_location": "L94",
       "weight": 1.0,
       "_src": "scripts_fix_missing_statements_js",
       "_tgt": "scripts_fix_missing_statements_generatestatement",
@@ -3107,7 +3230,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/fix_missing_statements.js",
-      "source_location": "L117",
+      "source_location": "L111",
       "weight": 1.0,
       "_src": "scripts_fix_missing_statements_js",
       "_tgt": "scripts_fix_missing_statements_main",
@@ -3119,7 +3242,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts/fix_missing_statements.js",
-      "source_location": "L166",
+      "source_location": "L160",
       "weight": 1.0,
       "_src": "scripts_fix_missing_statements_main",
       "_tgt": "scripts_fix_missing_statements_slugfromurl",
@@ -3131,7 +3254,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts/fix_missing_statements.js",
-      "source_location": "L175",
+      "source_location": "L169",
       "weight": 1.0,
       "_src": "scripts_fix_missing_statements_main",
       "_tgt": "scripts_fix_missing_statements_fetchleetcodestatement",
@@ -3143,7 +3266,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts/fix_missing_statements.js",
-      "source_location": "L181",
+      "source_location": "L175",
       "weight": 1.0,
       "_src": "scripts_fix_missing_statements_main",
       "_tgt": "scripts_fix_missing_statements_fetchankistatement",
@@ -3155,13 +3278,25 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts/fix_missing_statements.js",
-      "source_location": "L190",
+      "source_location": "L184",
       "weight": 1.0,
       "_src": "scripts_fix_missing_statements_main",
       "_tgt": "scripts_fix_missing_statements_generatestatement",
       "source": "scripts_fix_missing_statements_generatestatement",
       "target": "scripts_fix_missing_statements_main",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "scripts/fix_missing_statements.js",
+      "source_location": "L105",
+      "weight": 1.0,
+      "_src": "scripts_fix_missing_statements_generatestatement",
+      "_tgt": "scripts_llm_helper_callllm",
+      "source": "scripts_fix_missing_statements_generatestatement",
+      "target": "scripts_llm_helper_callllm"
     },
     {
       "relation": "contains",
@@ -3174,6 +3309,42 @@
       "source": "scripts_cleanup_indexes_js",
       "target": "scripts_cleanup_indexes_cleanup",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/llm_helper.js",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_src": "scripts_llm_helper_js",
+      "_tgt": "scripts_llm_helper_callllm",
+      "source": "scripts_llm_helper_js",
+      "target": "scripts_llm_helper_callllm",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "scripts/generate_visualizations.js",
+      "source_location": "L56",
+      "weight": 1.0,
+      "_src": "scripts_generate_visualizations_generateexplanation",
+      "_tgt": "scripts_llm_helper_callllm",
+      "source": "scripts_llm_helper_callllm",
+      "target": "scripts_generate_visualizations_generateexplanation"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "scripts/generate_visualizations.js",
+      "source_location": "L74",
+      "weight": 1.0,
+      "_src": "scripts_generate_visualizations_critiqueexplanation",
+      "_tgt": "scripts_llm_helper_callllm",
+      "source": "scripts_llm_helper_callllm",
+      "target": "scripts_generate_visualizations_critiqueexplanation"
     },
     {
       "relation": "contains",
@@ -3275,7 +3446,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_visualizations.js",
-      "source_location": "L15",
+      "source_location": "L13",
       "weight": 1.0,
       "_src": "scripts_generate_visualizations_js",
       "_tgt": "scripts_generate_visualizations_tracecodeexecution",
@@ -3287,7 +3458,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_visualizations.js",
-      "source_location": "L38",
+      "source_location": "L36",
       "weight": 1.0,
       "_src": "scripts_generate_visualizations_js",
       "_tgt": "scripts_generate_visualizations_generateexplanation",
@@ -3299,7 +3470,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_visualizations.js",
-      "source_location": "L63",
+      "source_location": "L60",
       "weight": 1.0,
       "_src": "scripts_generate_visualizations_js",
       "_tgt": "scripts_generate_visualizations_critiqueexplanation",
@@ -3311,7 +3482,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_visualizations.js",
-      "source_location": "L82",
+      "source_location": "L78",
       "weight": 1.0,
       "_src": "scripts_generate_visualizations_js",
       "_tgt": "scripts_generate_visualizations_runagenticflow",
@@ -3323,7 +3494,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_visualizations.js",
-      "source_location": "L114",
+      "source_location": "L110",
       "weight": 1.0,
       "_src": "scripts_generate_visualizations_js",
       "_tgt": "scripts_generate_visualizations_main",
@@ -3335,7 +3506,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_visualizations.js",
-      "source_location": "L93",
+      "source_location": "L89",
       "weight": 1.0,
       "_src": "scripts_generate_visualizations_runagenticflow",
       "_tgt": "scripts_generate_visualizations_generateexplanation",
@@ -3347,7 +3518,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_visualizations.js",
-      "source_location": "L94",
+      "source_location": "L90",
       "weight": 1.0,
       "_src": "scripts_generate_visualizations_runagenticflow",
       "_tgt": "scripts_generate_visualizations_critiqueexplanation",
@@ -3359,7 +3530,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_visualizations.js",
-      "source_location": "L141",
+      "source_location": "L137",
       "weight": 1.0,
       "_src": "scripts_generate_visualizations_main",
       "_tgt": "scripts_generate_visualizations_runagenticflow",

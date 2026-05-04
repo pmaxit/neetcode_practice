@@ -199,3 +199,22 @@ DB_NAME=neetcode_db
 - `totalDays` in the frontend (`Math.ceil(problems.length / 8)`) computes 32, but only days 1–19 have problems. Use `maxDay` (derived from `problems.reduce`) for anything day-count-related.
 - The `seeder.js` / auto-seed in `server.js` uses `src/data/problems.json` (150 problems). The production DB has 250 problems seeded separately from `neetcode-250-guide/neetcode_250_complete.json`.
 - `deploy.sh` always errors on `gcloud services enable` (permissions issue) but continues successfully — Cloud Build and Cloud Run deploy work fine regardless.
+
+---
+
+## 🛑 Mistake Log
+> Tracking anti-patterns and root causes to avoid repetition.
+
+| Date | Task | Mistake/Anti-Pattern | Root Cause | Prevention |
+|---|---|---|---|---|
+| 2026-05-04 | CLAUDE.md setup | Empty TargetContent in replace tool | Model attempted to append by specifying empty target content | Use existing line as TargetContent for replacement/append |
+| 2026-05-04 | AI Coach | Switch to Gemini Flash | LM Studio call failing due to missing local model | Use @google/generative-ai with gemini-2.5-flash |
+
+---
+
+## ✅ Recommended Patterns
+> Proven successful patterns and abstractions.
+
+| Pattern | Description | Benefit |
+|---|---|---|
+| Graphify First | Consulting the knowledge graph before any research | Reduces redundant file scanning and improves architectural accuracy |

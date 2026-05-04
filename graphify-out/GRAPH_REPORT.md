@@ -1,12 +1,12 @@
 # Graph Report - practice-app  (2026-05-03)
 
 ## Corpus Check
-- 42 files · ~46,387 words
+- 45 files · ~48,442 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 190 nodes · 183 edges · 14 communities detected
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.82)
+- 197 nodes · 192 edges · 12 communities detected
+- Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 10 edges (avg confidence: 0.81)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
@@ -15,27 +15,25 @@
 - [[_COMMUNITY_Community 2|Community 2]]
 - [[_COMMUNITY_Community 3|Community 3]]
 - [[_COMMUNITY_Community 4|Community 4]]
-- [[_COMMUNITY_Community 6|Community 6]]
+- [[_COMMUNITY_Community 5|Community 5]]
 - [[_COMMUNITY_Community 7|Community 7]]
 - [[_COMMUNITY_Community 8|Community 8]]
 - [[_COMMUNITY_Community 9|Community 9]]
 - [[_COMMUNITY_Community 12|Community 12]]
-- [[_COMMUNITY_Community 13|Community 13]]
 - [[_COMMUNITY_Community 14|Community 14]]
-- [[_COMMUNITY_Community 16|Community 16]]
 - [[_COMMUNITY_Community 45|Community 45]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `CanvasDrawingEngine` - 20 edges
 2. `TraceRunner` - 8 edges
 3. `ImageRendererService` - 6 edges
-4. `main()` - 6 edges
-5. `NeetCode Practice App` - 6 edges
-6. `main()` - 5 edges
-7. `generate_trace()` - 5 edges
-8. `App.jsx (Single-page UI)` - 5 edges
-9. `server.js (Express API)` - 5 edges
-10. `run()` - 4 edges
+4. `callLLM()` - 6 edges
+5. `main()` - 6 edges
+6. `NeetCode Practice App` - 6 edges
+7. `main()` - 5 edges
+8. `generate_trace()` - 5 edges
+9. `App.jsx (Single-page UI)` - 5 edges
+10. `server.js (Express API)` - 5 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `/api/health Endpoint` --conceptually_related_to--> `server.js (Express API)`  [INFERRED]
@@ -69,42 +67,34 @@ Cohesion: 0.13
 Nodes (2): parseSystemDesignContent(), SystemDesignDetail()
 
 ### Community 3 - "Community 3"
+Cohesion: 0.18
+Nodes (10): computeTodayDayFromPlan(), main(), buildPrompt(), main(), parseResponse(), critiqueExplanation(), generateExplanation(), main() (+2 more)
+
+### Community 4 - "Community 4"
 Cohesion: 0.2
 Nodes (11): /api/health Endpoint, Google Cloud Run, Cloud SQL (MySQL), deploy.sh Script, Google Container Registry, NeetCode Practice Deployment, Express.js Backend, GitHub Actions CI/CD (+3 more)
 
-### Community 4 - "Community 4"
+### Community 5 - "Community 5"
 Cohesion: 0.18
 Nodes (11): Gamification Plan, NeetPractice PWA Entry Point, GET /api/problems Endpoint, POST /api/progress Endpoint, App.jsx (Single-page UI), Browse View, Calendar View, Dashboard View (+3 more)
 
-### Community 6 - "Community 6"
+### Community 7 - "Community 7"
 Cohesion: 0.43
 Nodes (1): ImageRendererService
 
-### Community 7 - "Community 7"
+### Community 8 - "Community 8"
 Cohesion: 0.52
 Nodes (6): fetchGithubSolution(), fetchLeetCodeProblem(), main(), parseQuestionsFile(), slugFromUrl(), stripHtml()
 
-### Community 8 - "Community 8"
+### Community 9 - "Community 9"
 Cohesion: 0.6
 Nodes (5): fetchAnkiStatement(), fetchLeetCodeStatement(), generateStatement(), main(), slugFromUrl()
-
-### Community 9 - "Community 9"
-Cohesion: 0.53
-Nodes (4): critiqueExplanation(), generateExplanation(), main(), runAgenticFlow()
 
 ### Community 12 - "Community 12"
 Cohesion: 0.7
 Nodes (4): columnExists(), indexExists(), run(), tableExists()
 
-### Community 13 - "Community 13"
-Cohesion: 0.83
-Nodes (3): buildPrompt(), main(), parseResponse()
-
 ### Community 14 - "Community 14"
-Cohesion: 0.67
-Nodes (2): computeTodayDayFromPlan(), main()
-
-### Community 16 - "Community 16"
 Cohesion: 1.0
 Nodes (3): Day Assignment Formula, NeetCode 250 Problem Set, Spaced Repetition (Revision Selection)
 
@@ -119,9 +109,7 @@ Nodes (1): Graphify Rules (CLAUDE.md)
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 2`** (16 nodes): `apiFetch()`, `App()`, `highlightPython()`, `App.jsx`, `LoginView()`, `parseSystemDesignContent()`, `PythonEditor()`, `RequirementCard()`, `SectionHeader()`, `SessionSelectView()`, `SolutionToggle()`, `StatsSummary()`, `StudyPlanSettings()`, `SVGProgressChart()`, `SystemDesignDetail()`, `SystemDesignView()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 6`** (7 nodes): `ImageRendererService`, `.constructor()`, `._ensureContainer()`, `._removeContainer()`, `.renderCodeToHtml()`, `.renderToBase64()`, `imageRenderer.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 14`** (4 nodes): `computeTodayDayFromPlan()`, `getArg()`, `generate_daily_problem.js`, `main()`
+- **Thin community `Community 7`** (7 nodes): `ImageRendererService`, `.constructor()`, `._ensureContainer()`, `._removeContainer()`, `.renderCodeToHtml()`, `.renderToBase64()`, `imageRenderer.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 45`** (1 nodes): `Graphify Rules (CLAUDE.md)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -129,8 +117,12 @@ Nodes (1): Graphify Rules (CLAUDE.md)
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `server.js (Express API)` connect `Community 4` to `Community 3`?**
-  _High betweenness centrality (0.008) - this node is a cross-community bridge._
+- **Why does `callLLM()` connect `Community 3` to `Community 9`?**
+  _High betweenness centrality (0.009) - this node is a cross-community bridge._
+- **Why does `server.js (Express API)` connect `Community 5` to `Community 4`?**
+  _High betweenness centrality (0.007) - this node is a cross-community bridge._
+- **Are the 5 inferred relationships involving `callLLM()` (e.g. with `main()` and `main()`) actually correct?**
+  _`callLLM()` has 5 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `AST visitor to identify key lines for tracing.`, `Get sample input based on problem type.`, `Extract function/method name and class name from code.` to the rest of the system?**
   _20 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**

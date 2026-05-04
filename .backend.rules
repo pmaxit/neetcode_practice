@@ -1,0 +1,15 @@
+# Backend & API Rules
+
+## Architecture
+- **Stack:** Express 5 + Sequelize 6.
+- **Database:** MySQL 8 (Cloud SQL).
+- **ORM:** Use Sequelize models for all DB operations.
+
+## Patterns
+- Keep `server.js` for core routes and middleware.
+- Use `scripts/` for data utilities, seeding, and migrations.
+- Ensure all API responses follow the existing format (e.g., `{ success: true, data: ... }`).
+
+## Security
+- Use JWT for authentication where required.
+- Environment variables must be used for all secrets (never hardcoded).
